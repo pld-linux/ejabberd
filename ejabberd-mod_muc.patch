@@ -1,0 +1,12 @@
+diff -ur o-ejabberd-0.7.5/src/mod_muc/mod_muc_room.erl ejabberd-0.7.5/src/mod_muc/mod_muc_room.erl
+--- o-ejabberd-0.7.5/src/mod_muc/mod_muc_room.erl	2004-10-08 14:40:28.000000000 -0600
++++ ejabberd-0.7.5/src/mod_muc/mod_muc_room.erl	2005-02-17 10:29:25.316538420 -0700
+@@ -300,7 +300,7 @@
+ 		    {result, Res, SD} ->
+ 			{IQ#iq{type = result,
+ 			       sub_el = [{xmlelement, "query",
+-					  [{"xmlns", XMLNS}],
++					  [{"xmlns", XMLNS}, {"type", "form"}],
+ 					  Res
+ 					 }]},
+ 			 SD};
