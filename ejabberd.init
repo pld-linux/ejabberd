@@ -50,6 +50,7 @@ case "$1" in
         ;;
   restart)
         $0 stop
+	sleep 2
 	$0 start
         ;;
   reload)
@@ -63,7 +64,7 @@ case "$1" in
 	fi
 	;;
   force-reload)
-	$0 stop && $0 start
+	$0 stop && sleep 2 && $0 start
 	;;
   status)
   	EPMDOUT=`/usr/lib/erlang/bin/epmd -names`
