@@ -25,8 +25,8 @@ Requires:	erlang
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
-ejabberd is a Free and Open Source fault-tolerant distributed Jabber server. It
-is written mostly in Erlang.
+ejabberd is a Free and Open Source fault-tolerant distributed Jabber
+server. It is written mostly in Erlang.
 
 %prep
 %setup -q
