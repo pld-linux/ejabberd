@@ -2,7 +2,7 @@ Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	0.7.5
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.jabberstudio.org/files/ejabberd/%{name}-%{version}.tar.gz
@@ -70,6 +70,13 @@ if [ -f /etc/jabber/secret ] ; then
 		echo "Updating component authentication secret in ejabberd config file..."
 		perl -pi -e "s/>secret</$SECRET/" /etc/jabber/ejabberd.cfg
 	fi
+fi
+
+if [ ! -f /etc/jabber/cookie ] ; then
+        echo "Generating erl authentication cookie..."
+        umask 066
+        perl -e 'open R,"/dev/urandom"; read R,$r,16;
+                printf "%02x",ord(chop $r) while($r);' > /etc/jabber/cookie
 fi
 
 /sbin/chkconfig --add ejabberd
