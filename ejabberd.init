@@ -28,46 +28,42 @@ case "$1" in
 		fi
 	else
 		msg_already_running ejabberd
-		exit 1
 	fi
-        ;;
+	;;
   stop)
-        # Stop daemons.
+	# Stop daemons.
 	if [ -f /var/lock/subsys/ejabberd ]; then
 		msg_stopping ejabberd
 		/usr/sbin/ejabberdctl ejabberd@`hostname` stop 2>/dev/null
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
-		    ok
+			ok
 		else
-		    fail
+			fail
 		fi
 		rm -f /var/lock/subsys/ejabberd
 	else
 		msg_not_running ejabberd
-		exit 1
 	fi	
-        ;;
+	;;
   restart)
-        $0 stop
+	$0 stop
 	sleep 2
 	$0 start
-        ;;
-  reload)
+	;;
+  reload|force-reload)
 	if [ -f /var/lock/subsys/ejabberd ]; then
 		msg_reloading ejabberd
 		/usr/sbin/ejabberdctl ejabberd@`hostname` restart
 		RETVAL=$?
+		[ RETVAL -gt 0 ] && RETVAL=1
 	else
-		msg_not_running ejabberd
-		RETVAL=1
+		msg_not_running ejabberd >&2
+		RETVAL=7
 	fi
 	;;
-  force-reload)
-	$0 stop && sleep 2 && $0 start
-	;;
   status)
-  	EPMDOUT=`/usr/lib/erlang/bin/epmd -names`
+	EPMDOUT=`/usr/lib/erlang/bin/epmd -names`
 	echo "$EPMDOUT" | head -n 1
 	echo "$EPMDOUT" | grep ejabberd
 	RETVAL=$?
@@ -80,10 +76,10 @@ case "$1" in
 			RETVAL=3
 		fi
 	fi
-        ;;
+	;;
   *)
 	msg_usage "$0 {start|stop|status|restart|reload|force-reload}"
-        exit 1
+	exit 3
 esac
 
 exit $RETVAL
