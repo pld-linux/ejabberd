@@ -54,11 +54,11 @@ install -d $RPM_BUILD_ROOT{/var/lib/%{name},/etc/{sysconfig,rc.d/init.d},%{_sbin
 %{__make} -C src install \
 	DESTDIR=$RPM_BUILD_ROOT 
 
-install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
+sed -e's,@libdir@,%{_libdir},g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
-install %{SOURCE3} $RPM_BUILD_ROOT/%{_sbindir}/%{name}
-install %{SOURCE4} $RPM_BUILD_ROOT/%{_sbindir}/%{name}ctl
+sed -e's,@libdir@,%{_libdir},g' %{SOURCE3} > $RPM_BUILD_ROOT/%{_sbindir}/%{name}
+sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT/%{_sbindir}/%{name}ctl
 
 %clean
 rm -rf $RPM_BUILD_ROOT
