@@ -1,5 +1,5 @@
-#
 Summary:	Fault-tolerant distributed Jabber/XMPP server
+Summary(pl):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	0.7
 Release:	0.1
@@ -28,6 +28,10 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 ejabberd is a Free and Open Source fault-tolerant distributed Jabber
 server. It is written mostly in Erlang.
 
+%description -l pl
+ejabberd to darmowy, z otwartymi ¼ród³ami, odporny na awarie
+rozproszony serwer Jabbera. Jest napisany w wiêkszo¶ci w Erlangu.
+
 %prep
 %setup -q
 %patch0 -p1
@@ -43,10 +47,8 @@ cd ..
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/var/lib/%{name},/etc/{sysconfig,rc.d/init.d},%{_sbindir}}
 
-cd src
-%{__make} install \
+%{__make} -C src install \
 	DESTDIR=$RPM_BUILD_ROOT 
-cd ..
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
