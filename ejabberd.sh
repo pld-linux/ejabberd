@@ -3,7 +3,7 @@
 umask 007 || exit $?
 cd /var/lib/ejabberd || exit $?
 
-COMMAND="setsid erl -pa /usr/lib/ejabberd/ebin \
+COMMAND="setsid erl -pa @libdir@/ejabberd/ebin \
       -sname ejabberd \
       -s ejabberd \
       -ejabberd config \\\"/etc/jabber/ejabberd.cfg\\\" \

@@ -69,7 +69,7 @@ case "$1" in
 	fi
 	;;
   status)
-	EPMDOUT=`/usr/lib/erlang/bin/epmd -names`
+	EPMDOUT=`@libdir@/erlang/bin/epmd -names`
 	echo "$EPMDOUT" | head -n 1
 	echo "$EPMDOUT" | grep ejabberd
 	RETVAL=$?

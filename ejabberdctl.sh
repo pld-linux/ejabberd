@@ -2,7 +2,7 @@
 
 cd /var/lib/ejabberd || exit $?
 
-COMMAND="erl -pa /usr/lib/ejabberd/ebin \
+COMMAND="erl -pa @libdir@/ejabberd/ebin \
       -noinput \
       -sname ejabberdctl \
       -s ejabberd_ctl \
