@@ -2,7 +2,7 @@ Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	0.7
-Release:	0.1
+Release:	0.5
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.jabberstudio.org/files/ejabberd/%{name}-%{version}.tar.gz
@@ -12,6 +12,7 @@ Source2:	%{name}.sysconfig
 Source3:	%{name}.sh
 Source4:	%{name}ctl.sh
 Patch0:		%{name}-makefile.patch
+Patch1:		%{name}-config.patch
 URL:		http://ejabberd.jabberstudio.org/
 BuildRequires:	autoconf
 BuildRequires:	erlang >= R8B
@@ -35,6 +36,7 @@ rozproszony serwer Jabbera. Jest napisany w wiêkszo¶ci w Erlangu.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
 %build
 cd src
@@ -87,7 +89,7 @@ fi
 %defattr(644,root,root,755)
 %doc ChangeLog TODO doc
 %attr(755,root,root) %{_sbindir}/*
-/etc/jabber/*
+%attr(640,root,jabber) %config(noreplace) %verify(not md5 size mtime) /etc/jabber/*
 %attr(776,root,jabber) /var/log/ejabberd
 %{_libdir}/ejabberd
 %dir %attr(770,root,jabber) /var/lib/ejabberd
