@@ -1,18 +1,19 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	0.7
+Version:	0.7.5
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.jabberstudio.org/files/ejabberd/%{name}-%{version}.tar.gz
-# Source0-md5:	dfec9573263de8729213993f015cfac9
+# Source0-md5:	c9f900ed535cb446e8b567048514c705
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.sh
 Source4:	%{name}ctl.sh
 Patch0:		%{name}-makefile.patch
 Patch1:		%{name}-config.patch
+Patch2:		%{name}-64bit_fix.patch
 URL:		http://ejabberd.jabberstudio.org/
 BuildRequires:	autoconf
 BuildRequires:	erlang >= R8B
@@ -37,6 +38,7 @@ rozproszony serwer Jabbera. Jest napisany w wiêkszo¶ci w Erlangu.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 %build
 cd src
@@ -66,7 +68,7 @@ if [ -f /etc/jabber/secret ] ; then
 	SECRET=`cat /etc/jabber/secret`
 	if [ -n "$SECRET" ] ; then
 		echo "Updating component authentication secret in ejabberd config file..."
-		perl -pi -e "s/>secret</>$SECRET</" /etc/jabber/ejabberd.cfg
+		perl -pi -e "s/>secret</$SECRET/" /etc/jabber/ejabberd.cfg
 	fi
 fi
 
@@ -87,7 +89,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc ChangeLog TODO doc
+%doc ChangeLog doc
 %attr(755,root,root) %{_sbindir}/*
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 size mtime) /etc/jabber/*
 %attr(770,root,jabber) /var/log/ejabberd
