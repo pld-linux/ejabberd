@@ -14,6 +14,7 @@ Source4:	%{name}ctl.sh
 Patch0:		%{name}-makefile.patch
 Patch1:		%{name}-config.patch
 Patch2:		%{name}-64bit_fix.patch
+Patch3:		%{name}-mod_muc.patch
 URL:		http://ejabberd.jabberstudio.org/
 BuildRequires:	autoconf
 BuildRequires:	erlang >= R8B
@@ -39,6 +40,7 @@ rozproszony serwer Jabbera. Jest napisany w wiêkszo¶ci w Erlangu.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 cd src
