@@ -90,7 +90,7 @@ fi
 %doc ChangeLog TODO doc
 %attr(755,root,root) %{_sbindir}/*
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 size mtime) /etc/jabber/*
-%attr(776,root,jabber) /var/log/ejabberd
+%attr(770,root,jabber) /var/log/ejabberd
 %{_libdir}/ejabberd
 %dir %attr(770,root,jabber) /var/lib/ejabberd
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
