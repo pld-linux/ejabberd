@@ -1,0 +1,91 @@
+#!/bin/sh
+#
+# ejabberd	Fault-tolerant distributed Jabber/XMPP server
+#
+# chkconfig:	345 99 01
+#
+# description:	Fault-tolerant distributed Jabber/XMPP server
+#
+
+
+# Source function library
+. /etc/rc.d/init.d/functions
+
+# Get service config - may override defaults
+[ -f /etc/sysconfig/ejabberd ] && . /etc/sysconfig/ejabberd
+
+# See how we were called.
+case "$1" in
+  start)
+	# Check if the service is already running?
+	if [ ! -f /var/lock/subsys/ejabberd ]; then
+		export ERL_MAX_PORTS ERL_FULLSWEEP_AFTER
+		msg_starting ejabberd
+		daemon /usr/sbin/ejabberd
+		RETVAL=$?
+		if [ $RETVAL -eq 0 ]; then
+			touch /var/lock/subsys/ejabberd
+		fi
+	else
+		msg_already_running ejabberd
+		exit 1
+	fi
+        ;;
+  stop)
+        # Stop daemons.
+	if [ -f /var/lock/subsys/ejabberd ]; then
+		msg_stopping ejabberd
+		/usr/sbin/ejabberdctl ejabberd@`hostname` stop 2>/dev/null
+		RETVAL=$?
+		if [ $RETVAL -eq 0 ]; then
+		    ok
+		else
+		    fail
+		fi
+		rm -f /var/lock/subsys/ejabberd
+	else
+		msg_not_running ejabberd
+		exit 1
+	fi	
+        ;;
+  restart)
+        $0 stop
+	$0 start
+        ;;
+  reload)
+	if [ -f /var/lock/subsys/ejabberd ]; then
+		msg_reloading ejabberd
+		/usr/sbin/ejabberdctl ejabberd@`hostname` restart
+		RETVAL=$?
+	else
+		msg_not_running ejabberd
+		RETVAL=1
+	fi
+	;;
+  force-reload)
+	$0 stop && $0 start
+	;;
+  status)
+  	EPMDOUT=`/usr/lib/erlang/bin/epmd -names`
+	echo "$EPMDOUT" | head -n 1
+	echo "$EPMDOUT" | grep ejabberd
+	RETVAL=$?
+	if [ "$RETVAL" -ne "0" ] ; then
+		if [ -f /var/lock/subsys/ejabberd ]; then
+			nls "%s dead but subsys locked" "ejabberd"
+			RETVAL=2
+		else
+			nls "%s is stopped" "ejabberd"
+			RETVAL=3
+		fi
+	fi
+        ;;
+  *)
+	msg_usage "$0 {start|stop|status|restart|reload|force-reload}"
+        exit 1
+esac
+
+exit $RETVAL
+
+# This must be last line !
+# vi:syntax=sh:tw=78:ts=8:sw=4
