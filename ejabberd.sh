@@ -3,7 +3,10 @@
 umask 007 || exit $?
 cd /var/lib/ejabberd || exit $?
 
+COOKIE=`cat /etc/jabber/cookie`
+
 COMMAND="setsid erl -pa @libdir@/ejabberd/ebin \
+      -setcookie $COOKIE \
       -sname ejabberd \
       -s ejabberd \
       -ejabberd config \\\"/etc/jabber/ejabberd.cfg\\\" \

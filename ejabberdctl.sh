@@ -2,7 +2,10 @@
 
 cd /var/lib/ejabberd || exit $?
 
+COOKIE=`cat /etc/jabber/cookie`
+
 COMMAND="erl -pa @libdir@/ejabberd/ebin \
+      -setcookie $COOKIE \
       -noinput \
       -sname ejabberdctl \
       -s ejabberd_ctl \
