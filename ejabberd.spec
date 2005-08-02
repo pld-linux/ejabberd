@@ -1,12 +1,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	0.9.1
+Version:	0.9.8
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/en/projects/ejabberd/download/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	77b9d1a080b7ed2cf471e28d9cdcdf12
+# Source0-md5:	3270317c66d5df46e20f0ed65cc44f39
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.sh
