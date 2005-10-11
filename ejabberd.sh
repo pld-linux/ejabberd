@@ -12,6 +12,7 @@ COMMAND="setsid erl -pa @libdir@/ejabberd/ebin \
       -ejabberd config \\\"/etc/jabber/ejabberd.cfg\\\" \
       log_path \\\"/var/log/ejabberd/ejabberd.log\\\" \
       -sasl sasl_error_logger \\{file,\\\"/var/log/ejabberd/sasl.log\\\"\\} \
+      -kernel inetrc \\\"/etc/jabber/ejabberd-inetrc\\\" \
       -heart \
       -detached"
 
