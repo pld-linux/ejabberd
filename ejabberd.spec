@@ -20,12 +20,12 @@ BuildRequires:	autoconf
 BuildRequires:	erlang >= R8B
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
-PreReq:		rc-scripts
+Requires(post):	/usr/bin/perl
 Requires(post): jabber-common
 Requires(post):	textutils
-Requires(post):	/usr/bin/perl
 Requires(post,preun):	/sbin/chkconfig
 Requires:	erlang
+Requires:	rc-scripts
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -54,14 +54,14 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/var/lib/%{name},/etc/{sysconfig,rc.d/init.d},%{_sbindir}}
 
 %{__make} -C src install \
-	DESTDIR=$RPM_BUILD_ROOT 
+	DESTDIR=$RPM_BUILD_ROOT
 
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE3} > $RPM_BUILD_ROOT/%{_sbindir}/%{name}
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT/%{_sbindir}/%{name}ctl
-install %{SOURCE5} $RPM_BUILD_ROOT/etc/jabber
+install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/jabber
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -101,9 +101,9 @@ fi
 %defattr(644,root,root,755)
 %doc ChangeLog doc
 %attr(755,root,root) %{_sbindir}/*
-%attr(640,root,jabber) %config(noreplace) %verify(not md5 size mtime) /etc/jabber/*
+%attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/*
 %attr(770,root,jabber) /var/log/ejabberd
 %{_libdir}/ejabberd
 %dir %attr(770,root,jabber) /var/lib/ejabberd
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
-%attr(640,root,root) %config(noreplace) %verify(not md5 size mtime) /etc/sysconfig/%{name}
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
