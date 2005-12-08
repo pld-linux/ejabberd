@@ -44,7 +44,7 @@ case "$1" in
 		rm -f /var/lock/subsys/ejabberd
 	else
 		msg_not_running ejabberd
-	fi	
+	fi
 	;;
   restart)
 	$0 stop
