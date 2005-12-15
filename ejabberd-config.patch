@@ -1,6 +1,6 @@
-diff -dur ejabberd-0.7.5.orig/src/ejabberd.cfg.example ejabberd-0.7.5/src/ejabberd.cfg.example
---- ejabberd-0.7.5.orig/src/ejabberd.cfg.example	2004-10-08 22:40:28.000000000 +0200
-+++ ejabberd-0.7.5/src/ejabberd.cfg.example	2004-10-10 23:49:42.453310527 +0200
+diff -dur -x '*~' ejabberd-1.0.0.orig/src/ejabberd.cfg.example ejabberd-1.0.0/src/ejabberd.cfg.example
+--- ejabberd-1.0.0.orig/src/ejabberd.cfg.example	2005-12-08 22:35:15.000000000 +0100
++++ ejabberd-1.0.0/src/ejabberd.cfg.example	2005-12-15 18:36:10.000000000 +0100
 @@ -1,5 +1,11 @@
  % $Id$
  
@@ -13,19 +13,21 @@ diff -dur ejabberd-0.7.5.orig/src/ejabberd.cfg.example ejabberd-0.7.5/src/ejabbe
  %override_acls.
  
  
-@@ -24,8 +30,9 @@
+@@ -24,10 +30,9 @@
  % Only admins can use configuration interface:
  {access, configure, [{allow, admin}]}.
  
 -% Every username can be registered via in-band registration:
+-% You could replace {allow, all} with {deny, all} to prevent user from using
+-% in-band registration
 -{access, register, [{allow, all}]}.
-+
 +% In-band registration disabled, let the admin decide who will use his server
-+{access, register, [{allow, none}]}.
++% replace "deny, all" with "allow, all" to enable in-band registration
++{access, register, [{deny, all}]}.
  
  % After successful registration user will get message with following subject
  % and body:
-@@ -95,18 +102,29 @@
+@@ -103,18 +108,29 @@
  
  % Listened ports:
  {listen,
@@ -62,4 +64,4 @@ diff -dur ejabberd-0.7.5.orig/src/ejabberd.cfg.example ejabberd-0.7.5/src/ejabbe
 +  {5280, ejabberd_http,    [http_poll, web_admin]}
   ]}.
  
- % If SRV lookup fails, then port 5269 is used to communicate with remote server
+ 
