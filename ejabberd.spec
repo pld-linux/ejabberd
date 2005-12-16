@@ -17,7 +17,7 @@ Patch1:		%{name}-config.patch
 Patch2:		%{name}-mod_muc.patch
 URL:		http://ejabberd.jabberstudio.org/
 BuildRequires:	autoconf
-BuildRequires:	erlang >= R8B
+BuildRequires:	erlang >= R9C
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
 Requires(post):	/usr/bin/perl
