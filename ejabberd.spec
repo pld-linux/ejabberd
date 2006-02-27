@@ -20,8 +20,9 @@ BuildRequires:	autoconf
 BuildRequires:	erlang >= R9C
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
+BuildRequires:	rpmbuild(macros) >= 1.268
 Requires(post):	/usr/bin/perl
-Requires(post): jabber-common
+Requires(post):	jabber-common
 Requires(post):	textutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	erlang
@@ -83,17 +84,11 @@ if [ ! -f /etc/jabber/cookie ] ; then
 fi
 
 /sbin/chkconfig --add ejabberd
-if [ -r /var/lock/subsys/ejabberd ]; then
-	/etc/rc.d/init.d/ejabberd restart >&2
-else
-	echo "Run \"/etc/rc.d/init.d/ejabberd start\" to start ejabberd server."
-fi
+%service ejabberd restart "ejabberd server"
 
 %preun
 if [ "$1" = "0" ]; then
-	if [ -r /var/lock/subsys/ejabberd ]; then
-		/etc/rc.d/init.d/ejabberd stop >&2
-	fi
+	%service ejabberd stop
 	/sbin/chkconfig --del ejabberd
 fi
 
