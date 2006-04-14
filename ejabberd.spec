@@ -23,6 +23,7 @@ BuildRequires:	openssl-devel
 BuildRequires:	rpmbuild(macros) >= 1.268
 Requires(post):	/usr/bin/perl
 Requires(post):	jabber-common
+Requires(post):	sed >= 4.0
 Requires(post):	textutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	erlang
@@ -69,19 +70,19 @@ install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/jabber
 rm -rf $RPM_BUILD_ROOT
 
 %post
-if [ -f /etc/jabber/secret ] ; then
-	SECRET=`cat /etc/jabber/secret`
+if [ -f %{_sysconfdir}/jabber/secret ] ; then
+	SECRET=`cat %{_sysconfdir}/jabber/secret`
 	if [ -n "$SECRET" ] ; then
 		echo "Updating component authentication secret in ejabberd config file..."
-		perl -pi -e "s/>secret</$SECRET/" /etc/jabber/ejabberd.cfg
+		%{__sed} -i -e "s/>secret</>$SECRET</" /etc/jabber/ejabberd.cfg
 	fi
 fi
 
-if [ ! -f /etc/jabber/cookie ] ; then
-        echo "Generating erl authentication cookie..."
-        umask 066
-        perl -e 'open R,"/dev/urandom"; read R,$r,16;
-                printf "%02x",ord(chop $r) while($r);' > /etc/jabber/cookie
+if [ ! -f %{_sysconfdir}/jabber/cookie ] ; then
+	echo "Generating erl authentication cookie..."
+	umask 066
+	perl -e 'open R,"/dev/urandom"; read R,$r,16;
+		printf "%02x",ord(chop $r) while($r);' > %{_sysconfdir}/jabber/cookie
 fi
 
 /sbin/chkconfig --add ejabberd
