@@ -1,12 +1,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	1.0.0
+Version:	1.1.0
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/en/projects/ejabberd/download/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	bc0bfdad2e5e48e42fcc5d09384be74f
+# Source0-md5:	abd310557da32e520c4a3d4f3c97aab1
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.sh
@@ -20,8 +20,10 @@ BuildRequires:	autoconf
 BuildRequires:	erlang >= R9C
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
+BuildRequires:	rpmbuild(macros) >= 1.268
 Requires(post):	/usr/bin/perl
-Requires(post): jabber-common
+Requires(post):	jabber-common
+Requires(post):	sed >= 4.0
 Requires(post):	textutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	erlang
@@ -45,7 +47,8 @@ rozproszony serwer Jabbera. Jest napisany w wiêkszo¶ci w Erlangu.
 %build
 cd src
 %{__autoconf}
-%configure
+%configure \
+	--enable-odbc
 %{__make}
 cd ..
 
@@ -67,39 +70,33 @@ install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/jabber
 rm -rf $RPM_BUILD_ROOT
 
 %post
-if [ -f /etc/jabber/secret ] ; then
-	SECRET=`cat /etc/jabber/secret`
+if [ -f %{_sysconfdir}/jabber/secret ] ; then
+	SECRET=`cat %{_sysconfdir}/jabber/secret`
 	if [ -n "$SECRET" ] ; then
 		echo "Updating component authentication secret in ejabberd config file..."
-		perl -pi -e "s/>secret</$SECRET/" /etc/jabber/ejabberd.cfg
+		%{__sed} -i -e "s/>secret</>$SECRET</" /etc/jabber/ejabberd.cfg
 	fi
 fi
 
-if [ ! -f /etc/jabber/cookie ] ; then
-        echo "Generating erl authentication cookie..."
-        umask 066
-        perl -e 'open R,"/dev/urandom"; read R,$r,16;
-                printf "%02x",ord(chop $r) while($r);' > /etc/jabber/cookie
+if [ ! -f %{_sysconfdir}/jabber/cookie ] ; then
+	echo "Generating erl authentication cookie..."
+	umask 066
+	perl -e 'open R,"/dev/urandom"; read R,$r,16;
+		printf "%02x",ord(chop $r) while($r);' > %{_sysconfdir}/jabber/cookie
 fi
 
 /sbin/chkconfig --add ejabberd
-if [ -r /var/lock/subsys/ejabberd ]; then
-	/etc/rc.d/init.d/ejabberd restart >&2
-else
-	echo "Run \"/etc/rc.d/init.d/ejabberd start\" to start ejabberd server."
-fi
+%service ejabberd restart "ejabberd server"
 
 %preun
 if [ "$1" = "0" ]; then
-	if [ -r /var/lock/subsys/ejabberd ]; then
-		/etc/rc.d/init.d/ejabberd stop >&2
-	fi
+	%service ejabberd stop
 	/sbin/chkconfig --del ejabberd
 fi
 
 %files
 %defattr(644,root,root,755)
-%doc ChangeLog doc
+%doc ChangeLog doc src/odbc/pg.sql
 %attr(755,root,root) %{_sbindir}/*
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/*
 %attr(770,root,jabber) /var/log/ejabberd
