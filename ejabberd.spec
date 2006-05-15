@@ -21,6 +21,7 @@ BuildRequires:	erlang >= R9C
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
 BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	zlib-devel
 Requires(post):	/usr/bin/perl
 Requires(post):	jabber-common
 Requires(post):	sed >= 4.0
