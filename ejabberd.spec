@@ -15,7 +15,7 @@ Source5:	%{name}-inetrc
 Patch0:		%{name}-makefile.patch
 Patch1:		%{name}-config.patch
 Patch2:		%{name}-mod_muc.patch
-URL:		http://ejabberd.jabberstudio.org/
+URL:		http://ejabberd.jabber.ru/
 BuildRequires:	autoconf
 BuildRequires:	erlang >= R9C
 BuildRequires:	expat-devel >= 1.95
