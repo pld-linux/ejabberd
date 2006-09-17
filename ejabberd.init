@@ -64,7 +64,7 @@ case "$1" in
 		    fail
 		fi
 	else
-		msg_not_running ejabberd >&2
+		msg_not_running ejabberd
 		RETVAL=7
 	fi
 	;;
