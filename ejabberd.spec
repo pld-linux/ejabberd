@@ -1,5 +1,5 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
-Summary(pl):	Odporny na awarie rozproszony serwer Jabbera/XMPP
+Summary(pl.UTF-8):   Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	1.1.3
 Release:	1
@@ -35,9 +35,9 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 ejabberd is a Free and Open Source fault-tolerant distributed Jabber
 server. It is written mostly in Erlang.
 
-%description -l pl
-ejabberd to darmowy, z otwartymi ¼ród³ami, odporny na awarie
-rozproszony serwer Jabbera. Jest napisany w wiêkszo¶ci w Erlangu.
+%description -l pl.UTF-8
+ejabberd to darmowy, z otwartymi ÅºrÃ³dÅ‚ami, odporny na awarie
+rozproszony serwer Jabbera. Jest napisany w wiÄ™kszoÅ›ci w Erlangu.
 
 %prep
 %setup -q
