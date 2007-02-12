@@ -1,5 +1,5 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
-Summary(pl.UTF-8):   Odporny na awarie rozproszony serwer Jabbera/XMPP
+Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	1.1.3
 Release:	1
