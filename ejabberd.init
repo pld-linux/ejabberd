@@ -14,6 +14,8 @@
 # Get service config - may override defaults
 [ -f /etc/sysconfig/ejabberd ] && . /etc/sysconfig/ejabberd
 
+[ -z "$NODENAME" ] && NODENAME=$(hostname)
+
 start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/ejabberd ]; then
@@ -33,7 +35,7 @@ stop() {
 	# Stop daemons.
 	if [ -f /var/lock/subsys/ejabberd ]; then
 		msg_stopping ejabberd
-		/usr/sbin/ejabberdctl ejabberd@`hostname` stop 2>/dev/null
+		/usr/sbin/ejabberdctl ejabberd@${NODENAME} stop 2>/dev/null
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
 			ok
@@ -63,7 +65,7 @@ case "$1" in
 	if [ -f /var/lock/subsys/ejabberd ]; then
 		msg_reloading ejabberd
 		busy
-		/usr/sbin/ejabberdctl ejabberd@`hostname` restart
+		/usr/sbin/ejabberdctl ejabberd@${NODENAME} restart
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
 		    ok
