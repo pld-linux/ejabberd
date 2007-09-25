@@ -1,12 +1,16 @@
+#
+# Conditional build:
+%bcond_with	pam		# PAM authentication support
+#
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	1.1.3
+Version:	1.1.4
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/en/projects/ejabberd/download/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	bdb39965a147506fc194d5a28117172a
+# Source0-md5:	65e9cd346f11a28afbacfe1d7be3a33b
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.sh
@@ -15,11 +19,16 @@ Source5:	%{name}-inetrc
 Patch0:		%{name}-makefile.patch
 Patch1:		%{name}-config.patch
 Patch2:		%{name}-mod_muc.patch
+Patch3:		%{name}-auth_pam.patch
+Patch4:		%{name}-show_certificate_chain.patch
 URL:		http://ejabberd.jabber.ru/
 BuildRequires:	autoconf
 BuildRequires:	erlang >= R9C
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
+%if %{with pam}
+BuildRequires:	pam-devel
+%endif
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	zlib-devel
 Requires(post):	/usr/bin/perl
@@ -44,12 +53,17 @@ rozproszony serwer Jabbera. Jest napisany w większości w Erlangu.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%if %{with pam}
+cd src/
+%patch3 -p0
+%endif
+%patch4 -p1
 
 %build
 cd src
 %{__autoconf}
 %configure \
-	--enable-odbc
+	--enable-odbc %{?with_pam --enable-pam}
 %{__make}
 cd ..
 
