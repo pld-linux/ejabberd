@@ -1,12 +1,13 @@
 #
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
+%bcond_with	logdb		# enable mod_logdb (server-side message logging)
 #
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	1.1.4
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/en/projects/ejabberd/download/%{version}/%{name}-%{version}.tar.gz
@@ -21,6 +22,7 @@ Patch1:		%{name}-config.patch
 Patch2:		%{name}-mod_muc.patch
 Patch3:		%{name}-auth_pam.patch
 Patch4:		%{name}-show_certificate_chain.patch
+Patch5:		%{name}-mod_logdb.patch
 URL:		http://ejabberd.jabber.ru/
 BuildRequires:	autoconf
 BuildRequires:	erlang >= R9C
@@ -58,6 +60,9 @@ cd src/
 %patch3 -p0
 %endif
 %patch4 -p1
+%if %{with logdb}
+%patch5 -p0
+%endif
 
 %build
 cd src
