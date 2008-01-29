@@ -2,7 +2,7 @@
 SERVICE_RUN_NICE_LEVEL="+0"
 
 # Node name
-#NODE="nodename"
+NODENAME="localhost"
 
 # uncomment this to allow more then 1024 connections (increases memory usage)
 #ERL_MAX_PORTS=32000
