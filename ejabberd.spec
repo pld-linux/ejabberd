@@ -1,25 +1,44 @@
+#
+# TODO:
+#	- drop or update logdb bcond (the patch doesn't apply to 2.0.0)
+#
+# Conditional build:
+%bcond_with	pam		# PAM authentication support
+%bcond_with	logdb		# enable mod_logdb (server-side message logging)
+#
+%define	_alt_name	%{nil}
+%if %{with logdb}
+%define	_alt_name	-logdb
+%endif
+
+%define	realname	ejabberd
+
 Summary:	Fault-tolerant distributed Jabber/XMPP server
-Summary(pl):	Odporny na awarie rozproszony serwer Jabbera/XMPP
-Name:		ejabberd
-Version:	1.1.2
+Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
+Name:		%{realname}%{_alt_name}
+Version:	2.0.0
 Release:	1
 License:	GPL
 Group:		Applications/Communications
-Source0:	http://www.process-one.net/en/projects/ejabberd/download/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	5b947e19e18a6b554bf31d1c95176eb6
-Source1:	%{name}.init
-Source2:	%{name}.sysconfig
-Source3:	%{name}.sh
-Source4:	%{name}ctl.sh
-Source5:	%{name}-inetrc
-Patch0:		%{name}-makefile.patch
-Patch1:		%{name}-config.patch
-Patch2:		%{name}-mod_muc.patch
+Source0:	http://www.process-one.net/en/projects/ejabberd/download/%{version}/%{realname}-%{version}.tar.gz
+# Source0-md5:	93b21f2fa0ca6074bd22ab924e7dced8
+Source1:	%{realname}.init
+Source2:	%{realname}.sysconfig
+Source3:	%{realname}.sh
+Source4:	%{realname}ctl.sh
+Source5:	%{realname}-inetrc
+Patch0:		%{realname}-makefile.patch
+Patch1:		%{realname}-config.patch
+Patch2:		%{realname}-mod_muc.patch
+Patch3:		%{realname}-mod_logdb.patch
 URL:		http://ejabberd.jabber.ru/
 BuildRequires:	autoconf
-BuildRequires:	erlang >= R9C
+BuildRequires:	erlang >= R10B_5
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
+%if %{with pam}
+BuildRequires:	pam-devel
+%endif
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	zlib-devel
 Requires(post):	/usr/bin/perl
@@ -29,42 +48,52 @@ Requires(post):	textutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	erlang
 Requires:	rc-scripts
+%if %{with logdb}
+Obsoletes:	ejabberd
+Conflicts:	ejabberd
+%else
+Obsoletes:	ejabberd-logdb
+Conflicts:	ejabberd-logdb
+%endif
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 ejabberd is a Free and Open Source fault-tolerant distributed Jabber
 server. It is written mostly in Erlang.
 
-%description -l pl
-ejabberd to darmowy, z otwartymi ¼ród³ami, odporny na awarie
-rozproszony serwer Jabbera. Jest napisany w wiêkszo¶ci w Erlangu.
+%description -l pl.UTF-8
+ejabberd to darmowy, z otwartymi ÅºrÃ³dÅ‚ami, odporny na awarie
+rozproszony serwer Jabbera. Jest napisany w wiÄ™kszoÅ›ci w Erlangu.
 
 %prep
-%setup -q
+%setup -q -n %{realname}-%{version}
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
+%if %{with logdb}
+%patch3 -p0
+%endif
 
 %build
 cd src
 %{__autoconf}
 %configure \
-	--enable-odbc
+	--enable-odbc %{?with_pam --enable-pam}
 %{__make}
 cd ..
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/var/lib/%{name},/etc/{sysconfig,rc.d/init.d},%{_sbindir}}
+install -d $RPM_BUILD_ROOT{/var/lib/%{realname},/etc/{sysconfig,rc.d/init.d},%{_sbindir}}
 
 %{__make} -C src install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-sed -e's,@libdir@,%{_libdir},g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
+sed -e's,@libdir@,%{_libdir},g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{realname}
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{realname}
 
-sed -e's,@libdir@,%{_libdir},g' %{SOURCE3} > $RPM_BUILD_ROOT%{_sbindir}/%{name}
-sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT%{_sbindir}/%{name}ctl
+sed -e's,@libdir@,%{_libdir},g' %{SOURCE3} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}
+sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}ctl
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/jabber
 
 %clean
@@ -103,5 +132,5 @@ fi
 %attr(770,root,jabber) /var/log/ejabberd
 %{_libdir}/ejabberd
 %dir %attr(770,root,jabber) /var/lib/ejabberd
-%attr(754,root,root) /etc/rc.d/init.d/%{name}
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
+%attr(754,root,root) /etc/rc.d/init.d/%{realname}
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{realname}
