@@ -1,4 +1,7 @@
 #
+# TODO:
+#	- drop or update logdb bcond (the patch doesn't apply to 2.0.0)
+#
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
 %bcond_with	logdb		# enable mod_logdb (server-side message logging)
@@ -13,12 +16,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		%{realname}%{_alt_name}
-Version:	1.1.4
-Release:	2
+Version:	2.0.0
+Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/en/projects/ejabberd/download/%{version}/%{realname}-%{version}.tar.gz
-# Source0-md5:	65e9cd346f11a28afbacfe1d7be3a33b
+# Source0-md5:	93b21f2fa0ca6074bd22ab924e7dced8
 Source1:	%{realname}.init
 Source2:	%{realname}.sysconfig
 Source3:	%{realname}.sh
@@ -27,12 +30,10 @@ Source5:	%{realname}-inetrc
 Patch0:		%{realname}-makefile.patch
 Patch1:		%{realname}-config.patch
 Patch2:		%{realname}-mod_muc.patch
-Patch3:		%{realname}-auth_pam.patch
-Patch4:		%{realname}-show_certificate_chain.patch
-Patch5:		%{realname}-mod_logdb.patch
+Patch3:		%{realname}-mod_logdb.patch
 URL:		http://ejabberd.jabber.ru/
 BuildRequires:	autoconf
-BuildRequires:	erlang >= R9C
+BuildRequires:	erlang >= R10B_5
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
 %if %{with pam}
@@ -69,13 +70,8 @@ rozproszony serwer Jabbera. Jest napisany w większości w Erlangu.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
-%if %{with pam}
-cd src/
-%patch3 -p0
-%endif
-%patch4 -p1
 %if %{with logdb}
-%patch5 -p0
+%patch3 -p0
 %endif
 
 %build
