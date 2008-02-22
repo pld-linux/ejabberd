@@ -1,9 +1,8 @@
-diff -dur -x '*~' ejabberd-1.1.0.orig/src/Makefile.in ejabberd-1.1.0/src/Makefile.in
---- ejabberd-1.1.0.orig/src/Makefile.in	2006-04-01 18:06:36.000000000 +0200
-+++ ejabberd-1.1.0/src/Makefile.in	2006-04-26 10:32:28.000000000 +0200
-@@ -34,13 +34,13 @@
+--- ejabberd-2.0.0/src/Makefile.in.orig	2008-02-21 11:02:12.000000000 +0100
++++ ejabberd-2.0.0/src/Makefile.in	2008-02-22 14:52:47.000000000 +0100
+@@ -50,13 +50,13 @@
  
- DESTDIR = 
+ DESTDIR =
  
 -EJABBERDDIR = $(DESTDIR)@prefix@/var/lib/ejabberd
 +EJABBERDDIR = $(DESTDIR)@libdir@/ejabberd
@@ -15,6 +14,6 @@ diff -dur -x '*~' ejabberd-1.1.0.orig/src/Makefile.in ejabberd-1.1.0/src/Makefil
 -ETCDIR = $(DESTDIR)@prefix@/etc/ejabberd
 +LOGDIR = $(DESTDIR)/var/log/ejabberd
 +ETCDIR = $(DESTDIR)/etc/jabber
+ SBINDIR = $(DESTDIR)@prefix@/sbin
  
- ASN_FLAGS = -bber_bin +der +compact_bit_string +optimize +noobj
- 
+ ifeq ($(shell uname),Darwin)
