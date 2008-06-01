@@ -38,15 +38,15 @@
  
    {5280, ejabberd_http, [
  			 http_poll, 
-@@ -374,9 +382,9 @@
+@@ -391,9 +391,9 @@
  %% All users are allowed to use MUC service:
  {access, muc, [{allow, all}]}.
  
--%% Every username can be registered via in-band registration:
+-%% In-band registration allows registration of any possible username.
 -%% To disable in-band registration, replace 'allow' with 'deny'.
 -{access, register, [{allow, all}]}.
-+%% In-band registration disabled, let the admin decide who will use his server
-+%% replace "deny, all" with "allow, all" to enable in-band registration
++%% In-band registration disabled.
++%% To enable  in-band registration, replace 'deny' with 'allow'.
 +{access, register, [{deny, all}]}.
  
  %% Everybody can create pubsub nodes
