@@ -31,6 +31,7 @@ Patch0:		%{realname}-makefile.patch
 Patch1:		%{realname}-config.patch
 Patch2:		%{realname}-mod_muc.patch
 Patch3:		%{realname}-mod_logdb.patch
+Patch4:		%{realname}-webadmin.patch
 URL:		http://ejabberd.jabber.ru/
 BuildRequires:	autoconf
 BuildRequires:	erlang >= R10B_5
@@ -73,6 +74,7 @@ rozproszony serwer Jabbera. Jest napisany w większości w Erlangu.
 %if %{with logdb}
 %patch3 -p0
 %endif
+%patch4 -p0
 
 %build
 cd src
