@@ -79,14 +79,14 @@ cd src
 %{__autoconf}
 %configure \
 	--enable-odbc %{?with_pam --enable-pam}
-%{__make}
+%{__make} -j1
 cd ..
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/var/lib/%{realname},/etc/{sysconfig,rc.d/init.d},%{_sbindir}}
 
-%{__make} -C src install \
+%{__make} -C src install -j1 \
 	DESTDIR=$RPM_BUILD_ROOT
 
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{realname}
