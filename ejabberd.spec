@@ -12,17 +12,16 @@
 %endif
 
 %define	realname	ejabberd
-%define		rev	r1477
 
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		%{realname}%{_alt_name}
 Version:	2.0.1
-Release:	0.%{rev}.1
+Release:	3
 License:	GPL
 Group:		Applications/Communications
-Source0:	ejabberd-svn-%{rev}.tar.gz
-# Source0-md5:	7163ba0bf21ea892cfde9f113916ca7e
+Source0:	http://www.process-one.net/en/projects/ejabberd/download/%{version}/%{realname}-%{version}_2.tar.gz
+# Source0-md5:	9c9417ab8dc334094ec7a611016c726e
 Source1:	%{realname}.init
 Source2:	%{realname}.sysconfig
 Source3:	%{realname}.sh
@@ -67,7 +66,7 @@ ejabberd to darmowy, z otwartymi źródłami, odporny na awarie
 rozproszony serwer Jabbera. Jest napisany w większości w Erlangu.
 
 %prep
-%setup -q -n %{realname}
+%setup -q -n %{realname}-%{version}
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
@@ -94,7 +93,7 @@ sed -e's,@libdir@,%{_libdir},g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{r
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{realname}
 
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE3} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}
-#sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}ctl
+sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}ctl
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/jabber
 
 %clean
