@@ -94,7 +94,8 @@ sed -e's,@libdir@,%{_libdir},g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{r
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{realname}
 
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE3} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}
-#sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}ctl
+rm -f $RPM_BUILD_ROOT%{_sbindir}/%{realname}ctl
+sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}ctl
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/jabber
 
 %clean
