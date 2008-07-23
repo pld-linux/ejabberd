@@ -1,19 +1,22 @@
---- ejabberd-2.0.0/src/Makefile.in.orig	2008-02-21 11:02:12.000000000 +0100
-+++ ejabberd-2.0.0/src/Makefile.in	2008-02-22 14:52:47.000000000 +0100
-@@ -56,14 +56,14 @@
- 
+diff -ur ejabberd/src/Makefile.in ejabberd.new/src/Makefile.in
+--- ejabberd/src/Makefile.in	2008-07-22 20:46:21.436869256 +0200
++++ ejabberd.new/src/Makefile.in	2008-07-22 20:54:06.653072763 +0200
+@@ -74,7 +74,7 @@
  DESTDIR =
  
--EJABBERDDIR = $(DESTDIR)@localstatedir@/lib/ejabberd
-+EJABBERDDIR = $(DESTDIR)@libdir@/ejabberd
- BEAMDIR = $(EJABBERDDIR)/ebin
- PRIVDIR = $(EJABBERDDIR)/priv
- SODIR = $(PRIVDIR)/lib
- PBINDIR = $(PRIVDIR)/bin
- MSGSDIR = $(PRIVDIR)/msgs
- LOGDIR = $(DESTDIR)@localstatedir@/log/ejabberd
+ # /etc/ejabberd/
 -ETCDIR = $(DESTDIR)@sysconfdir@/ejabberd
 +ETCDIR = $(DESTDIR)@sysconfdir@/jabber
- SBINDIR = $(DESTDIR)@sbindir@
  
- ifeq ($(shell uname),Darwin)
+ # /sbin/
+ SBINDIR = $(DESTDIR)@sbindir@
+@@ -85,7 +85,7 @@
+ # /share/doc/ejabberd
+ PACKAGE_TARNAME = @PACKAGE_TARNAME@
+ datarootdir = @datarootdir@
+-DOCDIR = @docdir@
++DOCDIR = $(DESTDIR)@docdir@
+ 
+ # /usr/lib/ejabberd/ebin/
+ BEAMDIR = $(EJABBERDDIR)/ebin
+Tylko w ejabberd.new/src: Makefile.in~
