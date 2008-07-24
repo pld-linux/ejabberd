@@ -17,7 +17,7 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		%{realname}%{_alt_name}
-Version:	2.0.1
+Version:	2.1.0
 Release:	0.%{rev}.1
 License:	GPL
 Group:		Applications/Communications
