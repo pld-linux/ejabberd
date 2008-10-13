@@ -1,14 +1,15 @@
 --- ejabberd-2.0.0/src/Makefile.in.orig	2008-02-21 11:02:12.000000000 +0100
 +++ ejabberd-2.0.0/src/Makefile.in	2008-02-22 14:52:47.000000000 +0100
-@@ -56,14 +56,14 @@
+@@ -58,7 +58,7 @@
  
  DESTDIR =
  
 -EJABBERDDIR = $(DESTDIR)@localstatedir@/lib/ejabberd
 +EJABBERDDIR = $(DESTDIR)@libdir@/ejabberd
  BEAMDIR = $(EJABBERDDIR)/ebin
+ SPOOLDIR = $(EJABBERDDIR)/db
  PRIVDIR = $(EJABBERDDIR)/priv
- SODIR = $(PRIVDIR)/lib
+@@ -66,7 +66,7 @@
  PBINDIR = $(PRIVDIR)/bin
  MSGSDIR = $(PRIVDIR)/msgs
  LOGDIR = $(DESTDIR)@localstatedir@/log/ejabberd
