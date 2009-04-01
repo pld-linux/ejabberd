@@ -1,5 +1,5 @@
---- mod_logdb.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ mod_logdb.erl	2009-02-05 19:19:51.000000000 +0200
+--- src/mod_logdb.erl.orig	2009-02-05 19:21:29.000000000 +0200
++++ src/mod_logdb.erl	2009-02-05 19:19:51.000000000 +0200
 @@ -0,0 +1,2094 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb.erl
@@ -2095,8 +2095,8 @@
 +             ]
 +            )]
 +    end.
---- mod_logdb.hrl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ mod_logdb.hrl	2009-02-05 19:21:02.000000000 +0200
+--- src/mod_logdb.hrl.orig	2009-02-05 19:21:29.000000000 +0200
++++ src/mod_logdb.hrl	2009-02-05 19:21:02.000000000 +0200
 @@ -0,0 +1,35 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb.hrl
@@ -2133,8 +2133,8 @@
 +                      {"name", Name},
 +                      {"value", Value},
 +                      {"checked", "true"}])).
---- mod_logdb_mnesia.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ mod_logdb_mnesia.erl	2009-02-05 19:19:59.000000000 +0200
+--- src/mod_logdb_mnesia.erl.orig	2009-02-05 19:21:29.000000000 +0200
++++ src/mod_logdb_mnesia.erl	2009-02-05 19:19:59.000000000 +0200
 @@ -0,0 +1,546 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mnesia.erl
@@ -2682,8 +2682,8 @@
 +               {type, bag},
 +               {attributes, record_info(fields, msg)},
 +               {record_name, msg}]).
---- mod_logdb_mysql.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ mod_logdb_mysql.erl	2009-02-05 19:20:23.000000000 +0200
+--- src/mod_logdb_mysql.erl.orig	2009-02-05 19:21:29.000000000 +0200
++++ src/mod_logdb_mysql.erl	2009-02-05 19:20:23.000000000 +0200
 @@ -0,0 +1,1052 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql.erl
@@ -3737,8 +3737,8 @@
 +get_result({error, MySQLRes}) ->
 +    Reason = mysql:get_result_reason(MySQLRes),
 +    {error, Reason}.
---- mod_logdb_mysql5.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ mod_logdb_mysql5.erl	2009-02-05 19:20:14.000000000 +0200
+--- src/mod_logdb_mysql5.erl.orig	2009-02-05 19:21:29.000000000 +0200
++++ src/mod_logdb_mysql5.erl	2009-02-05 19:20:14.000000000 +0200
 @@ -0,0 +1,978 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql5.erl
@@ -4718,8 +4718,8 @@
 +      END IF;
 +   END IF;
 +END;", [logmessage_name(VHost),UName,UName,UName,UName,SName,SName,RName,RName,UName,UName,SName,RName,StName,StName]).
---- mod_logdb_pgsql.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ mod_logdb_pgsql.erl	2009-02-05 19:20:29.000000000 +0200
+--- src/mod_logdb_pgsql.erl.orig	2009-02-05 19:21:29.000000000 +0200
++++ src/mod_logdb_pgsql.erl	2009-02-05 19:20:29.000000000 +0200
 @@ -0,0 +1,1078 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_pgsql.erl
@@ -5799,8 +5799,8 @@
 +get_result(Rez) ->
 +    {error, undefined, Rez}.
 +
---- mod_logdb_mnesia_old.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ mod_logdb_mnesia_old.erl	2009-02-05 19:20:07.000000000 +0200
+--- src/mod_logdb_mnesia_old.erl.orig	2009-02-05 19:21:29.000000000 +0200
++++ src/mod_logdb_mnesia_old.erl	2009-02-05 19:20:07.000000000 +0200
 @@ -0,0 +1,258 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mnesia_old.erl
@@ -6060,8 +6060,8 @@
 +             ?ERROR_MSG("Failed to create stats table: ~p", [Reason]),
 +             error
 +    end.
---- gen_logdb.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ gen_logdb.erl	2009-02-05 19:19:39.000000000 +0200
+--- src/gen_logdb.erl.orig	2009-02-05 19:21:29.000000000 +0200
++++ src/gen_logdb.erl	2009-02-05 19:19:39.000000000 +0200
 @@ -0,0 +1,164 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : gen_logdb.erl
@@ -6227,8 +6227,8 @@
 +   ];
 +behaviour_info(_) ->
 +   undefined.
---- web/ejabberd_web_admin-2.0.3.erl	2009-02-03 08:27:39.000000000 +0200
-+++ web/ejabberd_web_admin.erl	2009-02-03 08:40:57.000000000 +0200
+--- src/web/ejabberd_web_admin-2.0.3.erl	2009-02-03 08:27:39.000000000 +0200
++++ src/web/ejabberd_web_admin.erl	2009-02-03 08:40:57.000000000 +0200
 @@ -1514,25 +1514,31 @@
  
  
@@ -6280,8 +6280,8 @@
      end.
  
  
---- mod_muc/mod_muc_room-2.0.3.erl	2009-02-03 08:27:59.000000000 +0200
-+++ mod_muc/mod_muc_room.erl	2009-02-03 08:37:26.000000000 +0200
+--- src/mod_muc/mod_muc_room-2.0.3.erl	2009-02-03 08:27:59.000000000 +0200
++++ src/mod_muc/mod_muc_room.erl	2009-02-03 08:37:26.000000000 +0200
 @@ -695,6 +695,12 @@
  handle_sync_event({change_config, Config}, _From, StateName, StateData) ->
      {result, [], NSD} = change_config(Config, StateData),
@@ -6295,8 +6295,8 @@
  handle_sync_event(_Event, _From, StateName, StateData) ->
      Reply = ok,
      {reply, Reply, StateName, StateData}.
---- msgs/uk-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
-+++ msgs/uk.msg	2009-02-03 08:26:20.000000000 +0200
+--- src/msgs/uk-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
++++ src/msgs/uk.msg	2009-02-03 08:26:20.000000000 +0200
 @@ -388,6 +388,35 @@
  % mod_offline_odbc.erl
  {"Your contact offline message queue is full. The message has been discarded.", "Черга повідомлень, що не були доставлені, переповнена. Повідомлення не було збережено."}.
@@ -6333,8 +6333,8 @@
  % Local Variables:
  % mode: erlang
  % End:
---- msgs/ru-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
-+++ msgs/ru.msg	2009-02-03 08:25:31.000000000 +0200
+--- src/msgs/ru-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
++++ src/msgs/ru.msg	2009-02-03 08:25:31.000000000 +0200
 @@ -388,6 +388,35 @@
  % mod_offline_odbc.erl
  {"Your contact offline message queue is full. The message has been discarded.", "Очередь недоставленных сообщений Вашего адресата переполнена. Сообщение не было сохранено."}.
@@ -6371,8 +6371,8 @@
  % Local Variables:
  % mode: erlang
  % End:
---- msgs/pl-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
-+++ msgs/pl.msg	2009-02-03 08:24:33.000000000 +0200
+--- src/msgs/pl-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
++++ src/msgs/pl.msg	2009-02-03 08:24:33.000000000 +0200
 @@ -408,6 +408,31 @@
  % mod_offline.erl
  {"Your contact offline message queue is full. The message has been discarded.", "Twoja kolejka wiadomoci offline jest pełna. Wiadomoć została odrzucona."}.
@@ -6405,8 +6405,8 @@
  % Local Variables:
  % mode: erlang
  % End:
---- msgs/nl-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
-+++ msgs/nl.msg	1970-01-01 03:00:00.000000000 +0300
+--- src/msgs/nl-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
++++ src/msgs/nl.msg	1970-01-01 03:00:00.000000000 +0300
 @@ -379,6 +379,19 @@
  % mod_proxy65/mod_proxy65_service.erl
  {"ejabberd SOCKS5 Bytestreams module", "ejabberd SOCKS5 Bytestreams module"}.
@@ -6427,8 +6427,8 @@
  % Local Variables:
  % mode: erlang
  % End:
---- ./mod_roster-2.0.3.erl	2009-02-03 08:28:12.000000000 +0200
-+++ mod_roster.erl	2009-02-03 08:32:14.000000000 +0200
+--- src/mod_roster-2.0.3.erl	2009-02-03 08:28:12.000000000 +0200
++++ src/mod_roster.erl	2009-02-03 08:32:14.000000000 +0200
 @@ -48,7 +48,7 @@
  -include("mod_roster.hrl").
  -include("web/ejabberd_http.hrl").
@@ -6536,8 +6536,8 @@
        end, Items),
      nothing.
  
---- ./mod_roster_odbc-2.0.3.erl	2009-02-03 08:28:26.000000000 +0200
-+++ mod_roster_odbc.erl	2009-02-03 08:47:04.000000000 +0200
+--- src/mod_roster_odbc-2.0.3.erl	2009-02-03 08:28:26.000000000 +0200
++++ src/mod_roster_odbc.erl	2009-02-03 08:47:04.000000000 +0200
 @@ -48,7 +48,7 @@
  -include("mod_roster.hrl").
  -include("web/ejabberd_http.hrl").
