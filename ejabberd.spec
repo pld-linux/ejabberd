@@ -1,7 +1,4 @@
 #
-# TODO:
-#	- drop or update logdb bcond (the patch doesn't apply to 2.0.0)
-#
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
 %bcond_without	logdb		# enable mod_logdb (server-side message logging)
@@ -12,12 +9,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		%{realname}
-Version:	2.0.3
-Release:	2
+Version:	2.0.4
+Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{version}.tar.gz
-# Source0-md5:	b647e74b0f94f030bd8747c8a8a4d0f9
+# Source0-md5:	1ff37c329e9bc1ddf3c458e051b81d63
 Source1:	%{realname}.init
 Source2:	%{realname}.sysconfig
 Source3:	%{realname}.sh
