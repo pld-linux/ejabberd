@@ -9,12 +9,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		%{realname}
-Version:	2.0.4
+Version:	2.0.5
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{version}.tar.gz
-# Source0-md5:	1ff37c329e9bc1ddf3c458e051b81d63
+# Source0-md5:	2d85b47df969daf0a78ed3b16562d731
 Source1:	%{realname}.init
 Source2:	%{realname}.sysconfig
 Source3:	%{realname}.sh
