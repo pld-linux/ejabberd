@@ -1,27 +1,20 @@
 #
-# TODO:
-#	- drop or update logdb bcond (the patch doesn't apply to 2.0.0)
-#
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
-%bcond_with	logdb		# enable mod_logdb (server-side message logging)
+%bcond_without	logdb		# enable mod_logdb (server-side message logging)
 #
-%define	_alt_name	%{nil}
-%if %{with logdb}
-%define	_alt_name	-logdb
-%endif
 
 %define	realname	ejabberd
 
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
-Name:		%{realname}%{_alt_name}
-Version:	2.0.0
-Release:	1
+Name:		%{realname}
+Version:	2.0.5
+Release:	2
 License:	GPL
 Group:		Applications/Communications
-Source0:	http://www.process-one.net/en/projects/ejabberd/download/%{version}/%{realname}-%{version}.tar.gz
-# Source0-md5:	93b21f2fa0ca6074bd22ab924e7dced8
+Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{version}.tar.gz
+# Source0-md5:	2d85b47df969daf0a78ed3b16562d731
 Source1:	%{realname}.init
 Source2:	%{realname}.sysconfig
 Source3:	%{realname}.sh
@@ -47,14 +40,8 @@ Requires(post):	sed >= 4.0
 Requires(post):	textutils
 Requires(post,preun):	/sbin/chkconfig
 Requires:	erlang
+Requires:	expat >= 1.95
 Requires:	rc-scripts
-%if %{with logdb}
-Obsoletes:	ejabberd
-Conflicts:	ejabberd
-%else
-Obsoletes:	ejabberd-logdb
-Conflicts:	ejabberd-logdb
-%endif
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -64,6 +51,14 @@ server. It is written mostly in Erlang.
 %description -l pl.UTF-8
 ejabberd to darmowy, z otwartymi źródłami, odporny na awarie
 rozproszony serwer Jabbera. Jest napisany w większości w Erlangu.
+
+%package logdb
+Summary:        Server-side logging module
+Group:		Applications/Communications
+Requires:	%{name} = %{version}-%{release}
+
+%description logdb
+Server-side logging module.
 
 %prep
 %setup -q -n %{realname}-%{version}
@@ -79,14 +74,14 @@ cd src
 %{__autoconf}
 %configure \
 	--enable-odbc %{?with_pam --enable-pam}
-%{__make}
+%{__make} -j1
 cd ..
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/var/lib/%{realname},/etc/{sysconfig,rc.d/init.d},%{_sbindir}}
 
-%{__make} -C src install \
+%{__make} -C src install -j1 \
 	DESTDIR=$RPM_BUILD_ROOT
 
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{realname}
@@ -130,7 +125,12 @@ fi
 %attr(755,root,root) %{_sbindir}/*
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/*
 %attr(770,root,jabber) /var/log/ejabberd
+%exclude %{_libdir}/ejabberd/ebin/mod_logdb*
 %{_libdir}/ejabberd
 %dir %attr(770,root,jabber) /var/lib/ejabberd
 %attr(754,root,root) /etc/rc.d/init.d/%{realname}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{realname}
+
+%files logdb
+%defattr(644,root,root,755)
+%{_libdir}/ejabberd/ebin/mod_logdb*
