@@ -125,12 +125,16 @@ fi
 %attr(755,root,root) %{_sbindir}/*
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/*
 %attr(770,root,jabber) /var/log/ejabberd
+%if %{with logdb}
 %exclude %{_libdir}/ejabberd/ebin/mod_logdb*
+%endif
 %{_libdir}/ejabberd
 %dir %attr(770,root,jabber) /var/lib/ejabberd
 %attr(754,root,root) /etc/rc.d/init.d/%{realname}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{realname}
 
+%if %{with logdb}
 %files logdb
 %defattr(644,root,root,755)
 %{_libdir}/ejabberd/ebin/mod_logdb*
+%endif
