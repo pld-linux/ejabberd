@@ -16,6 +16,9 @@
 
 [ -z "$NODENAME" ] && NODENAME=$(hostname)
 
+EJABBERD_DOC_PATH="@EJABBERD_DOC_PATH@"
+export EJABBERD_DOC_PATH
+
 start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/ejabberd ]; then
