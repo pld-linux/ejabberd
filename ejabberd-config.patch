@@ -13,31 +13,24 @@
  %%% The parameters used in this configuration file are explained in more detail
  %%% in the ejabberd Installation and Operation Guide.
  %%% Please consult the Guide in case of doubts, it is included in 
-@@ -138,14 +144,16 @@
-   %%
-   %% ejabberd_service: Interact with external components (transports...)
-   %%
--  %%{8888, ejabberd_service, [
--  %%			    {access, all}, 
--  %%			    {shaper_rule, fast},
--  %%			    {ip, {127, 0, 0, 1}},
--  %%			    {hosts, ["icq.example.org", "sms.example.org"],
--  %%			     [{password, "secret"}]
--  %%			    }
--  %%			   ]},
+@@ -155,6 +155,17 @@
+   %%			    }
+   %%			   ]},
+ 
 +  %%To enable more than one you _must_ change port numbers (here and in service's config)
 +  %% {5347, ejabberd_service, [{access, all},
-+  %%			    {hosts, ["icq.localhost", "sms.localhost"],
-+  %%			     [{password, ">secret<"}]}]},
++  %%			 {hosts, ["icq.localhost", "sms.localhost"],
++  %%			 [{password, ">secret<"}]}]},
 +  %% {5347, ejabberd_service, [{access, all},
-+  %%			    {host, "gg.localhost",
-+  %%			     [{password, ">secret<"}]}]},
++  %%			 {host, "gg.localhost",
++  %%			 [{password, ">secret<"}]}]},
 +  %% {5347, ejabberd_service, [{access, all},
-+  %%			    {hosts, ["ircnet.localhost", "freenode.localhost"],
-+  %%			     [{password, ">secret<"}]}]},
- 
++  %%			 {hosts, ["ircnet.localhost", "freenode.localhost"],
++  %%			  [{password, ">secret<"}]}]},
++
    {5280, ejabberd_http, [
- 			 http_poll, 
+ 			 %%{request_handlers,
+ 			 %% [
 @@ -391,9 +391,9 @@
  %% All users are allowed to use MUC service:
  {access, muc, [{allow, all}]}.

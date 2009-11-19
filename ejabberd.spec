@@ -9,12 +9,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		%{realname}
-Version:	2.0.5
-Release:	2
+Version:	2.1.0
+Release:	1
 License:	GPL
 Group:		Applications/Communications
-Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{version}.tar.gz
-# Source0-md5:	2d85b47df969daf0a78ed3b16562d731
+Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/sources/%{realname}-%{version}.tar.gz
+# Source0-md5:	373be6e99acf7c930ab85531489c63c4
 Source1:	%{realname}.init
 Source2:	%{realname}.sysconfig
 Source3:	%{realname}.sh
@@ -87,6 +87,7 @@ install -d $RPM_BUILD_ROOT{/var/lib/%{realname},/etc/{sysconfig,rc.d/init.d},%{_
 sed -e's,@libdir@,%{_libdir},g' -e 's,@EJABBERD_DOC_PATH@,%{_docdir}/%{name}-%{version}/doc,g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{realname}
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{realname}
 
+chmod u+rw $RPM_BUILD_ROOT%{_sbindir}/%{realname}*
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE3} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}ctl
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/jabber
@@ -121,7 +122,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc ChangeLog doc src/odbc/pg.sql src/odbc/mysql.sql src/odbc/mssql.sql
+%doc doc src/odbc/pg.sql src/odbc/mysql.sql
 %attr(755,root,root) %{_sbindir}/*
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/*
 %attr(770,root,jabber) /var/log/ejabberd
