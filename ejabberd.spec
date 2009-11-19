@@ -13,7 +13,7 @@ Version:	2.1.0
 Release:	1
 License:	GPL
 Group:		Applications/Communications
-Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/sources/%{realname}-%{version}.tar.gz
+Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{version}.tar.gz
 # Source0-md5:	373be6e99acf7c930ab85531489c63c4
 Source1:	%{realname}.init
 Source2:	%{realname}.sysconfig
