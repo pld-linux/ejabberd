@@ -1,6 +1,6 @@
---- src/mod_logdb.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ src/mod_logdb.erl	2009-02-05 19:19:51.000000000 +0200
-@@ -0,0 +1,2094 @@
+--- mod_logdb.erl.orig	2009-11-22 13:06:23.000000000 +0200
++++ mod_logdb.erl	2009-11-22 13:06:16.000000000 +0200
+@@ -0,0 +1,2095 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
@@ -104,6 +104,7 @@
 +    {ok, Pid}.
 +
 +init([VHost, Opts]) ->
++    ?MYDEBUG("Starting mod_logdb", []),
 +    process_flag(trap_exit, true),
 +    DBs = gen_mod:get_opt(dbs, Opts, [{mnesia, []}]),
 +    VHostDB = gen_mod:get_opt(vhosts, Opts, [{VHost, mnesia}]),
@@ -129,7 +130,7 @@
 +                purge_older_days=gen_mod:get_opt(purge_older_days, Opts, never),
 +                poll_users_settings=PollUsersSettings}}.
 +
-+cleanup(#state{vhost=VHost} = State) ->
++cleanup(#state{vhost=VHost} = _State) ->
 +    ?MYDEBUG("Stopping ~s for ~p", [?MODULE, VHost]),
 +
 +    %ets:delete(ets_settings_table(VHost)),
@@ -156,14 +157,14 @@
 +
 +    ?MYDEBUG("Removed hooks for ~p", [VHost]),
 +
-+    ejabberd_ctl:unregister_commands(VHost, [{"rebuild_stats", "rebuild mod_logdb module stats for vhost"}], ?MODULE, rebuild_stats),
-+    Supported_backends = lists:flatmap(fun({Backend, _Opts}) ->
-+                                            [atom_to_list(Backend), " "]
-+                                       end, State#state.dbs),
-+    ejabberd_ctl:unregister_commands(
-+                           VHost,
-+                           [{"copy_messages backend", "copy messages from backend to current backend. backends could be: " ++ Supported_backends }],
-+                           ?MODULE, copy_messages_ctl),
++    %ejabberd_ctl:unregister_commands(VHost, [{"rebuild_stats", "rebuild mod_logdb module stats for vhost"}], ?MODULE, rebuild_stats),
++    %Supported_backends = lists:flatmap(fun({Backend, _Opts}) ->
++    %                                        [atom_to_list(Backend), " "]
++    %                                   end, State#state.dbs),
++    %ejabberd_ctl:unregister_commands(
++    %                       VHost,
++    %                       [{"copy_messages backend", "copy messages from backend to current backend. backends could be: " ++ Supported_backends }],
++    %                       ?MODULE, copy_messages_ctl),
 +    ?MYDEBUG("Unregistered commands for ~p", [VHost]).
 +
 +stop(VHost) ->
@@ -391,17 +392,17 @@
 +
 +           ?MYDEBUG("Added hooks for ~p", [VHost]),
 +
-+           ejabberd_ctl:register_commands(
-+                           VHost,
-+                           [{"rebuild_stats", "rebuild mod_logdb module stats for vhost"}],
-+                           ?MODULE, rebuild_stats),
-+           Supported_backends = lists:flatmap(fun({Backend, _Opts}) ->
-+                                                  [atom_to_list(Backend), " "]
-+                                              end, State#state.dbs),
-+           ejabberd_ctl:register_commands(
-+                           VHost,
-+                           [{"copy_messages backend", "copy messages from backend to current backend. backends could be: " ++ Supported_backends }],
-+                           ?MODULE, copy_messages_ctl),
++           %ejabberd_ctl:register_commands(
++           %                VHost,
++           %                [{"rebuild_stats", "rebuild mod_logdb module stats for vhost"}],
++           %                ?MODULE, rebuild_stats),
++           %Supported_backends = lists:flatmap(fun({Backend, _Opts}) ->
++           %                                       [atom_to_list(Backend), " "]
++           %                                   end, State#state.dbs),
++           %ejabberd_ctl:register_commands(
++           %                VHost,
++           %                [{"copy_messages backend", "copy messages from backend to current backend. backends could be: " ++ Supported_backends }],
++           %                ?MODULE, copy_messages_ctl),
 +           ?MYDEBUG("Registered commands for ~p", [VHost]),
 +
 +           NewState=State#state{monref = MonRef, backendPid=SPid, purgeRef=TrefPurge, pollRef=TrefPoll},
@@ -2095,8 +2096,8 @@
 +             ]
 +            )]
 +    end.
---- src/mod_logdb.hrl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ src/mod_logdb.hrl	2009-02-05 19:21:02.000000000 +0200
+--- mod_logdb.hrl.orig	2009-11-22 13:06:23.000000000 +0200
++++ mod_logdb.hrl	2009-02-05 20:12:58.000000000 +0200
 @@ -0,0 +1,35 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb.hrl
@@ -2133,8 +2134,8 @@
 +                      {"name", Name},
 +                      {"value", Value},
 +                      {"checked", "true"}])).
---- src/mod_logdb_mnesia.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ src/mod_logdb_mnesia.erl	2009-02-05 19:19:59.000000000 +0200
+--- mod_logdb_mnesia.erl.orig	2009-11-22 13:06:23.000000000 +0200
++++ mod_logdb_mnesia.erl	2009-02-05 20:12:58.000000000 +0200
 @@ -0,0 +1,546 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mnesia.erl
@@ -2682,9 +2683,9 @@
 +               {type, bag},
 +               {attributes, record_info(fields, msg)},
 +               {record_name, msg}]).
---- src/mod_logdb_mysql.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ src/mod_logdb_mysql.erl	2009-02-05 19:20:23.000000000 +0200
-@@ -0,0 +1,1052 @@
+--- mod_logdb_mysql.erl.orig	2009-11-22 13:06:23.000000000 +0200
++++ mod_logdb_mysql.erl	2009-07-30 09:00:14.000000000 +0300
+@@ -0,0 +1,1053 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
@@ -2822,6 +2823,7 @@
 +                 ?MYDEBUG("MySQL (~p)~n", [Level]),
 +                 ?MYDEBUG(Format, Argument)
 +            end,
++   ?INFO_MSG("Opening mysql connection ~s@~s:~p/~s", [DBUser, Server, Port, DB]),
 +   mysql_conn:start(Server, Port, DBUser, Password, DB, LogFun).
 +
 +close_mysql_connection(DBRef) ->
@@ -3737,9 +3739,9 @@
 +get_result({error, MySQLRes}) ->
 +    Reason = mysql:get_result_reason(MySQLRes),
 +    {error, Reason}.
---- src/mod_logdb_mysql5.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ src/mod_logdb_mysql5.erl	2009-02-05 19:20:14.000000000 +0200
-@@ -0,0 +1,978 @@
+--- mod_logdb_mysql5.erl.orig	2009-11-22 13:06:23.000000000 +0200
++++ mod_logdb_mysql5.erl	2009-07-30 09:00:14.000000000 +0300
+@@ -0,0 +1,979 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql5.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
@@ -3881,6 +3883,7 @@
 +                 ?MYDEBUG("MySQL (~p)~n", [Level]),
 +                 ?MYDEBUG(Format, Argument)
 +            end,
++   ?INFO_MSG("Opening mysql connection ~s@~s:~p/~s", [DBUser, Server, Port, DB]),
 +   mysql_conn:start(Server, Port, DBUser, Password, DB, [65536, 131072], LogFun).
 +
 +close_mysql_connection(DBRef) ->
@@ -4718,9 +4721,9 @@
 +      END IF;
 +   END IF;
 +END;", [logmessage_name(VHost),UName,UName,UName,UName,SName,SName,RName,RName,UName,UName,SName,RName,StName,StName]).
---- src/mod_logdb_pgsql.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ src/mod_logdb_pgsql.erl	2009-02-05 19:20:29.000000000 +0200
-@@ -0,0 +1,1078 @@
+--- mod_logdb_pgsql.erl.orig	2009-11-22 13:06:23.000000000 +0200
++++ mod_logdb_pgsql.erl	2009-07-30 09:49:10.000000000 +0300
+@@ -0,0 +1,1104 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_pgsql.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
@@ -4861,6 +4864,7 @@
 +
 +open_pgsql_connection(#state{server=Server, port=Port, db=DB, schema=Schema,
 +                             user=User, password=Password} = _State) ->
++   ?INFO_MSG("Opening pgsql connection ~s@~s:~p/~s", [User, Server, Port, DB]),
 +   {ok, DBRef} = pgsql:connect(Server, DB, User, Password, Port),
 +   {updated, _} = sql_query_internal(DBRef, ["SET SEARCH_PATH TO ",Schema,";"]),
 +   {ok, DBRef}.
@@ -5589,14 +5593,20 @@
 +         {aborted, _} -> error
 +    end.
 +
-+create_internals(#state{dbref=DBRef, vhost=VHost, schema=Schema}) ->
++create_internals(#state{dbref=DBRef, vhost=VHost, schema=Schema}=State) ->
 +    sql_query_internal(DBRef, ["DROP FUNCTION IF EXISTS ",logmessage_name(VHost,Schema)," (tbname TEXT, atdt TEXT, owner TEXT, peer_name TEXT, peer_server TEXT, peer_resource TEXT, mdirection VARCHAR(4), mtype VARCHAR(9), msubj TEXT, mbody TEXT, mtimestamp DOUBLE PRECISION);"]),
 +    case sql_query_internal(DBRef, [get_logmessage(VHost, Schema)]) of
 +         {updated, _} ->
 +            ?MYDEBUG("Created logmessage for ~p", [VHost]),
 +            ok;
-+         {error, _} ->
-+            error
++         {error, Reason} ->
++            case lists:keysearch(code, 1, Reason) of
++                 {value, {code, "42704"}} ->
++                    ?ERROR_MSG("plpgsql language must be installed into database '~s'. Use CREATE LANGUAGE...", [State#state.db]),
++                    error;
++                 _ ->
++                    error
++            end
 +    end.
 +
 +get_user_id(DBRef, VHost, Schema, User) ->
@@ -5776,7 +5786,26 @@
 +get_result({ok, ["CREATE FUNCTION"]}) ->
 +    {updated, 1};
 +get_result({ok, [{"SELECT", _Rows, Recs}]}) ->
-+    {data, [list_to_tuple(Rec) || Rec <- Recs]};
++    Fun = fun(Rec) ->
++              list_to_tuple(
++                  lists:map(fun(Elem) when is_binary(Elem) ->
++                                  binary_to_list(Elem);
++                               (Elem) when is_list(Elem) ->
++                                  Elem;
++                               (Elem) when is_integer(Elem) ->
++                                  integer_to_list(Elem);
++                               (Elem) when is_float(Elem) ->
++                                  float_to_list(Elem);
++                               (Elem) when is_boolean(Elem) ->
++                                  atom_to_list(Elem);
++                               (Elem) ->
++                                  ?ERROR_MSG("Unknown element type ~p", [Elem]),
++                                  Elem
++                            end, Rec))
++          end,
++    Res = lists:map(Fun, Recs),
++    %{data, [list_to_tuple(Rec) || Rec <- Recs]};
++    {data, Res};
 +get_result({ok, ["INSERT " ++ OIDN]}) ->
 +    [_OID, N] = string:tokens(OIDN, " "),
 +    {updated, list_to_integer(N)};
@@ -5799,8 +5828,8 @@
 +get_result(Rez) ->
 +    {error, undefined, Rez}.
 +
---- src/mod_logdb_mnesia_old.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ src/mod_logdb_mnesia_old.erl	2009-02-05 19:20:07.000000000 +0200
+--- mod_logdb_mnesia_old.erl.orig	2009-11-22 13:06:23.000000000 +0200
++++ mod_logdb_mnesia_old.erl	2009-02-05 20:12:58.000000000 +0200
 @@ -0,0 +1,258 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mnesia_old.erl
@@ -6060,8 +6089,8 @@
 +             ?ERROR_MSG("Failed to create stats table: ~p", [Reason]),
 +             error
 +    end.
---- src/gen_logdb.erl.orig	2009-02-05 19:21:29.000000000 +0200
-+++ src/gen_logdb.erl	2009-02-05 19:19:39.000000000 +0200
+--- gen_logdb.erl.orig	2009-11-22 13:06:23.000000000 +0200
++++ gen_logdb.erl	2009-07-22 16:43:26.000000000 +0300
 @@ -0,0 +1,164 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : gen_logdb.erl
@@ -6227,65 +6256,12 @@
 +   ];
 +behaviour_info(_) ->
 +   undefined.
---- src/web/ejabberd_web_admin-2.0.3.erl	2009-02-03 08:27:39.000000000 +0200
-+++ src/web/ejabberd_web_admin.erl	2009-02-03 08:40:57.000000000 +0200
-@@ -1514,25 +1514,31 @@
- 
- 
- user_parse_query(User, Server, Query) ->
--    case lists:keysearch("chpassword", 1, Query) of
--	{value, _} ->
--	    case lists:keysearch("password", 1, Query) of
--		{value, {_, undefined}} ->
--		    error;
--		{value, {_, Password}} ->
--		    ejabberd_auth:set_password(User, Server, Password),
--		    ok;
--		_ ->
--		    error
--	    end;
--	_ ->
--	    case lists:keysearch("removeuser", 1, Query) of
--		{value, _} ->
--		    ejabberd_auth:remove_user(User, Server),
--		    ok;
--		false ->
--		    nothing
--	    end
-+    lists:foldl(fun({Action, Value}, Acc) when Acc == nothing ->
-+                      user_parse_query1(Action, User, Server, Query);
-+                   ({Action, Value}, Acc) ->
-+                      Acc
-+                end, nothing, Query).
-+
-+user_parse_query1("password", User, Server, Query) ->
-+    nothing;
-+user_parse_query1("chpassword", User, Server, Query) ->
-+    case lists:keysearch("password", 1, Query) of
-+        {value, {_, undefined}} ->
-+            error;
-+        {value, {_, Password}} ->
-+            ejabberd_auth:set_password(User, Server, Password),
-+            ok;
-+        _ ->
-+            error
-+    end;
-+user_parse_query1("removeuser", User, Server, Query) ->
-+    ejabberd_auth:remove_user(User, Server),
-+    ok;
-+user_parse_query1(Action, User, Server, Query) ->
-+    case ejabberd_hooks:run_fold(webadmin_user_parse_query, Server, [], [Action, User, Server, Query]) of
-+         [] -> nothing;
-+         Res -> Res
-     end.
- 
- 
---- src/mod_muc/mod_muc_room-2.0.3.erl	2009-02-03 08:27:59.000000000 +0200
-+++ src/mod_muc/mod_muc_room.erl	2009-02-03 08:37:26.000000000 +0200
-@@ -695,6 +695,12 @@
- handle_sync_event({change_config, Config}, _From, StateName, StateData) ->
-     {result, [], NSD} = change_config(Config, StateData),
+--- mod_muc/mod_muc_room-2.1.0.erl	2009-11-22 12:30:40.000000000 +0200
++++ mod_muc/mod_muc_room.erl	2009-11-22 12:33:43.000000000 +0200
+@@ -625,6 +625,12 @@
      {reply, {ok, NSD#state.config}, StateName, NSD};
+ handle_sync_event({change_state, NewStateData}, _From, StateName, _StateData) ->
+     {reply, {ok, NewStateData}, StateName, NewStateData};
 +handle_sync_event({get_jid_nick, Jid}, _From, StateName, StateData) ->
 +    R = case ?DICT:find(jlib:jid_tolower(Jid), StateData#state.users) of
 +             error -> [];
@@ -6295,12 +6271,12 @@
  handle_sync_event(_Event, _From, StateName, StateData) ->
      Reply = ok,
      {reply, Reply, StateName, StateData}.
---- src/msgs/uk-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
-+++ src/msgs/uk.msg	2009-02-03 08:26:20.000000000 +0200
-@@ -388,6 +388,35 @@
- % mod_offline_odbc.erl
- {"Your contact offline message queue is full. The message has been discarded.", "Черга повідомлень, що не були доставлені, переповнена. Повідомлення не було збережено."}.
- 
+--- msgs/uk-2.1.0.msg	2009-11-22 12:30:40.000000000 +0200
++++ msgs/uk.msg	2009-11-22 12:36:12.000000000 +0200
+@@ -369,3 +369,31 @@
+ {"You need an x:data capable client to search","Для пошуку необхідний x:data-придатний клієнт"}.
+ {"Your contact offline message queue is full. The message has been discarded.","Черга повідомлень, що не були доставлені, переповнена. Повідомлення не було збережено."}.
+ {"Your messages to ~s are being blocked. To unblock them, visit ~s","Ваші повідомлення до ~s блокуються. Для розблокування відвідайте ~s"}.
 +% mod_logdb
 +{"Users Messages", "Повідомлення користувачів"}.
 +{"Date", "Дата"}.
@@ -6329,16 +6305,12 @@
 +{"Drop", "Видаляти"}.
 +{"Do not drop", "Не видаляти"}.
 +{"Drop messages on user removal", "Видаляти повідомлення під час видалення користувача"}.
-+
- % Local Variables:
- % mode: erlang
- % End:
---- src/msgs/ru-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
-+++ src/msgs/ru.msg	2009-02-03 08:25:31.000000000 +0200
-@@ -388,6 +388,35 @@
- % mod_offline_odbc.erl
- {"Your contact offline message queue is full. The message has been discarded.", "Очередь недоставленных сообщений Вашего адресата переполнена. Сообщение не было сохранено."}.
- 
+--- msgs/ru-2.1.0.msg	2009-11-22 12:30:40.000000000 +0200
++++ msgs/ru.msg	2009-11-22 12:35:52.000000000 +0200
+@@ -369,3 +369,31 @@
+ {"You need an x:data capable client to search","Чтобы воспользоваться поиском, требуется x:data-совместимый клиент"}.
+ {"Your contact offline message queue is full. The message has been discarded.","Очередь недоставленных сообщений Вашего адресата переполнена. Сообщение не было сохранено."}.
+ {"Your messages to ~s are being blocked. To unblock them, visit ~s","Ваши сообщения к ~s блокируются. Для снятия блокировки перейдите по ссылке ~s"}.
 +% mod_logdb.erl
 +{"Users Messages", "Сообщения пользователей"}.
 +{"Date", "Дата"}.
@@ -6367,16 +6339,12 @@
 +{"Drop", "Удалять"}.
 +{"Do not drop", "Не удалять"}.
 +{"Drop messages on user removal", "Удалять сообщения при удалении пользователя"}.
-+
- % Local Variables:
- % mode: erlang
- % End:
---- src/msgs/pl-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
-+++ src/msgs/pl.msg	2009-02-03 08:24:33.000000000 +0200
-@@ -408,6 +408,31 @@
- % mod_offline.erl
- {"Your contact offline message queue is full. The message has been discarded.", "Twoja kolejka wiadomoci offline jest pełna. Wiadomoć została odrzucona."}.
- 
+--- msgs/pl-2.1.0.msg	2009-11-22 12:30:40.000000000 +0200
++++ msgs/pl.msg	2009-11-22 12:35:07.000000000 +0200
+@@ -369,3 +369,27 @@
+ {"You need an x:data capable client to search","Potrzebujesz klienta obsługującego x:data aby wyszukiwać"}.
+ {"Your contact offline message queue is full. The message has been discarded.","Kolejka wiadomości offline adresata jest pełna. Wiadomość została odrzucona."}.
+ {"Your messages to ~s are being blocked. To unblock them, visit ~s","Twoje wiadomości do użytkownika ~s są blokowane. Aby je odblokować, odwiedź ~s"}.
 +% mod_logdb
 +{"Users Messages", "Wiadomości użytkownika"}.
 +{"Date", "Data"}.
@@ -6401,16 +6369,12 @@
 +{"Jids/Domains to ignore", "JID/Domena która ma być ignorowana"}.
 +{"Purge messages older than (days)", "Usuń wiadomości starsze niż (w dniach)"}.
 +{"Poll users settings (seconds)", "Czas aktualizacji preferencji użytkowników (sekundy)"}.
-+
- % Local Variables:
- % mode: erlang
- % End:
---- src/msgs/nl-2.0.3.msg	2009-01-14 11:54:15.000000000 +0200
-+++ src/msgs/nl.msg	1970-01-01 03:00:00.000000000 +0300
-@@ -379,6 +379,19 @@
- % mod_proxy65/mod_proxy65_service.erl
- {"ejabberd SOCKS5 Bytestreams module", "ejabberd SOCKS5 Bytestreams module"}.
- 
+--- msgs/nl-2.1.0.msg	2009-11-22 12:30:40.000000000 +0200
++++ msgs/nl.msg	2009-11-22 12:34:41.000000000 +0200
+@@ -369,3 +369,15 @@
+ {"You need an x:data capable client to search","U hebt een client nodig die x:data ondersteunt om te zoeken"}.
+ {"Your contact offline message queue is full. The message has been discarded.","Te veel offline berichten voor dit contactpersoon. Het bericht is niet opgeslagen."}.
+ {"Your messages to ~s are being blocked. To unblock them, visit ~s","Uw berichten aan ~s worden geblokkeerd. Om ze te deblokkeren, ga naar ~s"}.
 +% mod_logdb
 +{"Users Messages", "Gebruikersberichten"}.
 +{"Date", "Datum"}.
@@ -6423,13 +6387,9 @@
 +{"Subject", "Onderwerp"}.
 +{"Body", "Berichtveld"}.
 +{"Messages", "Berichten"}.
-+
- % Local Variables:
- % mode: erlang
- % End:
---- src/mod_roster-2.0.3.erl	2009-02-03 08:28:12.000000000 +0200
-+++ src/mod_roster.erl	2009-02-03 08:32:14.000000000 +0200
-@@ -48,7 +48,7 @@
+--- ./mod_roster-2.1.0.erl	2009-11-22 12:30:40.000000000 +0200
++++ mod_roster.erl	2009-11-22 12:40:40.000000000 +0200
+@@ -61,7 +61,7 @@
  -include("mod_roster.hrl").
  -include("web/ejabberd_http.hrl").
  -include("web/ejabberd_web_admin.hrl").
@@ -6438,7 +6398,7 @@
  
  start(Host, Opts) ->
      IQDisc = gen_mod:get_opt(iqdisc, Opts, one_queue),
-@@ -829,6 +829,14 @@
+@@ -937,6 +937,14 @@
      Res = user_roster_parse_query(User, Server, Items1, Query),
      Items = mnesia:dirty_index_read(roster, US, #roster.us),
      SItems = lists:sort(Items),
@@ -6453,7 +6413,7 @@
      FItems =
  	case SItems of
  	    [] ->
-@@ -876,7 +884,33 @@
+@@ -984,7 +992,33 @@
  					      [?INPUTT("submit",
  						       "remove" ++
  						       ejabberd_web_admin:term_to_id(R#roster.jid),
@@ -6488,7 +6448,7 @@
  			    end, SItems))])]
  	end,
      [?XC("h1", ?T("Roster of ") ++ us_to_list(US))] ++
-@@ -958,11 +992,42 @@
+@@ -1084,11 +1118,42 @@
  						 {"subscription", "remove"}],
  						[]}]}}),
  			      throw(submitted);
@@ -6536,9 +6496,9 @@
        end, Items),
      nothing.
  
---- src/mod_roster_odbc-2.0.3.erl	2009-02-03 08:28:26.000000000 +0200
-+++ src/mod_roster_odbc.erl	2009-02-03 08:47:04.000000000 +0200
-@@ -48,7 +48,7 @@
+--- ./mod_roster_odbc-2.1.0.erl	2009-11-22 12:30:40.000000000 +0200
++++ mod_roster_odbc.erl	2009-11-22 12:42:38.000000000 +0200
+@@ -59,7 +59,7 @@
  -include("mod_roster.hrl").
  -include("web/ejabberd_http.hrl").
  -include("web/ejabberd_web_admin.hrl").
@@ -6547,7 +6507,7 @@
  
  start(Host, Opts) ->
      IQDisc = gen_mod:get_opt(iqdisc, Opts, one_queue),
-@@ -937,6 +937,14 @@
+@@ -1038,6 +1038,14 @@
      Res = user_roster_parse_query(User, Server, Items1, Query),
      Items = get_roster(LUser, LServer),
      SItems = lists:sort(Items),
@@ -6562,12 +6522,12 @@
      FItems =
  	case SItems of
  	    [] ->
-@@ -984,7 +992,33 @@
+@@ -1085,7 +1093,33 @@
  					      [?INPUTT("submit",
  						       "remove" ++
  						       ejabberd_web_admin:term_to_id(R#roster.jid),
 -						       "Remove")])])
-+                                                      "Remove")]),
++						       "Remove")]),
 +                                         case gen_mod:is_loaded(Server, mod_logdb) of
 +                                              true ->
 +                                                 Peer = jlib:jid_to_string(R#roster.jid),
@@ -6597,7 +6557,7 @@
  			    end, SItems))])]
  	end,
      [?XC("h1", ?T("Roster of ") ++ us_to_list(US))] ++
-@@ -1066,11 +1100,42 @@
+@@ -1185,11 +1219,42 @@
  						 {"subscription", "remove"}],
  						[]}]}}),
  			      throw(submitted);

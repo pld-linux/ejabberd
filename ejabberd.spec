@@ -23,6 +23,7 @@ Source5:	%{realname}-inetrc
 Patch0:		%{realname}-makefile.patch
 Patch1:		%{realname}-config.patch
 Patch2:		%{realname}-mod_muc.patch
+# http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-src-mod_logdb-2.1.0.diff
 Patch3:		%{realname}-mod_logdb.patch
 URL:		http://ejabberd.jabber.ru/
 BuildRequires:	autoconf
@@ -66,6 +67,7 @@ Server-side logging module.
 %patch1 -p1
 %patch2 -p1
 %if %{with logdb}
+cd src
 %patch3 -p0
 %endif
 
