@@ -1,0 +1,246 @@
+diff --git a/doc/guide.tex b/doc/guide.tex
+index 5de409d..ac3dba8 100644
+--- a/doc/guide.tex
++++ b/doc/guide.tex
+@@ -4052,6 +4052,17 @@ Options:
+ \begin{description}
+ \hostitem{vjud}
+ \iqdiscitem{\ns{vcard-temp}}
++\titem{access\_get}\ind{options!accessget} Access rule that defines
++  who is allowed to see vCard of local users.
++  If a rule returns `deny' on the requester
++  user name, that user cannot see vCards of local users.
++  By default anybody can see the vCards of local users.
++\titem{access\_set}\ind{options!accessset} Access rule that defines
++  who is allowed to modify his vCard.
++  If a rule returns `deny' on the requester
++  user name, that user cannot modify his vCard.
++  By default each local account can modify his own local vCard.
++  Notice that vCard of a user can only be edited by the user himself.
+ \titem{\{search, true|false\}}\ind{options!search}This option specifies whether the search
+   functionality is enabled or not
+   If disabled, the option \term{host} will be ignored and the
+@@ -4087,14 +4098,17 @@ Examples:
+  ]}.
+ \end{verbatim}
+ \item The second situation differs in a way that search results are not limited,
+-  and that all virtual hosts will be searched instead of only the current one:
++  and that all virtual hosts will be searched instead of only the current one.
++  Also, vCards of local users can only be seen by Local users.
+ \begin{verbatim}
++{access, vcard_get, [{allow, local}]}.
+ {modules,
+  [
+   ...
+   {mod_vcard, [{search, true},
+                {matches, infinity},
+-               {allow_return_all, true}]},
++               {allow_return_all, true},
++               {access_get, vcard_get}]},
+   ...
+  ]}.
+ \end{verbatim}
+@@ -4128,6 +4142,11 @@ consists of the following \modvcardldap{}-specific options:
+ \begin{description}
+ \hostitem{vjud}
+ \iqdiscitem{\ns{vcard-temp}}
++\titem{access\_get}\ind{options!accessget} Access rule that defines
++  who is allowed to see vCard of local users.
++  If a rule returns `deny' on the requester
++  user name, that user cannot see vCards of local users.
++  By default anybody can see the vCards of local users.
+ \titem{\{search, true|false\}}\ind{options!search}This option specifies whether the search
+   functionality is enabled (value: \term{true}) or disabled (value:
+   \term{false}). If disabled, the option \term{host} will be ignored and the
+diff --git a/src/mod_vcard.erl b/src/mod_vcard.erl
+index 4384087..c54e8ea 100644
+--- a/src/mod_vcard.erl
++++ b/src/mod_vcard.erl
+@@ -174,7 +174,9 @@ process_sm_iq(From, To, #iq{type = Type, sub_el = SubEl} = IQ) ->
+     case Type of
+ 	set ->
+ 	    #jid{user = User, lserver = LServer} = From,
+-	    case lists:member(LServer, ?MYHOSTS) of
++	    Access = gen_mod:get_module_opt(LServer, ?MODULE, access_set, all),
++	    case lists:member(LServer, ?MYHOSTS) andalso
++	     (acl:match_rule(LServer, Access, From) == allow) of
+ 		true ->
+ 		    set_vcard(User, LServer, SubEl),
+ 		    IQ#iq{type = result, sub_el = []};
+@@ -183,19 +185,28 @@ process_sm_iq(From, To, #iq{type = Type, sub_el = SubEl} = IQ) ->
+ 	    end;
+ 	get ->
+ 	    #jid{luser = LUser, lserver = LServer} = To,
+-	    US = {LUser, LServer},
+-	    F = fun() ->
+-			mnesia:read({vcard, US})
+-		end,
+-	    Els = case mnesia:transaction(F) of
+-		      {atomic, Rs} ->
+-			  lists:map(fun(R) ->
+-					    R#vcard.vcard
+-				    end, Rs);
+-		      {aborted, _Reason} ->
+-			  []
+-		  end,
+-	    IQ#iq{type = result, sub_el = Els}
++	    Access = gen_mod:get_module_opt(LServer, ?MODULE, access_get, all),
++	    case acl:match_rule(LServer, Access, From) of
++		allow ->
++		    Els = get_vcard(LUser, LServer),
++		    IQ#iq{type = result, sub_el = Els};
++		deny ->
++		    IQ#iq{type = error, sub_el = [SubEl, ?ERR_NOT_ALLOWED]}
++	    end
++    end.
++
++get_vcard(LUser, LServer) ->
++    US = {LUser, LServer},
++    F = fun() ->
++		mnesia:read({vcard, US})
++	end,
++    case mnesia:transaction(F) of
++	{atomic, Rs} ->
++	    lists:map(fun(R) ->
++			      R#vcard.vcard
++		      end, Rs);
++	{aborted, _Reason} ->
++	    []
+     end.
+ 
+ set_vcard(User, LServer, VCARD) ->
+diff --git a/src/mod_vcard_ldap.erl b/src/mod_vcard_ldap.erl
+index f4078df..c5c830d 100644
+--- a/src/mod_vcard_ldap.erl
++++ b/src/mod_vcard_ldap.erl
+@@ -241,38 +241,47 @@ process_local_iq(_From, _To, #iq{type = Type, lang = Lang, sub_el = SubEl} = IQ)
+ 			     ]}]}
+     end.
+ 
+-process_sm_iq(_From, #jid{lserver=LServer} = To, #iq{sub_el = SubEl} = IQ) ->
+-    case catch process_vcard_ldap(To, IQ, LServer) of
++process_sm_iq(From, #jid{lserver=LServer} = To, #iq{sub_el = SubEl} = IQ) ->
++    case catch process_vcard_ldap(From, To, IQ, LServer) of
+ 	{'EXIT', _} ->
+ 	    IQ#iq{type = error, sub_el = [SubEl, ?ERR_INTERNAL_SERVER_ERROR]};
+ 	Other ->
+ 	    Other
+     end.
+ 
+-process_vcard_ldap(To, IQ, Server) ->
++process_vcard_ldap(From, To, IQ, Server) ->
+     {ok, State} = eldap_utils:get_state(Server, ?PROCNAME),
+     #iq{type = Type, sub_el = SubEl} = IQ,
+     case Type of
+ 	set ->
+ 	    IQ#iq{type = error, sub_el = [SubEl, ?ERR_NOT_ALLOWED]};
+ 	get ->
+-	    #jid{luser = LUser} = To,
+-	    LServer = State#state.serverhost,
+-	    case ejabberd_auth:is_user_exists(LUser, LServer) of
+-		true ->
+-		    VCardMap = State#state.vcard_map,
+-		    case find_ldap_user(LUser, State) of
+-			#eldap_entry{attributes = Attributes} ->
+-			    Vcard = ldap_attributes_to_vcard(Attributes, VCardMap, {LUser, LServer}),
+-			    IQ#iq{type = result, sub_el = Vcard};
+-			_ ->
+-			    IQ#iq{type = result, sub_el = []}
+-		    end;
+-		_ ->
+-		    IQ#iq{type = result, sub_el = []}
+-	    end
++	    process_vcard_ldap_get_maybe(From, To, IQ, State)
+ 	end.
+ 
++process_vcard_ldap_get_maybe(From, To, IQ, State) ->
++    #jid{luser = LUser} = To,
++    #jid{lserver = FromLServer} = From,
++    LServer = State#state.serverhost,
++    Access = gen_mod:get_module_opt(LServer, ?MODULE, access_get, all),
++    case ejabberd_auth:is_user_exists(LUser, LServer)
++	and acl:match_rule(FromLServer, Access, From) of
++	true ->
++	    process_vcard_ldap_get(LUser, LServer, IQ, State);
++	_ ->
++	    IQ#iq{type = result, sub_el = []}
++    end.
++
++process_vcard_ldap_get(LUser, LServer, IQ, State) ->
++    VCardMap = State#state.vcard_map,
++    case find_ldap_user(LUser, State) of
++	#eldap_entry{attributes = Attributes} ->
++	    Vcard = ldap_attributes_to_vcard(Attributes, VCardMap, {LUser, LServer}),
++	    IQ#iq{type = result, sub_el = Vcard};
++	_ ->
++	    IQ#iq{type = result, sub_el = []}
++    end.
++
+ handle_call(get_state, _From, State) ->
+     {reply, {ok, State}, State};
+ handle_call(stop, _From, State) ->
+diff --git a/src/mod_vcard_odbc.erl b/src/mod_vcard_odbc.erl
+index 30c2888..d239823 100644
+--- a/src/mod_vcard_odbc.erl
++++ b/src/mod_vcard_odbc.erl
+@@ -138,7 +138,9 @@ process_sm_iq(From, To, #iq{type = Type, sub_el = SubEl} = IQ) ->
+     case Type of
+ 	set ->
+ 	    #jid{user = User, lserver = LServer} = From,
+-	    case lists:member(LServer, ?MYHOSTS) of
++	    Access = gen_mod:get_module_opt(LServer, ?MODULE, access_set, all),
++	    case lists:member(LServer, ?MYHOSTS) andalso
++		(acl:match_rule(LServer, Access, From) == allow) of
+ 		true ->
+ 		    set_vcard(User, LServer, SubEl),
+ 		    IQ#iq{type = result, sub_el = []};
+@@ -147,24 +149,34 @@ process_sm_iq(From, To, #iq{type = Type, sub_el = SubEl} = IQ) ->
+ 	    end;
+ 	get ->
+ 	    #jid{luser = LUser, lserver = LServer} = To,
+-	    Username = ejabberd_odbc:escape(LUser),
+-	    case catch odbc_queries:get_vcard(LServer, Username) of
+-		{selected, ["vcard"], [{SVCARD}]} ->
+-		    case xml_stream:parse_element(SVCARD) of
+-			{error, _Reason} ->
+-			    IQ#iq{type = error,
+-				  sub_el = [SubEl, ?ERR_SERVICE_UNAVAILABLE]};
+-			VCARD ->
+-			    IQ#iq{type = result, sub_el = [VCARD]}
+-		    end;
+-		{selected, ["vcard"], []} ->
+-		    IQ#iq{type = result, sub_el = []};
+-		_ ->
+-		    IQ#iq{type = error,
+-			  sub_el = [SubEl, ?ERR_INTERNAL_SERVER_ERROR]}
++	    Access = gen_mod:get_module_opt(LServer, ?MODULE, access_get, all),
++	    case acl:match_rule(LServer, Access, From) of
++		allow ->
++		    get_vcard(LUser, LServer, SubEl, IQ);
++		deny ->
++		    IQ#iq{type = error, sub_el = [SubEl, ?ERR_NOT_ALLOWED]}
+ 	    end
+     end.
+ 
++get_vcard(LUser, LServer, SubEl, IQ) ->
++    Username = ejabberd_odbc:escape(LUser),
++    case catch odbc_queries:get_vcard(LServer, Username) of
++	{selected, ["vcard"], [{SVCARD}]} ->
++	    case xml_stream:parse_element(SVCARD) of
++		{error, _Reason} ->
++		    IQ#iq{type = error,
++			  sub_el = [SubEl, ?ERR_SERVICE_UNAVAILABLE]};
++		VCARD ->
++		    IQ#iq{type = result, sub_el = [VCARD]}
++	    end;
++	{selected, ["vcard"], []} ->
++	    IQ#iq{type = result, sub_el = []};
++	_ ->
++	    IQ#iq{type = error,
++		  sub_el = [SubEl, ?ERR_INTERNAL_SERVER_ERROR]}
++    end.
++
++
+ set_vcard(User, LServer, VCARD) ->
+     FN       = xml:get_path_s(VCARD, [{elem, "FN"},                     cdata]),
+     Family   = xml:get_path_s(VCARD, [{elem, "N"}, {elem, "FAMILY"},    cdata]),
