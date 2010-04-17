@@ -6344,7 +6344,7 @@
 @@ -369,3 +369,27 @@
  {"You need an x:data capable client to search","Potrzebujesz klienta obsługującego x:data aby wyszukiwać"}.
  {"Your contact offline message queue is full. The message has been discarded.","Kolejka wiadomości offline adresata jest pełna. Wiadomość została odrzucona."}.
- {"Your messages to ~s are being blocked. To unblock them, visit ~s","Twoje wiadomości do użytkownika ~s są blokowane. Aby je odblokować, odwiedź ~s"}.
+ {"Your messages to ~s are being blocked. To unblock them, visit ~s","Twoje wiadomości do ~s są blokowane. Aby je odblokować, odwiedź ~s"}.
 +% mod_logdb
 +{"Users Messages", "Wiadomości użytkownika"}.
 +{"Date", "Data"}.
