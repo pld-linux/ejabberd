@@ -10,7 +10,7 @@ Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		%{realname}
 Version:	2.1.3
-Release:	2
+Release:	3
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{version}.tar.gz
@@ -77,7 +77,9 @@ cd src
 cd src
 %{__autoconf}
 %configure \
-	--enable-odbc %{?with_pam --enable-pam}
+	%{?with_pam --enable-pam} \
+	--with-openssl=%{_prefix} \
+	--enable-odbc
 %{__make} -j1
 cd ..
 
@@ -95,6 +97,8 @@ chmod u+rw $RPM_BUILD_ROOT%{_sbindir}/%{realname}*
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE3} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}
 sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}ctl
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/jabber
+
+chmod 755 $RPM_BUILD_ROOT%{_libdir}/ejabberd/priv/lib/*.so
 
 %clean
 rm -rf $RPM_BUILD_ROOT
