@@ -28,6 +28,7 @@ Patch3:		%{realname}-mod_logdb.patch
 Patch4:		%{realname}-vcard-access-get.patch
 URL:		http://ejabberd.jabber.ru/
 BuildRequires:	autoconf
+BuildRequires:	automake
 BuildRequires:	erlang >= R10B_5
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
@@ -55,7 +56,7 @@ ejabberd to darmowy, z otwartymi źródłami, odporny na awarie
 rozproszony serwer Jabbera. Jest napisany w większości w Erlangu.
 
 %package logdb
-Summary:        Server-side logging module
+Summary:	Server-side logging module
 Group:		Applications/Communications
 Requires:	%{name} = %{version}-%{release}
 
@@ -63,7 +64,7 @@ Requires:	%{name} = %{version}-%{release}
 Server-side logging module.
 
 %prep
-%setup -q -n %{realname}-%{version}
+%setup -q
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
