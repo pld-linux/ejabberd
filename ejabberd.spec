@@ -6,11 +6,13 @@
 
 %define	realname	ejabberd
 
+%define	pgsql_module_rev 1105
+
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		%{realname}
 Version:	2.1.6
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{version}.tar.gz
@@ -20,6 +22,9 @@ Source2:	%{realname}.sysconfig
 Source3:	%{realname}.sh
 Source4:	%{realname}ctl.sh
 Source5:	%{realname}-inetrc
+# svn export -r %{pgsql_module_rev} https://svn.process-one.net/ejabberd-modules/pgsql/trunk/src ejabberd-module-pgsql-%{pgsql_module_rev}
+Source6:	ejabberd-module-pgsql-%{pgsql_module_rev}.tar.bz2
+# Source6-md5:	7a8ba920a508f5180284699610789c14
 Patch0:		%{realname}-makefile.patch
 Patch1:		%{realname}-config.patch
 Patch2:		%{realname}-mod_muc.patch
@@ -64,7 +69,7 @@ Requires:	%{name} = %{version}-%{release}
 Server-side logging module.
 
 %prep
-%setup -q
+%setup -q -a 6
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
@@ -84,6 +89,11 @@ cd src
 	--enable-odbc
 %{__make} -j1
 cd ..
+cd ejabberd-module-pgsql-%{pgsql_module_rev}
+for f in *.erl ; do
+	erlc $f
+done
+cd ..
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -101,6 +111,12 @@ sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT%{_sbindir}/%{realna
 install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/jabber
 
 chmod 755 $RPM_BUILD_ROOT%{_libdir}/ejabberd/priv/lib/*.so
+
+cd ejabberd-module-pgsql-%{pgsql_module_rev}
+for f in *.beam ; do
+	install $f $RPM_BUILD_ROOT%{_libdir}/ejabberd/ebin
+done
+cd ..
 
 %clean
 rm -rf $RPM_BUILD_ROOT
