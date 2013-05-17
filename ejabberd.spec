@@ -11,12 +11,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		%{realname}
-Version:	2.1.11
-Release:	2
+Version:	2.1.12
+Release:	0.1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{version}.tgz
-# Source0-md5:	a70b040c4e7602f47718c8afe8780d50
+# Source0-md5:	7d49242cf04282f3c4cebfafa2cc2f46
 Source1:	%{realname}.init
 Source2:	%{realname}.sysconfig
 Source3:	%{realname}.sh
@@ -28,7 +28,7 @@ Source6:	ejabberd-module-pgsql-%{pgsql_module_rev}.tar.bz2
 Patch0:		%{realname}-makefile.patch
 Patch1:		%{realname}-config.patch
 Patch2:		%{realname}-mod_muc.patch
-# http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-src-mod_logdb-2.1.0.diff
+# http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-2.1.12.diff
 Patch3:		%{realname}-mod_logdb.patch
 Patch4:		%{realname}-vcard-access-get.patch
 URL:		http://www.ejabberd.im/
@@ -75,7 +75,6 @@ Server-side logging module.
 %patch2 -p1
 %patch4 -p1
 %if %{with logdb}
-cd src
 %patch3 -p0
 %endif
 

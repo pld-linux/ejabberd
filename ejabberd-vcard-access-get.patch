@@ -20,7 +20,19 @@ index 5de409d..ac3dba8 100644
  \titem{\{search, true|false\}}\ind{options!search}This option specifies whether the search
    functionality is enabled or not
    If disabled, the option \term{host} will be ignored and the
-@@ -4087,14 +4098,17 @@ Examples:
+@@ -4128,6 +4142,11 @@ consists of the following \modvcardldap{}-specific options:
+ \begin{description}
+ \hostitem{vjud}
+ \iqdiscitem{\ns{vcard-temp}}
++\titem{access\_get}\ind{options!accessget} Access rule that defines
++  who is allowed to see vCard of local users.
++  If a rule returns `deny' on the requester
++  user name, that user cannot see vCards of local users.
++  By default anybody can see the vCards of local users.
+ \titem{\{search, true|false\}}\ind{options!search}This option specifies whether the search
+   functionality is enabled (value: \term{true}) or disabled (value:
+   \term{false}). If disabled, the option \term{host} will be ignored and the
+@@ -4651,14 +4651,17 @@ Examples:
   ]}.
  \end{verbatim}
  \item The second situation differs in a way that search results are not limited,
@@ -40,18 +52,6 @@ index 5de409d..ac3dba8 100644
    ...
   ]}.
  \end{verbatim}
-@@ -4128,6 +4142,11 @@ consists of the following \modvcardldap{}-specific options:
- \begin{description}
- \hostitem{vjud}
- \iqdiscitem{\ns{vcard-temp}}
-+\titem{access\_get}\ind{options!accessget} Access rule that defines
-+  who is allowed to see vCard of local users.
-+  If a rule returns `deny' on the requester
-+  user name, that user cannot see vCards of local users.
-+  By default anybody can see the vCards of local users.
- \titem{\{search, true|false\}}\ind{options!search}This option specifies whether the search
-   functionality is enabled (value: \term{true}) or disabled (value:
-   \term{false}). If disabled, the option \term{host} will be ignored and the
 diff --git a/src/mod_vcard.erl b/src/mod_vcard.erl
 index 4384087..c54e8ea 100644
 --- a/src/mod_vcard.erl

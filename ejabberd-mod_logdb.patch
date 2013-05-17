@@ -1,12 +1,185 @@
---- mod_logdb.erl.orig	2009-11-22 13:06:23.000000000 +0200
-+++ mod_logdb.erl	2009-11-22 13:06:16.000000000 +0200
-@@ -0,0 +1,2095 @@
+diff --git src/gen_logdb.erl src/gen_logdb.erl
+new file mode 100644
+index 0000000..06a894b
+--- /dev/null
++++ src/gen_logdb.erl
+@@ -0,0 +1,164 @@
++%%%----------------------------------------------------------------------
++%%% File    : gen_logdb.erl
++%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
++%%% Purpose : Describes generic behaviour for mod_logdb backends.
++%%% Version : trunk
++%%% Id      : $Id: gen_logdb.erl 1273 2009-02-05 18:12:57Z malik $
++%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
++%%%----------------------------------------------------------------------
++
++-module(gen_logdb).
++-author('o.palij@gmail.com').
++
++-export([behaviour_info/1]).
++
++behaviour_info(callbacks) ->
++   [
++    % called from handle_info(start, _)
++    % it should logon database and return reference to started instance
++    % start(VHost, Opts) -> {ok, SPid} | error
++    %  Options - list of options to connect to db
++    %    Types: Options = list() -> [] |
++    %                              [{user, "logdb"},
++    %                               {pass, "1234"},
++    %                               {db, "logdb"}] | ...
++    %          VHost = list() -> "jabber.example.org"
++    {start, 2},
++
++    % called from cleanup/1
++    % it should logoff database and do cleanup
++    % stop(VHost)
++    %    Types: VHost = list() -> "jabber.example.org"
++    {stop, 1},
++
++    % called from handle_call({addlog, _}, _, _)
++    % it should log messages to database
++    % log_message(VHost, Msg) -> ok | error
++    %    Types:
++    %          VHost = list() -> "jabber.example.org"
++    %          Msg = record() -> #msg
++    {log_message, 2},
++
++    % called from ejabberdctl rebuild_stats
++    % it should rebuild stats table (if used) for vhost
++    % rebuild_stats(VHost)
++    %    Types:
++    %          VHost = list() -> "jabber.example.org"
++    {rebuild_stats, 1},
++
++    % it should rebuild stats table (if used) for vhost at Date
++    % rebuild_stats_at(VHost, Date)
++    %    Types:
++    %          VHost = list() -> "jabber.example.org"
++    %          Date = list() -> "2007-02-12"
++    {rebuild_stats_at, 2},
++
++    % called from user_messages_at_parse_query/5
++    % it should delete selected user messages at date
++    % delete_messages_by_user_at(VHost, Msgs, Date) -> ok | error
++    %    Types:
++    %          VHost = list() -> "jabber.example.org"
++    %          Msgs = list() -> [ #msg1, msg2, ... ]
++    %          Date = list() -> "2007-02-12"
++    {delete_messages_by_user_at, 3},
++
++    % called from user_messages_parse_query/4 | vhost_messages_at_parse_query/4
++    % it should delete all user messages at date
++    % delete_all_messages_by_user_at(User, VHost, Date) -> ok | error
++    %    Types:
++    %          User = list() -> "admin"
++    %          VHost = list() -> "jabber.example.org"
++    %          Date = list() -> "2007-02-12"
++    {delete_all_messages_by_user_at, 3},
++
++    % called from vhost_messages_parse_query/3
++    % it should delete messages for vhost at date and update stats
++    % delete_messages_at(VHost, Date) -> ok | error
++    %    Types:
++    %          VHost = list() -> "jabber.example.org"
++    %          Date = list() -> "2007-02-12"
++    {delete_messages_at, 2},
++
++    % called from ejabberd_web_admin:vhost_messages_stats/3
++    % it should return sorted list of count of messages by dates for vhost
++    % get_vhost_stats(VHost) -> {ok, [{Date1, Msgs_count1}, {Date2, Msgs_count2}, ... ]} |
++    %                           {error, Reason}
++    %    Types:
++    %          VHost = list() -> "jabber.example.org"
++    %          DateN = list() -> "2007-02-12"
++    %          Msgs_countN = number() -> 241
++    {get_vhost_stats, 1},
++
++    % called from ejabberd_web_admin:vhost_messages_stats_at/4
++    % it should return sorted list of count of messages by users at date for vhost
++    % get_vhost_stats_at(VHost, Date) -> {ok, [{User1, Msgs_count1}, {User2, Msgs_count2}, ....]} |
++    %                                    {error, Reason}
++    %    Types:
++    %          VHost = list() -> "jabber.example.org"
++    %          Date = list() -> "2007-02-12"
++    %          UserN = list() -> "admin"
++    %          Msgs_countN = number() -> 241
++    {get_vhost_stats_at, 2},
++
++    % called from ejabberd_web_admin:user_messages_stats/4
++    % it should return sorted list of count of messages by date for user at vhost
++    % get_user_stats(User, VHost) -> {ok, [{Date1, Msgs_count1}, {Date2, Msgs_count2}, ...]} |
++    %                                {error, Reason}
++    %    Types:
++    %          User = list() -> "admin"
++    %          VHost = list() -> "jabber.example.org"
++    %          DateN = list() -> "2007-02-12"
++    %          Msgs_countN = number() -> 241
++    {get_user_stats, 2},
++
++    % called from ejabberd_web_admin:user_messages_stats_at/5
++    % it should return all user messages at date
++    % get_user_messages_at(User, VHost, Date) -> {ok, Msgs} | {error, Reason}
++    %    Types:
++    %          User = list() -> "admin"
++    %          VHost = list() -> "jabber.example.org"
++    %          Date = list() -> "2007-02-12"
++    %          Msgs = list() -> [ #msg1, msg2, ... ]
++    {get_user_messages_at, 3},
++
++    % called from many places
++    % it should return list of dates for vhost
++    % get_dates(VHost) -> [Date1, Date2, ... ]
++    %    Types:
++    %          VHost = list() -> "jabber.example.org"
++    %          DateN = list() -> "2007-02-12"
++    {get_dates, 1},
++
++    % called from start
++    % it should return list with users settings for VHost in db
++    % get_users_settings(VHost) -> [#user_settings1, #user_settings2, ... ] | error
++    %    Types:
++    %          VHost = list() -> "jabber.example.org"
++    {get_users_settings, 1},
++
++    % called from many places
++    % it should return User settings at VHost from db
++    % get_user_settings(User, VHost) -> error | {ok, #user_settings}
++    %    Types:
++    %          User = list() -> "admin"
++    %          VHost = list() -> "jabber.example.org"
++    {get_user_settings, 2},
++
++    % called from web admin
++    % it should set User settings at VHost
++    % set_user_settings(User, VHost, #user_settings) -> ok | error
++    %    Types:
++    %          User = list() -> "admin"
++    %          VHost = list() -> "jabber.example.org"
++    {set_user_settings, 3},
++
++    % called from remove_user (ejabberd hook)
++    % it should remove user messages and settings at VHost
++    % drop_user(User, VHost) -> ok | error
++    %    Types:
++    %          User = list() -> "admin"
++    %          VHost = list() -> "jabber.example.org"
++    {drop_user, 2}
++   ];
++behaviour_info(_) ->
++   undefined.
+diff --git src/mod_logdb.erl src/mod_logdb.erl
+new file mode 100644
+index 0000000..7de346f
+--- /dev/null
++++ src/mod_logdb.erl
+@@ -0,0 +1,2087 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
 +%%% Purpose : Frontend for log user messages to db
 +%%% Version : trunk
-+%%% Id      : $Id$
++%%% Id      : $Id: mod_logdb.erl 1360 2009-07-30 06:00:14Z malik $
 +%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
@@ -23,9 +196,9 @@
 +% gen_server
 +-export([code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 +% hooks
-+-export([send_packet/3, receive_packet/4, offline_packet/3, remove_user/2]).
++-export([send_packet/3, receive_packet/4, remove_user/2]).
 +-export([get_local_identity/5,
-+         get_local_features/5, 
++         get_local_features/5,
 +         get_local_items/5,
 +         adhoc_local_items/4,
 +         adhoc_local_commands/4
@@ -138,7 +311,6 @@
 +    ejabberd_hooks:delete(remove_user, VHost, ?MODULE, remove_user, 90),
 +    ejabberd_hooks:delete(user_send_packet, VHost, ?MODULE, send_packet, 90),
 +    ejabberd_hooks:delete(user_receive_packet, VHost, ?MODULE, receive_packet, 90),
-+    ejabberd_hooks:delete(offline_message_hook, VHost, ?MODULE, offline_packet, 10),
 +    %ejabberd_hooks:delete(adhoc_sm_commands, VHost, ?MODULE, adhoc_sm_commands, 110),
 +    %ejabberd_hooks:delete(adhoc_sm_items, VHost, ?MODULE, adhoc_sm_items, 110),
 +    ejabberd_hooks:delete(adhoc_local_commands, VHost, ?MODULE, adhoc_local_commands, 110),
@@ -359,7 +531,7 @@
 +           {stop, db_connection_failed, State};
 +         {ok, SPid} ->
 +           ?INFO_MSG("~p connection established", [DBMod]),
-+           
++
 +           MonRef = erlang:monitor(process, SPid),
 +
 +           ets:new(ets_settings_table(VHost), [named_table,public,set,{keypos, #user_settings.owner_name}]),
@@ -372,7 +544,6 @@
 +           ejabberd_hooks:add(remove_user, VHost, ?MODULE, remove_user, 90),
 +           ejabberd_hooks:add(user_send_packet, VHost, ?MODULE, send_packet, 90),
 +           ejabberd_hooks:add(user_receive_packet, VHost, ?MODULE, receive_packet, 90),
-+           ejabberd_hooks:add(offline_message_hook, VHost, ?MODULE, offline_packet, 10),
 +
 +           ejabberd_hooks:add(disco_local_items, VHost, ?MODULE, get_local_items, 110),
 +           ejabberd_hooks:add(disco_local_features, VHost, ?MODULE, get_local_features, 110),
@@ -469,12 +640,7 @@
 +    Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
 +    gen_server:cast(Proc, {addlog, to, Owner, Peer, P}).
 +
-+offline_packet(Peer, Owner, P) ->
-+    VHost = Owner#jid.lserver,
-+    Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
-+    gen_server:cast(Proc, {addlog, from, Owner, Peer, P}).
-+
-+receive_packet(_JID, Peer, Owner, P) -> 
++receive_packet(_JID, Peer, Owner, P) ->
 +    VHost = Owner#jid.lserver,
 +    Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
 +    gen_server:cast(Proc, {addlog, from, Owner, Peer, P}).
@@ -536,7 +702,7 @@
 +                   Ni=lists:foldl(fun([{muc_online_room, {GName, GHost}, Pid}], Names) ->
 +                                   case gen_fsm:sync_send_all_state_event(Pid, {get_jid_nick,Owner}) of
 +                                        [] -> Names;
-+                                        Nick -> 
++                                        Nick ->
 +                                           lists:append(Names, [jlib:jid_to_string({GName, GHost, Nick})])
 +                                   end
 +                                  end, [], Rooms),
@@ -601,7 +767,7 @@
 +                 _ -> State#state.dolog_default
 +	    end,
 +
-+    lists:all(fun(O) -> O end, 
++    lists:all(fun(O) -> O end,
 +              [not lists:member(OwnerStr, State#state.ignore_jids),
 +               not lists:member(PeerStr, State#state.ignore_jids),
 +               not lists:member(OwnerServ, State#state.ignore_jids),
@@ -616,12 +782,12 @@
 +    DateDiff = list_to_integer(Days)*24*60*60,
 +    ?MYDEBUG("Purging tables older than ~s days", [Days]),
 +    lists:foreach(fun(Date) ->
-+                    {ok, [Year, Month, Day]} = regexp:split(Date, "[^0-9]+"),
++                    [Year, Month, Day] = ejabberd_regexp:split(Date, "[^0-9]+"),
 +                    DateInSec = calendar:datetime_to_gregorian_seconds({{list_to_integer(Year), list_to_integer(Month), list_to_integer(Day)}, {0,0,1}}),
 +                    if
 +                     (DateNow - DateInSec) > DateDiff ->
 +                        gen_server:call(Proc, {delete_messages_at, Date});
-+                     true -> 
++                     true ->
 +                        ?MYDEBUG("Skipping messages at ~p", [Date])
 +                    end
 +              end, Dates).
@@ -630,7 +796,7 @@
 +sort_stats(Stats) ->
 +    % Stats = [{"2003-4-15",1}, {"2006-8-18",1}, ... ]
 +    CFun = fun({TableName, Count}) ->
-+                 {ok, [Year, Month, Day]} = regexp:split(TableName, "[^0-9]+"),
++                 [Year, Month, Day] = ejabberd_regexp:split(TableName, "[^0-9]+"),
 +                 { calendar:datetime_to_gregorian_seconds({{list_to_integer(Year), list_to_integer(Month), list_to_integer(Day)}, {0,0,1}}), Count }
 +           end,
 +    % convert to [{63364377601,1}, {63360662401,1}, ... ]
@@ -827,7 +993,7 @@
 +    FromDBMod = list_to_atom(atom_to_list(?MODULE) ++ "_" ++ atom_to_list(FromDBName)),
 +
 +    {ok, _FromPid} = FromDBMod:start(VHost, FromDBOpts),
-+ 
++
 +    Dates = FromDBMod:get_dates(VHost),
 +    DatesLength = length(Dates),
 +
@@ -868,7 +1034,7 @@
 +
 +copy_messages_int_tc([FromDBMod, ToDBMod, VHost, Date]) ->
 +    ?INFO_MSG("Going to copy messages from ~p for ~p at ~p", [FromDBMod, VHost, Date]),
-+   
++
 +    ok = FromDBMod:rebuild_stats_at(VHost, Date),
 +    catch mod_logdb:rebuild_stats_at(VHost, Date),
 +    {ok, FromStats} = FromDBMod:get_vhost_stats_at(VHost, Date),
@@ -1042,8 +1208,7 @@
 +string_to_list([]) ->
 +    [];
 +string_to_list(String) ->
-+    {ok, List} = regexp:split(String, "\n"),
-+    List.
++    ejabberd_regexp:split(String, "\n").
 +
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +%
@@ -1135,7 +1300,7 @@
 +        Users ->
 +            SUsers = lists:sort([{S, U} || {U, S} <- Users]),
 +            case catch begin
-+                           {ok, [S1, S2]} = regexp:split(Diap, "-"),
++                           [S1, S2] = ejabberd_regexp:split(Diap, "-"),
 +                           N1 = list_to_integer(S1),
 +                           N2 = list_to_integer(S2),
 +                           Sub = lists:sublist(SUsers, N1, N2 - N1 + 1),
@@ -1544,7 +1709,7 @@
 +
 +parse_users_settings(XData) ->
 +    DLD = case lists:keysearch("dolog_default", 1, XData) of
-+               {value, {_, [String]}} when String == "true"; String == "false" -> 
++               {value, {_, [String]}} when String == "true"; String == "false" ->
 +                 list_to_bool(String);
 +               _ ->
 +                 throw(bad_request)
@@ -2096,15 +2261,18 @@
 +             ]
 +            )]
 +    end.
---- mod_logdb.hrl.orig	2009-11-22 13:06:23.000000000 +0200
-+++ mod_logdb.hrl	2009-02-05 20:12:58.000000000 +0200
+diff --git src/mod_logdb.hrl src/mod_logdb.hrl
+new file mode 100644
+index 0000000..50db897
+--- /dev/null
++++ src/mod_logdb.hrl
 @@ -0,0 +1,35 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb.hrl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
 +%%% Purpose :
 +%%% Version : trunk
-+%%% Id      : $Id$
++%%% Id      : $Id: mod_logdb.hrl 1273 2009-02-05 18:12:57Z malik $
 +%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
@@ -2134,15 +2302,18 @@
 +                      {"name", Name},
 +                      {"value", Value},
 +                      {"checked", "true"}])).
---- mod_logdb_mnesia.erl.orig	2009-11-22 13:06:23.000000000 +0200
-+++ mod_logdb_mnesia.erl	2009-02-05 20:12:58.000000000 +0200
+diff --git src/mod_logdb_mnesia.erl src/mod_logdb_mnesia.erl
+new file mode 100644
+index 0000000..783aaeb
+--- /dev/null
++++ src/mod_logdb_mnesia.erl
 @@ -0,0 +1,546 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mnesia.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
 +%%% Purpose : mnesia backend for mod_logdb
 +%%% Version : trunk
-+%%% Id      : $Id$
++%%% Id      : $Id: mod_logdb_mnesia.erl 1273 2009-02-05 18:12:57Z malik $
 +%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
@@ -2155,7 +2326,7 @@
 +
 +-behaviour(gen_logdb).
 +-behaviour(gen_server).
-+   
++
 +% gen_server
 +-export([code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 +% gen_mod
@@ -2169,10 +2340,10 @@
 +         get_dates/1,
 +         get_users_settings/1, get_user_settings/2, set_user_settings/3,
 +         drop_user/2]).
-+ 
++
 +-define(PROCNAME, mod_logdb_mnesia).
 +-define(CALL_TIMEOUT, 10000).
-+  
++
 +-record(state, {vhost}).
 +
 +-record(stats, {user, at, count}).
@@ -2235,7 +2406,7 @@
 +    {reply, Reply, State};
 +handle_call({rebuild_stats_at, Date}, _From, #state{vhost=VHost}=State) ->
 +    Reply = rebuild_stats_at_int(VHost, Date),
-+    {reply, Reply, State}; 
++    {reply, Reply, State};
 +handle_call({delete_messages_by_user_at, Msgs, Date}, _From, #state{vhost=VHost}=State) ->
 +    Table = table_name(VHost, Date),
 +    Fun = fun() ->
@@ -2497,10 +2668,10 @@
 +    Tables = mnesia:system_info(tables),
 +    lists:foldl(fun(ATable, Dates) ->
 +                    Table = atom_to_list(ATable),
-+                    case regexp:match(Table, VHost++"$") of
-+                         {match, _, _} ->
-+                            case regexp:match(Table,"_[0-9]+-[0-9]+-[0-9]+_") of
-+                                 {match, S, E} ->
++                    case ejabberd_regexp:run(Table, VHost++"$") of
++                         match ->
++                            case re:run(Table, "_[0-9]+-[0-9]+-[0-9]+_") of
++                                 {match, [{S, E}]} ->
 +                                     lists:append(Dates, [lists:sublist(Table,S+1,E-2)]);
 +                                 nomatch ->
 +                                     Dates
@@ -2683,15 +2854,282 @@
 +               {type, bag},
 +               {attributes, record_info(fields, msg)},
 +               {record_name, msg}]).
---- mod_logdb_mysql.erl.orig	2009-11-22 13:06:23.000000000 +0200
-+++ mod_logdb_mysql.erl	2009-07-30 09:00:14.000000000 +0300
-@@ -0,0 +1,1053 @@
+diff --git src/mod_logdb_mnesia_old.erl src/mod_logdb_mnesia_old.erl
+new file mode 100644
+index 0000000..aef9956
+--- /dev/null
++++ src/mod_logdb_mnesia_old.erl
+@@ -0,0 +1,258 @@
++%%%----------------------------------------------------------------------
++%%% File    : mod_logdb_mnesia_old.erl
++%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
++%%% Purpose : mod_logmnesia backend for mod_logdb (should be used only for copy_tables functionality)
++%%% Version : trunk
++%%% Id      : $Id: mod_logdb_mnesia_old.erl 1273 2009-02-05 18:12:57Z malik $
++%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
++%%%----------------------------------------------------------------------
++
++-module(mod_logdb_mnesia_old).
++-author('o.palij@gmail.com').
++
++-include("ejabberd.hrl").
++-include("jlib.hrl").
++
++-behaviour(gen_logdb).
++
++-export([start/2, stop/1,
++         log_message/2,
++         rebuild_stats/1,
++         rebuild_stats_at/2,
++         rebuild_stats_at1/2,
++         delete_messages_by_user_at/3, delete_all_messages_by_user_at/3, delete_messages_at/2,
++         get_vhost_stats/1, get_vhost_stats_at/2, get_user_stats/2, get_user_messages_at/3,
++         get_dates/1,
++         get_users_settings/1, get_user_settings/2, set_user_settings/3,
++         drop_user/2]).
++
++-record(stats, {user, server, table, count}).
++-record(msg,   {to_user, to_server, to_resource, from_user, from_server, from_resource, id, type, subject, body, timestamp}).
++
++tables_prefix() -> "messages_".
++% stats_table should not start with tables_prefix(VHost) !
++% i.e. lists:prefix(tables_prefix(VHost), atom_to_list(stats_table())) must be /= true
++stats_table() -> list_to_atom("messages-stats").
++% table name as atom from Date
++-define(ATABLE(Date), list_to_atom(tables_prefix() ++ Date)).
++-define(LTABLE(Date), tables_prefix() ++ Date).
++
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++%
++% gen_logdb callbacks
++%
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++start(_Opts, _VHost) ->
++   case mnesia:system_info(is_running) of
++        yes ->
++          ok = create_stats_table(),
++          {ok, ok};
++        no ->
++          ?ERROR_MSG("Mnesia not running", []),
++          error;
++        Status ->
++          ?ERROR_MSG("Mnesia status: ~p", [Status]),
++          error
++   end.
++
++stop(_VHost) ->
++   ok.
++
++log_message(_VHost, _Msg) ->
++   error.
++
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++%
++% gen_logdb callbacks (maintaince)
++%
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++rebuild_stats(_VHost) ->
++     ok.
++
++rebuild_stats_at(VHost, Date) ->
++    Table = ?LTABLE(Date),
++    {Time, Value}=timer:tc(?MODULE, rebuild_stats_at1, [VHost, Table]),
++    ?INFO_MSG("rebuild_stats_at ~p elapsed ~p sec: ~p~n", [Date, Time/1000000, Value]),
++    Value.
++rebuild_stats_at1(VHost, Table) ->
++    CFun = fun(Msg, Stats) ->
++               To = Msg#msg.to_user ++ "@" ++ Msg#msg.to_server,
++               Stats_to = if
++                            Msg#msg.to_server == VHost ->
++                               case lists:keysearch(To, 1, Stats) of
++                                    {value, {Who_to, Count_to}} ->
++                                       lists:keyreplace(To, 1, Stats, {Who_to, Count_to + 1});
++                                    false ->
++                                        lists:append(Stats, [{To, 1}])
++                               end;
++                            true ->
++                               Stats
++                          end,
++               From = Msg#msg.from_user ++ "@" ++ Msg#msg.from_server,
++               Stats_from = if
++                              Msg#msg.from_server == VHost  ->
++                                 case lists:keysearch(From, 1, Stats_to) of
++                                      {value, {Who_from, Count_from}} ->
++                                         lists:keyreplace(From, 1, Stats_to, {Who_from, Count_from + 1});
++                                      false ->
++                                         lists:append(Stats_to, [{From, 1}])
++                                 end;
++                              true ->
++                                 Stats_to
++                            end,
++               Stats_from
++           end,
++    DFun = fun(#stats{table=STable, server=Server} = Stat, _Acc)
++                when STable == Table, Server == VHost ->
++                 mnesia:delete_object(stats_table(), Stat, write);
++              (_Stat, _Acc) -> ok
++           end,
++    case mnesia:transaction(fun() ->
++                               mnesia:write_lock_table(list_to_atom(Table)),
++                               mnesia:write_lock_table(stats_table()),
++                               % Calc stats for VHost at Date
++                               AStats = mnesia:foldl(CFun, [], list_to_atom(Table)),
++                               % Delete all stats for VHost at Date
++                               mnesia:foldl(DFun, [], stats_table()),
++                               % Write new calc'ed stats
++                               lists:foreach(fun({Who, Count}) ->
++                                                 Jid = jlib:string_to_jid(Who),
++                                                 JUser = Jid#jid.user,
++                                                 WStat = #stats{user=JUser, server=VHost, table=Table, count=Count},
++                                                 mnesia:write(stats_table(), WStat, write)
++                                             end, AStats)
++                            end) of
++         {aborted, Reason} ->
++              ?ERROR_MSG("Failed to rebuild_stats_at for ~p at ~p: ~p", [VHost, Table, Reason]),
++              error;
++         {atomic, _} ->
++              ok
++    end.
++
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++%
++% gen_logdb callbacks (delete)
++%
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++delete_messages_by_user_at(_VHost, _Msgs, _Date) ->
++    error.
++
++delete_all_messages_by_user_at(_User, _VHost, _Date) ->
++    error.
++
++delete_messages_at(VHost, Date) ->
++   Table = list_to_atom(tables_prefix() ++ Date),
++
++   DFun = fun(#msg{to_server=To_server, from_server=From_server}=Msg, _Acc)
++                when To_server == VHost; From_server == VHost ->
++                   mnesia:delete_object(Table, Msg, write);
++             (_Msg, _Acc) -> ok
++          end,
++
++   case mnesia:transaction(fun() ->
++                            mnesia:foldl(DFun, [], Table)
++                           end) of
++        {aborted, Reason} ->
++            ?ERROR_MSG("Failed to delete_messages_at for ~p at ~p: ~p", [VHost, Date, Reason]),
++            error;
++        {atomic, _} ->
++            ok
++   end.
++
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++%
++% gen_logdb callbacks (get)
++%
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++get_vhost_stats(_VHost) ->
++    {error, "does not emplemented"}.
++
++get_vhost_stats_at(VHost, Date) ->
++    Fun = fun() ->
++             Pat = #stats{user='$1', server=VHost, table=tables_prefix()++Date, count = '$2'},
++             mnesia:select(stats_table(), [{Pat, [], [['$1', '$2']]}])
++          end,
++    case mnesia:transaction(Fun) of
++         {atomic, Result} ->
++                   RFun = fun([User, Count]) ->
++                             {User, Count}
++                          end,
++                   {ok, lists:reverse(lists:keysort(2, lists:map(RFun, Result)))};
++         {aborted, Reason} -> {error, Reason}
++    end.
++
++get_user_stats(_User, _VHost) ->
++    {error, "does not emplemented"}.
++
++get_user_messages_at(User, VHost, Date) ->
++    Table_name = tables_prefix() ++ Date,
++    case mnesia:transaction(fun() ->
++                               Pat_to = #msg{to_user=User, to_server=VHost, _='_'},
++                               Pat_from = #msg{from_user=User, from_server=VHost,  _='_'},
++                               mnesia:select(list_to_atom(Table_name),
++                                             [{Pat_to, [], ['$_']},
++                                              {Pat_from, [], ['$_']}])
++                       end) of
++          {atomic, Result} ->
++                   Msgs = lists:map(fun(#msg{to_user=To_user, to_server=To_server, to_resource=To_res,
++                                             from_user=From_user, from_server=From_server, from_resource=From_res,
++                                             type=Type,
++                                             subject=Subj,
++                                             body=Body, timestamp=Timestamp} = _Msg) ->
++                                        Subject = case Subj of
++                                                       "None" -> "";
++                                                       _ -> Subj
++                                                  end,
++                                        {msg, To_user, To_server, To_res, From_user, From_server, From_res, Type, Subject, Body, Timestamp}
++                                    end, Result),
++                   {ok, Msgs};
++          {aborted, Reason} ->
++                   {error, Reason}
++    end.
++
++get_dates(_VHost) ->
++    Tables = mnesia:system_info(tables),
++    MessagesTables =
++        lists:filter(fun(Table) ->
++                         lists:prefix(tables_prefix(), atom_to_list(Table))
++                     end,
++                     Tables),
++    lists:map(fun(Table) ->
++                  lists:sublist(atom_to_list(Table),
++                                length(tables_prefix())+1,
++                                length(atom_to_list(Table)))
++              end,
++              MessagesTables).
++
++get_users_settings(_VHost) ->
++    {ok, []}.
++get_user_settings(_User, _VHost) ->
++    {ok, []}.
++set_user_settings(_User, _VHost, _Set) ->
++    ok.
++drop_user(_User, _VHost) ->
++    ok.
++
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++%
++% internal
++%
++%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
++% called from db_logon/2
++create_stats_table() ->
++    SName = stats_table(),
++    case mnesia:create_table(SName,
++                             [{disc_only_copies, [node()]},
++                              {type, bag},
++                              {attributes, record_info(fields, stats)},
++                              {record_name, stats}
++                             ]) of
++         {atomic, ok} ->
++             ?INFO_MSG("Created stats table", []),
++             ok;
++         {aborted, {already_exists, _}} ->
++             ok;
++         {aborted, Reason} ->
++             ?ERROR_MSG("Failed to create stats table: ~p", [Reason]),
++             error
++    end.
+diff --git src/mod_logdb_mysql.erl src/mod_logdb_mysql.erl
+new file mode 100644
+index 0000000..7c473ce
+--- /dev/null
++++ src/mod_logdb_mysql.erl
+@@ -0,0 +1,1052 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
 +%%% Purpose : MySQL backend for mod_logdb
 +%%% Version : trunk
-+%%% Id      : $Id$
++%%% Id      : $Id: mod_logdb_mysql.erl 1360 2009-07-30 06:00:14Z malik $
 +%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
@@ -2867,9 +3305,9 @@
 +                                                       Msg#msg.peer_name++"@"++Msg#msg.peer_server]),
 +               increment_user_stats(DBRef, Msg#msg.owner_name, Owner_id, VHost, Peer_name_id, Peer_server_id, Date);
 +            {error, Reason} ->
-+               case regexp:match(Reason, "#42S02") of
++               case ejabberd_regexp:run(Reason, "#42S02") of
 +                    % Table doesn't exist
-+                    {match, _, _} ->
++                    match ->
 +                       case create_msg_table(DBRef, VHost, Date) of
 +                            error ->
 +                               error;
@@ -3022,7 +3460,7 @@
 +    Query = ["SELECT username,dolog_default,dolog_list,donotlog_list ",
 +                "FROM ",settings_table(VHost)," ",
 +             "JOIN ",users_table(VHost)," ON user_id=owner_id;"],
-+    Reply = 
++    Reply =
 +      case sql_query_internal(DBRef, Query) of
 +           {data, Result} ->
 +              {ok, lists:map(fun([Owner, DoLogDef, DoLogL, DoNotLogL]) ->
@@ -3076,9 +3514,9 @@
 +                       ?MYDEBUG("New settings for ~s@~s", [User, VHost]),
 +                       ok;
 +                   {error, Reason} ->
-+                       case regexp:match(Reason, "#23000") of
++                       case ejabberd_regexp:run(Reason, "#23000") of
 +                            % Already exists
-+                            {match, _, _} ->
++                            match ->
 +                                ok;
 +                             _ ->
 +                                ?ERROR_MSG("Failed setup user ~p@~p: ~p", [User, VHost, Reason]),
@@ -3235,16 +3673,15 @@
 +         {data, Tables} ->
 +            lists:foldl(fun([Table], Dates) ->
 +                           Reg = lists:sublist(prefix(),2,length(prefix())) ++ ".*" ++ escape_vhost(VHost),
-+                           case regexp:match(Table, Reg) of
-+                                {match, 1, _} ->
++                           case re:run(Table, Reg) of
++                                {match, [{1, _}]} ->
 +                                   ?MYDEBUG("matched ~p against ~p", [Table, Reg]),
-+                                   case regexp:match(Table,"[0-9]+-[0-9]+-[0-9]+") of
-+                                        {match, S, E} ->
++                                   case re:run(Table,"[0-9]+-[0-9]+-[0-9]+") of
++                                        {match, [{S, E}]} ->
 +                                            lists:append(Dates, [lists:sublist(Table,S,E)]);
 +                                        nomatch ->
 +                                            Dates
 +                                   end;
-+                               
 +                                _ ->
 +                                   Dates
 +                           end
@@ -3451,8 +3888,8 @@
 +            rebuild_all_stats_int(State),
 +            ok;
 +         {error, Reason} ->
-+            case regexp:match(Reason, "#42S01") of
-+                 {match, _, _} ->
++            case ejabberd_regexp:run(Reason, "#42S01") of
++                 match ->
 +                   ?MYDEBUG("Stats table for ~p already exists", [VHost]),
 +                   CheckQuery = ["SHOW COLUMNS FROM ",SName," LIKE 'peer_%_id';"],
 +                   case sql_query_internal(DBRef, CheckQuery) of
@@ -3640,7 +4077,7 @@
 +                          NewId;
 +                      {error, Reason} ->
 +                          % this can be in clustered environment
-+                          {match, _, _} = regexp:match(Reason, "#23000"),
++                          match = ejabberd_regexp:run(Reason, "#23000"),
 +                          ?ERROR_MSG("Duplicate key name for ~p", [User]),
 +                          {ok, ClID} = get_user_id_from_db(DBRef, VHost, User),
 +                          ClID
@@ -3665,7 +4102,7 @@
 +                Id;
 +             {error, Reason} ->
 +                % this can be in clustered environment
-+                {match, _, _} = regexp:match(Reason, "#23000"),
++                match = ejabberd_regexp:run(Reason, "#23000"),
 +                ?ERROR_MSG("Duplicate key name for ~p", [Server]),
 +                update_servers_from_db(DBRef, VHost),
 +                [[Id1]] = ets:match(ets_servers_table(VHost), {Server, '$1'}),
@@ -3702,7 +4139,7 @@
 +                          NewId;
 +                      {error, Reason} ->
 +                          % this can be in clustered environment
-+                          {match, _, _} = regexp:match(Reason, "#23000"),
++                          match = ejabberd_regexp:run(Reason, "#23000"),
 +                          ?ERROR_MSG("Duplicate key name for ~p", [Resource]),
 +                          {ok, ClID} = get_resource_id_from_db(DBRef, VHost, Resource),
 +                          ClID
@@ -3715,7 +4152,7 @@
 +
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +%
-+% SQL internals 
++% SQL internals
 +%
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +sql_query_internal(DBRef, Query) ->
@@ -3739,15 +4176,18 @@
 +get_result({error, MySQLRes}) ->
 +    Reason = mysql:get_result_reason(MySQLRes),
 +    {error, Reason}.
---- mod_logdb_mysql5.erl.orig	2009-11-22 13:06:23.000000000 +0200
-+++ mod_logdb_mysql5.erl	2009-07-30 09:00:14.000000000 +0300
+diff --git src/mod_logdb_mysql5.erl src/mod_logdb_mysql5.erl
+new file mode 100644
+index 0000000..59efc77
+--- /dev/null
++++ src/mod_logdb_mysql5.erl
 @@ -0,0 +1,979 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql5.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
 +%%% Purpose : MySQL 5 backend for mod_logdb
 +%%% Version : trunk
-+%%% Id      : $Id$
++%%% Id      : $Id: mod_logdb_mysql5.erl 1360 2009-07-30 06:00:14Z malik $
 +%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
@@ -4020,7 +4460,7 @@
 +    Query = ["SELECT username,dolog_default,dolog_list,donotlog_list ",
 +                "FROM ",settings_table(VHost)," ",
 +             "JOIN ",users_table(VHost)," ON user_id=owner_id;"],
-+    Reply = 
++    Reply =
 +      case sql_query_internal(DBRef, Query) of
 +           {data, Result} ->
 +              {ok, lists:map(fun([Owner, DoLogDef, DoLogL, DoNotLogL]) ->
@@ -4073,9 +4513,9 @@
 +                       ?MYDEBUG("New settings for ~s@~s", [User, VHost]),
 +                       ok;
 +                   {error, Reason} ->
-+                       case regexp:match(Reason, "#23000") of
++                       case ejabberd_regexp:run(Reason, "#23000") of
 +                            % Already exists
-+                            {match, _, _} ->
++                            match ->
 +                                ok;
 +                             _ ->
 +                                ?ERROR_MSG("Failed setup user ~p@~p: ~p", [User, VHost, Reason]),
@@ -4229,10 +4669,10 @@
 +         {data, Tables} ->
 +            lists:foldl(fun([Table], Dates) ->
 +                           Reg = lists:sublist(prefix(),2,length(prefix())) ++ ".*" ++ escape_vhost(VHost),
-+                           case regexp:match(Table, Reg) of
-+                                {match, 1, _} ->
-+                                   case regexp:match(Table,"[0-9]+-[0-9]+-[0-9]+") of
-+                                        {match, S, E} ->
++                           case re:run(Table, Reg) of
++                                {match, [{1, _}]} ->
++                                   case re:run(Table,"[0-9]+-[0-9]+-[0-9]+") of
++                                        {match, [{S, E}]} ->
 +                                            lists:append(Dates, [lists:sublist(Table,S,E)]);
 +                                        nomatch ->
 +                                            Dates
@@ -4446,8 +4886,8 @@
 +            rebuild_all_stats_int(State),
 +            ok;
 +         {error, Reason} ->
-+            case regexp:match(Reason, "#42S01") of
-+                 {match, _, _} ->
++            case ejabberd_regexp:run(Reason, "#42S01") of
++                 match ->
 +                   ?MYDEBUG("Stats table for ~p already exists", [VHost]),
 +                   CheckQuery = ["SHOW COLUMNS FROM ",SName," LIKE 'peer_%_id';"],
 +                   case sql_query_internal(DBRef, CheckQuery) of
@@ -4547,7 +4987,7 @@
 +
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +%
-+% SQL internals 
++% SQL internals
 +%
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +sql_query_internal(DBRef, Query) ->
@@ -4585,7 +5025,7 @@
 +                   DBIdNew;
 +               {error, Reason} ->
 +                   % this can be in clustered environment
-+                   {match, _, _} = regexp:match(Reason, "#23000"),
++                   match = ejabberd_regexp:run(Reason, "#23000"),
 +                   ?ERROR_MSG("Duplicate key name for ~p", [User]),
 +                   {data, [[ClID]]} = sql_query_internal(DBRef, SQuery),
 +                   ClID
@@ -4602,7 +5042,7 @@
 +    io_lib:format("
 +CREATE PROCEDURE ~s(tablename TEXT, atdate TEXT, owner TEXT, peer_name TEXT, peer_server TEXT, peer_resource TEXT, mdirection VARCHAR(4), mtype VARCHAR(10), msubject TEXT, mbody TEXT, mtimestamp DOUBLE)
 +BEGIN
-+   DECLARE ownerID MEDIUMINT UNSIGNED; 
++   DECLARE ownerID MEDIUMINT UNSIGNED;
 +   DECLARE peer_nameID MEDIUMINT UNSIGNED;
 +   DECLARE peer_serverID MEDIUMINT UNSIGNED;
 +   DECLARE peer_resourceID MEDIUMINT UNSIGNED;
@@ -4632,7 +5072,7 @@
 +   SELECT user_id INTO @ownerID FROM ~s WHERE username=owner;
 +   IF @ownerID IS NULL THEN
 +      INSERT INTO ~s SET username=owner;
-+      SET @ownerID = LAST_INSERT_ID(); 
++      SET @ownerID = LAST_INSERT_ID();
 +   END IF;
 +
 +   SELECT user_id INTO @peer_nameID FROM ~s WHERE username=peer_name;
@@ -4721,15 +5161,18 @@
 +      END IF;
 +   END IF;
 +END;", [logmessage_name(VHost),UName,UName,UName,UName,SName,SName,RName,RName,UName,UName,SName,RName,StName,StName]).
---- mod_logdb_pgsql.erl.orig	2009-11-22 13:06:23.000000000 +0200
-+++ mod_logdb_pgsql.erl	2009-07-30 09:49:10.000000000 +0300
+diff --git src/mod_logdb_pgsql.erl src/mod_logdb_pgsql.erl
+new file mode 100644
+index 0000000..1227519
+--- /dev/null
++++ src/mod_logdb_pgsql.erl
 @@ -0,0 +1,1104 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_pgsql.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
 +%%% Purpose : Posgresql backend for mod_logdb
 +%%% Version : trunk
-+%%% Id      : $Id$
++%%% Id      : $Id: mod_logdb_pgsql.erl 1360 2009-07-30 06:00:14Z malik $
 +%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
@@ -5219,8 +5662,8 @@
 +    case sql_query_internal(DBRef, Query) of
 +         {data, Recs} ->
 +            lists:foldl(fun({_Schema, Table, _Type, _Owner}, Dates) ->
-+                             case regexp:match(Table,"[0-9]+-[0-9]+-[0-9]+") of
-+                                  {match, S, E} ->
++                             case re:run(Table,"[0-9]+-[0-9]+-[0-9]+") of
++                                  {match, [{S, E}]} ->
 +                                      lists:append(Dates, [lists:sublist(Table,S,E)]);
 +                                  nomatch ->
 +                                      Dates
@@ -5448,7 +5891,7 @@
 +            ok;
 +         {atomic, exists} ->
 +            ?MYDEBUG("Stats table for ~p already exists", [VHost]),
-+            {match, F, L} = regexp:match(SName, "\".*\""),
++            {match, [{F, L}]} = re:run(SName, "\".*\""),
 +            QTable = lists:sublist(SName, F+1, L-2),
 +            OIDQuery = ["SELECT c.oid FROM pg_catalog.pg_class c LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace WHERE c.relname='",QTable,"' AND pg_catalog.pg_table_is_visible(c.oid);"],
 +            {data,[{OID}]} = sql_query_internal(DBRef, OIDQuery),
@@ -5522,7 +5965,7 @@
 +         {atomic, created} ->
 +             ?MYDEBUG("Created users table for ~p", [VHost]),
 +             ok;
-+         {atomic, exists} -> 
++         {atomic, exists} ->
 +             ?MYDEBUG("Users table for ~p already exists", [VHost]),
 +             ok;
 +         {aborted, _} -> error
@@ -5722,7 +6165,7 @@
 +
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +%
-+% SQL internals 
++% SQL internals
 +%
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +% like do_transaction/2 in mysql_conn.erl (changeset by Yariv Sadan <yarivvv@gmail.com>)
@@ -5828,437 +6271,11 @@
 +get_result(Rez) ->
 +    {error, undefined, Rez}.
 +
---- mod_logdb_mnesia_old.erl.orig	2009-11-22 13:06:23.000000000 +0200
-+++ mod_logdb_mnesia_old.erl	2009-02-05 20:12:58.000000000 +0200
-@@ -0,0 +1,258 @@
-+%%%----------------------------------------------------------------------
-+%%% File    : mod_logdb_mnesia_old.erl
-+%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
-+%%% Purpose : mod_logmnesia backend for mod_logdb (should be used only for copy_tables functionality)
-+%%% Version : trunk
-+%%% Id      : $Id$
-+%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
-+%%%----------------------------------------------------------------------
-+
-+-module(mod_logdb_mnesia_old).
-+-author('o.palij@gmail.com').
-+
-+-include("ejabberd.hrl").
-+-include("jlib.hrl").
-+
-+-behaviour(gen_logdb).
-+
-+-export([start/2, stop/1,
-+         log_message/2,
-+         rebuild_stats/1,
-+         rebuild_stats_at/2,
-+         rebuild_stats_at1/2,
-+         delete_messages_by_user_at/3, delete_all_messages_by_user_at/3, delete_messages_at/2,
-+         get_vhost_stats/1, get_vhost_stats_at/2, get_user_stats/2, get_user_messages_at/3,
-+         get_dates/1,
-+         get_users_settings/1, get_user_settings/2, set_user_settings/3,
-+         drop_user/2]).
-+
-+-record(stats, {user, server, table, count}).
-+-record(msg,   {to_user, to_server, to_resource, from_user, from_server, from_resource, id, type, subject, body, timestamp}).
-+
-+tables_prefix() -> "messages_".
-+% stats_table should not start with tables_prefix(VHost) ! 
-+% i.e. lists:prefix(tables_prefix(VHost), atom_to_list(stats_table())) must be /= true
-+stats_table() -> list_to_atom("messages-stats").
-+% table name as atom from Date
-+-define(ATABLE(Date), list_to_atom(tables_prefix() ++ Date)).
-+-define(LTABLE(Date), tables_prefix() ++ Date).
-+
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+%
-+% gen_logdb callbacks
-+%
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+start(_Opts, _VHost) ->
-+   case mnesia:system_info(is_running) of
-+        yes ->
-+          ok = create_stats_table(),
-+          {ok, ok};
-+        no ->
-+          ?ERROR_MSG("Mnesia not running", []),
-+          error;
-+        Status ->
-+          ?ERROR_MSG("Mnesia status: ~p", [Status]),
-+          error
-+   end.
-+
-+stop(_VHost) ->
-+   ok.
-+
-+log_message(_VHost, _Msg) ->
-+   error.
-+
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+%
-+% gen_logdb callbacks (maintaince)
-+%
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+rebuild_stats(_VHost) ->
-+     ok.
-+
-+rebuild_stats_at(VHost, Date) ->
-+    Table = ?LTABLE(Date),
-+    {Time, Value}=timer:tc(?MODULE, rebuild_stats_at1, [VHost, Table]),
-+    ?INFO_MSG("rebuild_stats_at ~p elapsed ~p sec: ~p~n", [Date, Time/1000000, Value]),
-+    Value.
-+rebuild_stats_at1(VHost, Table) ->
-+    CFun = fun(Msg, Stats) ->
-+               To = Msg#msg.to_user ++ "@" ++ Msg#msg.to_server,
-+               Stats_to = if 
-+                            Msg#msg.to_server == VHost ->
-+                               case lists:keysearch(To, 1, Stats) of
-+                                    {value, {Who_to, Count_to}} ->
-+                                       lists:keyreplace(To, 1, Stats, {Who_to, Count_to + 1});
-+                                    false ->
-+                                        lists:append(Stats, [{To, 1}])
-+                               end;
-+                            true ->
-+                               Stats
-+                          end,
-+               From = Msg#msg.from_user ++ "@" ++ Msg#msg.from_server,
-+               Stats_from = if
-+                              Msg#msg.from_server == VHost  ->
-+                                 case lists:keysearch(From, 1, Stats_to) of
-+                                      {value, {Who_from, Count_from}} ->
-+                                         lists:keyreplace(From, 1, Stats_to, {Who_from, Count_from + 1});
-+                                      false ->
-+                                         lists:append(Stats_to, [{From, 1}])
-+                                 end;
-+                              true ->
-+                                 Stats_to
-+                            end,
-+               Stats_from
-+           end,
-+    DFun = fun(#stats{table=STable, server=Server} = Stat, _Acc)
-+                when STable == Table, Server == VHost ->
-+                 mnesia:delete_object(stats_table(), Stat, write);
-+              (_Stat, _Acc) -> ok
-+           end,
-+    case mnesia:transaction(fun() ->
-+                               mnesia:write_lock_table(list_to_atom(Table)),
-+                               mnesia:write_lock_table(stats_table()),
-+                               % Calc stats for VHost at Date
-+                               AStats = mnesia:foldl(CFun, [], list_to_atom(Table)),
-+                               % Delete all stats for VHost at Date
-+                               mnesia:foldl(DFun, [], stats_table()),
-+                               % Write new calc'ed stats
-+                               lists:foreach(fun({Who, Count}) ->
-+                                                 Jid = jlib:string_to_jid(Who),
-+                                                 JUser = Jid#jid.user,
-+                                                 WStat = #stats{user=JUser, server=VHost, table=Table, count=Count},
-+                                                 mnesia:write(stats_table(), WStat, write)
-+                                             end, AStats)
-+                            end) of
-+         {aborted, Reason} ->
-+              ?ERROR_MSG("Failed to rebuild_stats_at for ~p at ~p: ~p", [VHost, Table, Reason]),
-+              error;
-+         {atomic, _} ->
-+              ok
-+    end.
-+
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+%
-+% gen_logdb callbacks (delete)
-+%
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+delete_messages_by_user_at(_VHost, _Msgs, _Date) ->
-+    error.
-+
-+delete_all_messages_by_user_at(_User, _VHost, _Date) ->
-+    error.
-+
-+delete_messages_at(VHost, Date) ->
-+   Table = list_to_atom(tables_prefix() ++ Date),
-+
-+   DFun = fun(#msg{to_server=To_server, from_server=From_server}=Msg, _Acc)
-+                when To_server == VHost; From_server == VHost ->
-+                   mnesia:delete_object(Table, Msg, write);
-+             (_Msg, _Acc) -> ok
-+          end,
-+   
-+   case mnesia:transaction(fun() ->
-+                            mnesia:foldl(DFun, [], Table)
-+                           end) of
-+        {aborted, Reason} ->
-+            ?ERROR_MSG("Failed to delete_messages_at for ~p at ~p: ~p", [VHost, Date, Reason]),
-+            error;
-+        {atomic, _} ->
-+            ok
-+   end.
-+
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+%
-+% gen_logdb callbacks (get)
-+%
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+get_vhost_stats(_VHost) ->
-+    {error, "does not emplemented"}.
-+
-+get_vhost_stats_at(VHost, Date) ->
-+    Fun = fun() ->
-+             Pat = #stats{user='$1', server=VHost, table=tables_prefix()++Date, count = '$2'},
-+             mnesia:select(stats_table(), [{Pat, [], [['$1', '$2']]}])
-+          end,
-+    case mnesia:transaction(Fun) of
-+         {atomic, Result} ->
-+                   RFun = fun([User, Count]) ->
-+                             {User, Count}
-+                          end,
-+                   {ok, lists:reverse(lists:keysort(2, lists:map(RFun, Result)))};
-+         {aborted, Reason} -> {error, Reason}
-+    end.
-+
-+get_user_stats(_User, _VHost) ->
-+    {error, "does not emplemented"}.
-+
-+get_user_messages_at(User, VHost, Date) ->
-+    Table_name = tables_prefix() ++ Date,
-+    case mnesia:transaction(fun() ->
-+                               Pat_to = #msg{to_user=User, to_server=VHost, _='_'},
-+                               Pat_from = #msg{from_user=User, from_server=VHost,  _='_'},
-+                               mnesia:select(list_to_atom(Table_name),
-+                                             [{Pat_to, [], ['$_']},
-+                                              {Pat_from, [], ['$_']}])
-+                       end) of
-+          {atomic, Result} ->
-+                   Msgs = lists:map(fun(#msg{to_user=To_user, to_server=To_server, to_resource=To_res,
-+                                             from_user=From_user, from_server=From_server, from_resource=From_res,
-+                                             type=Type,
-+                                             subject=Subj,
-+                                             body=Body, timestamp=Timestamp} = _Msg) ->
-+                                        Subject = case Subj of
-+                                                       "None" -> "";
-+                                                       _ -> Subj
-+                                                  end,
-+                                        {msg, To_user, To_server, To_res, From_user, From_server, From_res, Type, Subject, Body, Timestamp}
-+                                    end, Result),
-+                   {ok, Msgs};
-+          {aborted, Reason} ->
-+                   {error, Reason}
-+    end.
-+
-+get_dates(_VHost) ->
-+    Tables = mnesia:system_info(tables),
-+    MessagesTables =
-+        lists:filter(fun(Table) ->
-+                         lists:prefix(tables_prefix(), atom_to_list(Table))
-+                     end,
-+                     Tables),
-+    lists:map(fun(Table) ->
-+                  lists:sublist(atom_to_list(Table),
-+                                length(tables_prefix())+1,
-+                                length(atom_to_list(Table)))
-+              end,
-+              MessagesTables).
-+
-+get_users_settings(_VHost) ->
-+    {ok, []}.
-+get_user_settings(_User, _VHost) ->
-+    {ok, []}.
-+set_user_settings(_User, _VHost, _Set) ->
-+    ok.
-+drop_user(_User, _VHost) ->
-+    ok.
-+
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+%
-+% internal 
-+%
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+% called from db_logon/2
-+create_stats_table() ->
-+    SName = stats_table(),
-+    case mnesia:create_table(SName,
-+                             [{disc_only_copies, [node()]},
-+                              {type, bag},
-+                              {attributes, record_info(fields, stats)},
-+                              {record_name, stats}
-+                             ]) of
-+         {atomic, ok} ->
-+             ?INFO_MSG("Created stats table", []),
-+             ok;
-+         {aborted, {already_exists, _}} ->
-+             ok;
-+         {aborted, Reason} ->
-+             ?ERROR_MSG("Failed to create stats table: ~p", [Reason]),
-+             error
-+    end.
---- gen_logdb.erl.orig	2009-11-22 13:06:23.000000000 +0200
-+++ gen_logdb.erl	2009-07-22 16:43:26.000000000 +0300
-@@ -0,0 +1,164 @@
-+%%%----------------------------------------------------------------------
-+%%% File    : gen_logdb.erl
-+%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
-+%%% Purpose : Describes generic behaviour for mod_logdb backends.
-+%%% Version : trunk
-+%%% Id      : $Id$
-+%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
-+%%%----------------------------------------------------------------------
-+
-+-module(gen_logdb).
-+-author('o.palij@gmail.com').
-+
-+-export([behaviour_info/1]).
-+
-+behaviour_info(callbacks) ->
-+   [
-+    % called from handle_info(start, _)
-+    % it should logon database and return reference to started instance
-+    % start(VHost, Opts) -> {ok, SPid} | error
-+    %  Options - list of options to connect to db
-+    %    Types: Options = list() -> [] |
-+    %                              [{user, "logdb"},
-+    %                               {pass, "1234"},
-+    %                               {db, "logdb"}] | ...
-+    %          VHost = list() -> "jabber.example.org"
-+    {start, 2},
-+
-+    % called from cleanup/1
-+    % it should logoff database and do cleanup
-+    % stop(VHost)
-+    %    Types: VHost = list() -> "jabber.example.org"
-+    {stop, 1},
-+
-+    % called from handle_call({addlog, _}, _, _)
-+    % it should log messages to database
-+    % log_message(VHost, Msg) -> ok | error
-+    %    Types:
-+    %          VHost = list() -> "jabber.example.org"
-+    %          Msg = record() -> #msg
-+    {log_message, 2},
-+
-+    % called from ejabberdctl rebuild_stats
-+    % it should rebuild stats table (if used) for vhost
-+    % rebuild_stats(VHost)
-+    %    Types:
-+    %          VHost = list() -> "jabber.example.org"
-+    {rebuild_stats, 1},
-+
-+    % it should rebuild stats table (if used) for vhost at Date
-+    % rebuild_stats_at(VHost, Date)
-+    %    Types:
-+    %          VHost = list() -> "jabber.example.org"
-+    %          Date = list() -> "2007-02-12"
-+    {rebuild_stats_at, 2},
-+
-+    % called from user_messages_at_parse_query/5
-+    % it should delete selected user messages at date
-+    % delete_messages_by_user_at(VHost, Msgs, Date) -> ok | error
-+    %    Types:
-+    %          VHost = list() -> "jabber.example.org"
-+    %          Msgs = list() -> [ #msg1, msg2, ... ]
-+    %          Date = list() -> "2007-02-12"
-+    {delete_messages_by_user_at, 3},
-+
-+    % called from user_messages_parse_query/4 | vhost_messages_at_parse_query/4
-+    % it should delete all user messages at date
-+    % delete_all_messages_by_user_at(User, VHost, Date) -> ok | error
-+    %    Types:
-+    %          User = list() -> "admin"
-+    %          VHost = list() -> "jabber.example.org"
-+    %          Date = list() -> "2007-02-12"
-+    {delete_all_messages_by_user_at, 3},
-+
-+    % called from vhost_messages_parse_query/3
-+    % it should delete messages for vhost at date and update stats
-+    % delete_messages_at(VHost, Date) -> ok | error
-+    %    Types:
-+    %          VHost = list() -> "jabber.example.org"
-+    %          Date = list() -> "2007-02-12"
-+    {delete_messages_at, 2},
-+
-+    % called from ejabberd_web_admin:vhost_messages_stats/3
-+    % it should return sorted list of count of messages by dates for vhost
-+    % get_vhost_stats(VHost) -> {ok, [{Date1, Msgs_count1}, {Date2, Msgs_count2}, ... ]} |
-+    %                           {error, Reason}
-+    %    Types:
-+    %          VHost = list() -> "jabber.example.org"
-+    %          DateN = list() -> "2007-02-12"
-+    %          Msgs_countN = number() -> 241
-+    {get_vhost_stats, 1},
-+
-+    % called from ejabberd_web_admin:vhost_messages_stats_at/4
-+    % it should return sorted list of count of messages by users at date for vhost
-+    % get_vhost_stats_at(VHost, Date) -> {ok, [{User1, Msgs_count1}, {User2, Msgs_count2}, ....]} |
-+    %                                    {error, Reason}
-+    %    Types:
-+    %          VHost = list() -> "jabber.example.org"
-+    %          Date = list() -> "2007-02-12"
-+    %          UserN = list() -> "admin"
-+    %          Msgs_countN = number() -> 241
-+    {get_vhost_stats_at, 2},
-+
-+    % called from ejabberd_web_admin:user_messages_stats/4
-+    % it should return sorted list of count of messages by date for user at vhost
-+    % get_user_stats(User, VHost) -> {ok, [{Date1, Msgs_count1}, {Date2, Msgs_count2}, ...]} |
-+    %                                {error, Reason}
-+    %    Types:
-+    %          User = list() -> "admin"
-+    %          VHost = list() -> "jabber.example.org"
-+    %          DateN = list() -> "2007-02-12"
-+    %          Msgs_countN = number() -> 241
-+    {get_user_stats, 2},
-+
-+    % called from ejabberd_web_admin:user_messages_stats_at/5
-+    % it should return all user messages at date
-+    % get_user_messages_at(User, VHost, Date) -> {ok, Msgs} | {error, Reason}
-+    %    Types:
-+    %          User = list() -> "admin"
-+    %          VHost = list() -> "jabber.example.org"
-+    %          Date = list() -> "2007-02-12"
-+    %          Msgs = list() -> [ #msg1, msg2, ... ]
-+    {get_user_messages_at, 3},
-+
-+    % called from many places
-+    % it should return list of dates for vhost
-+    % get_dates(VHost) -> [Date1, Date2, ... ]
-+    %    Types:
-+    %          VHost = list() -> "jabber.example.org"
-+    %          DateN = list() -> "2007-02-12"
-+    {get_dates, 1},
-+
-+    % called from start
-+    % it should return list with users settings for VHost in db
-+    % get_users_settings(VHost) -> [#user_settings1, #user_settings2, ... ] | error
-+    %    Types:
-+    %          VHost = list() -> "jabber.example.org"
-+    {get_users_settings, 1},
-+
-+    % called from many places
-+    % it should return User settings at VHost from db
-+    % get_user_settings(User, VHost) -> error | {ok, #user_settings}
-+    %    Types:
-+    %          User = list() -> "admin"
-+    %          VHost = list() -> "jabber.example.org"
-+    {get_user_settings, 2},
-+
-+    % called from web admin
-+    % it should set User settings at VHost
-+    % set_user_settings(User, VHost, #user_settings) -> ok | error
-+    %    Types:
-+    %          User = list() -> "admin"
-+    %          VHost = list() -> "jabber.example.org"
-+    {set_user_settings, 3},
-+
-+    % called from remove_user (ejabberd hook)
-+    % it should remove user messages and settings at VHost
-+    % drop_user(User, VHost) -> ok | error
-+    %    Types:
-+    %          User = list() -> "admin"
-+    %          VHost = list() -> "jabber.example.org"
-+    {drop_user, 2}
-+   ];
-+behaviour_info(_) ->
-+   undefined.
---- mod_muc/mod_muc_room-2.1.0.erl	2009-11-22 12:30:40.000000000 +0200
-+++ mod_muc/mod_muc_room.erl	2009-11-22 12:33:43.000000000 +0200
-@@ -625,6 +625,12 @@
+diff --git src/mod_muc/mod_muc_room.erl src/mod_muc/mod_muc_room.erl
+index 02c83ed..7693b66 100644
+--- src/mod_muc/mod_muc_room.erl
++++ src/mod_muc/mod_muc_room.erl
+@@ -726,6 +726,12 @@ handle_sync_event({change_config, Config}, _From, StateName, StateData) ->
      {reply, {ok, NSD#state.config}, StateName, NSD};
  handle_sync_event({change_state, NewStateData}, _From, StateName, _StateData) ->
      {reply, {ok, NewStateData}, StateName, NewStateData};
@@ -6271,45 +6288,176 @@
  handle_sync_event(_Event, _From, StateName, StateData) ->
      Reply = ok,
      {reply, Reply, StateName, StateData}.
---- msgs/uk-2.1.0.msg	2009-11-22 12:30:40.000000000 +0200
-+++ msgs/uk.msg	2009-11-22 12:36:12.000000000 +0200
-@@ -369,3 +369,31 @@
- {"You need an x:data capable client to search","Для пошуку необхідний x:data-придатний клієнт"}.
- {"Your contact offline message queue is full. The message has been discarded.","Черга повідомлень, що не були доставлені, переповнена. Повідомлення не було збережено."}.
- {"Your messages to ~s are being blocked. To unblock them, visit ~s","Ваші повідомлення до ~s блокуються. Для розблокування відвідайте ~s"}.
+diff --git src/mod_roster.erl src/mod_roster.erl
+index b15497f..ace8ba7 100644
+--- src/mod_roster.erl
++++ src/mod_roster.erl
+@@ -62,6 +62,8 @@
+ -include("web/ejabberd_http.hrl").
+ -include("web/ejabberd_web_admin.hrl").
+ 
++-include("mod_logdb.hrl").
++
+ 
+ start(Host, Opts) ->
+     IQDisc = gen_mod:get_opt(iqdisc, Opts, one_queue),
+@@ -1334,6 +1336,14 @@ user_roster(User, Server, Query, Lang) ->
+     Res = user_roster_parse_query(User, Server, Items1, Query),
+     Items = get_roster(LUser, LServer),
+     SItems = lists:sort(Items),
++
++    Settings = case gen_mod:is_loaded(Server, mod_logdb) of
++         true ->
++             mod_logdb:get_user_settings(User, Server);
++         false ->
++             []
++    end,
++
+     FItems =
+ 	case SItems of
+ 	    [] ->
+@@ -1381,7 +1391,33 @@ user_roster(User, Server, Query, Lang) ->
+ 					      [?INPUTT("submit",
+ 						       "remove" ++
+ 						       ejabberd_web_admin:term_to_id(R#roster.jid),
+-						       "Remove")])])
++                                                      "Remove")]),
++                                         case gen_mod:is_loaded(Server, mod_logdb) of
++                                              true ->
++                                                 Peer = jlib:jid_to_string(R#roster.jid),
++                                                 A = lists:member(Peer, Settings#user_settings.dolog_list),
++                                                 B = lists:member(Peer, Settings#user_settings.donotlog_list),
++                                                 {Name, Value} =
++                                                   if
++                                                     A ->
++                                                       {"donotlog", "Do Not Log Messages"};
++                                                     B ->
++                                                       {"dolog", "Log Messages"};
++                                                     Settings#user_settings.dolog_default == true ->
++                                                       {"donotlog", "Do Not Log Messages"};
++                                                     Settings#user_settings.dolog_default == false ->
++                                                       {"dolog", "Log Messages"}
++                                                   end,
++
++                                                 ?XAE("td", [{"class", "valign"}],
++                                                      [?INPUTT("submit",
++                                                               Name ++
++                                                               ejabberd_web_admin:term_to_id(R#roster.jid),
++                                                               Value)]);
++                                              false ->
++                                                 ?X([])
++                                         end
++                                        ])
+ 			    end, SItems))])]
+ 	end,
+     [?XC("h1", ?T("Roster of ") ++ us_to_list(US))] ++
+@@ -1481,11 +1517,42 @@ user_roster_item_parse_query(User, Server, Items, Query) ->
+ 						 {"subscription", "remove"}],
+ 						[]}]}}),
+ 			      throw(submitted);
+-			  false ->
+-			      ok
+-		      end
+-
+-	      end
++                          false ->
++                            case lists:keysearch(
++                                   "donotlog" ++ ejabberd_web_admin:term_to_id(JID), 1, Query) of
++                                {value, _} ->
++                                     Peer = jlib:jid_to_string(JID),
++                                     Settings = mod_logdb:get_user_settings(User, Server),
++                                     DNLL = case lists:member(Peer, Settings#user_settings.donotlog_list) of
++                                                 false -> lists:append(Settings#user_settings.donotlog_list, [Peer]);
++                                                 true -> Settings#user_settings.donotlog_list
++                                            end,
++                                     DLL = lists:delete(jlib:jid_to_string(JID), Settings#user_settings.dolog_list),
++                                     Sett = Settings#user_settings{donotlog_list=DNLL, dolog_list=DLL},
++                                     % TODO: check returned value
++                                     ok = mod_logdb:set_user_settings(User, Server, Sett),
++                                     throw(nothing);
++                                false ->
++                                   case lists:keysearch(
++                                          "dolog" ++ ejabberd_web_admin:term_to_id(JID), 1, Query) of
++                                       {value, _} ->
++                                          Peer = jlib:jid_to_string(JID),
++                                          Settings = mod_logdb:get_user_settings(User, Server),
++                                          DLL = case lists:member(Peer, Settings#user_settings.dolog_list) of
++                                                     false -> lists:append(Settings#user_settings.dolog_list, [Peer]);
++                                                     true -> Settings#user_settings.dolog_list
++                                                end,
++                                          DNLL = lists:delete(jlib:jid_to_string(JID), Settings#user_settings.donotlog_list),
++                                          Sett = Settings#user_settings{donotlog_list=DNLL, dolog_list=DLL},
++                                          % TODO: check returned value
++                                          ok = mod_logdb:set_user_settings(User, Server, Sett),
++                                          throw(nothing);
++                                       false ->
++                                           ok
++                                   end % dolog
++                            end % donotlog
++                      end % remove
++              end % validate
+       end, Items),
+     nothing.
+ 
+diff --git src/msgs/nl.msg src/msgs/nl.msg
+index 70e739f..019b7b4 100644
+--- src/msgs/nl.msg
++++ src/msgs/nl.msg
+@@ -419,3 +419,15 @@
+ {"Your Jabber account was successfully created.","Uw Jabber-account is succesvol gecreeerd."}.
+ {"Your Jabber account was successfully deleted.","Uw Jabber-account is succesvol verwijderd."}.
+ {"Your messages to ~s are being blocked. To unblock them, visit ~s","Uw berichten aan ~s worden geblokkeerd. Om ze te deblokkeren, ga naar ~s"}.
 +% mod_logdb
-+{"Users Messages", "Повідомлення користувачів"}.
-+{"Date", "Дата"}.
-+{"Count", "Кількість"}.
-+{"Logged messages for ", "Збережені повідомлення для "}.
-+{" at ", " за "}.
-+{"No logged messages for ", "Відсутні повідомлення для "}.
-+{"Date, Time", "Дата, Час"}.
-+{"Direction: Jid", "Напрямок: Jid"}.
-+{"Subject", "Тема"}.
-+{"Body", "Текст"}.
-+{"Messages", "Повідомлення"}.
-+{"Filter Selected", "Відфільтрувати виділені"}.
-+{"Do Not Log Messages", "Не зберігати повідомлення"}.
-+{"Log Messages", "Зберігати повідомлення"}.
-+{"Messages logging engine", "Система збереження повідомлень"}.
-+{"Default", "За замовчуванням"}.
-+{"Set logging preferences", "Вкажіть налагоджування збереження повідомлень"}.
-+{"Messages logging engine users", "Користувачі системи збереження повідомлень"}.
-+{"Messages logging engine settings", "Налагоджування системи збереження повідомлень"}.
-+{"Set run-time settings", "Вкажіть поточні налагоджування"}.
-+{"Groupchat messages logging", "Збереження повідомлень типу groupchat"}.
-+{"Jids/Domains to ignore", "Ігнорувати наступні jids/домени"}.
-+{"Purge messages older than (days)", "Видаляти повідомлення старіші ніж (дні)"}.
-+{"Poll users settings (seconds)", "Оновлювати налагоджування користувачів кожні (секунд)"}.
-+{"Drop", "Видаляти"}.
-+{"Do not drop", "Не видаляти"}.
-+{"Drop messages on user removal", "Видаляти повідомлення під час видалення користувача"}.
---- msgs/ru-2.1.0.msg	2009-11-22 12:30:40.000000000 +0200
-+++ msgs/ru.msg	2009-11-22 12:35:52.000000000 +0200
-@@ -369,3 +369,31 @@
- {"You need an x:data capable client to search","Чтобы воспользоваться поиском, требуется x:data-совместимый клиент"}.
- {"Your contact offline message queue is full. The message has been discarded.","Очередь недоставленных сообщений Вашего адресата переполнена. Сообщение не было сохранено."}.
++{"Users Messages", "Gebruikersberichten"}.
++{"Date", "Datum"}.
++{"Count", "Aantal"}.
++{"Logged messages for ", "Gelogde berichten van "}.
++{" at ", " op "}.
++{"No logged messages for ", "Geen gelogde berichten van "}.
++{"Date, Time", "Datum en tijd"}.
++{"Direction: Jid", "Richting: Jabber ID"}.
++{"Subject", "Onderwerp"}.
++{"Body", "Berichtveld"}.
++{"Messages", "Berichten"}.
+diff --git src/msgs/pl.msg src/msgs/pl.msg
+index 4bc2063..4395f3c 100644
+--- src/msgs/pl.msg
++++ src/msgs/pl.msg
+@@ -419,3 +419,27 @@
+ {"Your Jabber account was successfully created.","Twoje konto zostało stworzone."}.
+ {"Your Jabber account was successfully deleted.","Twoje konto zostało usunięte."}.
+ {"Your messages to ~s are being blocked. To unblock them, visit ~s","Twoje wiadomości do ~s są blokowane. Aby je odblokować, odwiedź ~s"}.
++% mod_logdb
++{"Users Messages", "Wiadomości użytkownika"}.
++{"Date", "Data"}.
++{"Count", "Liczba"}.
++{"Logged messages for ", "Zapisane wiadomości dla "}.
++{" at ", " o "}.
++{"No logged messages for ", "Brak zapisanych wiadomości dla "}.
++{"Date, Time", "Data, Godzina"}.
++{"Direction: Jid", "Kierunek: Jid"}.
++{"Subject", "Temat"}.
++{"Body", "Treść"}.
++{"Messages","Wiadomości"}.
++{"Filter Selected", "Odfiltruj zaznaczone"}.
++{"Do Not Log Messages", "Nie zapisuj wiadomości"}.
++{"Log Messages", "Zapisuj wiadomości"}.
++{"Messages logging engine", "System zapisywania historii rozmów"}.
++{"Default", "Domyślne"}.
++{"Set logging preferences", "Ustaw preferencje zapisywania"}.
++{"Messages logging engine settings", "Ustawienia systemu logowania"}.
++{"Set run-time settings", "Zapisz ustawienia systemu logowania"}.
++{"Groupchat messages logging", "Zapisywanie rozmów z konferencji"}.
++{"Jids/Domains to ignore", "JID/Domena która ma być ignorowana"}.
++{"Purge messages older than (days)", "Usuń wiadomości starsze niż (w dniach)"}.
++{"Poll users settings (seconds)", "Czas aktualizacji preferencji użytkowników (sekundy)"}.
+diff --git src/msgs/ru.msg src/msgs/ru.msg
+index ece7348..99879ec 100644
+--- src/msgs/ru.msg
++++ src/msgs/ru.msg
+@@ -419,3 +419,31 @@
+ {"Your Jabber account was successfully created.","Ваш Jabber-аккаунт был успешно создан."}.
+ {"Your Jabber account was successfully deleted.","Ваш Jabber-аккаунт был успешно удален."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Ваши сообщения к ~s блокируются. Для снятия блокировки перейдите по ссылке ~s"}.
 +% mod_logdb.erl
 +{"Users Messages", "Сообщения пользователей"}.
@@ -6339,269 +6487,39 @@
 +{"Drop", "Удалять"}.
 +{"Do not drop", "Не удалять"}.
 +{"Drop messages on user removal", "Удалять сообщения при удалении пользователя"}.
---- msgs/pl-2.1.0.msg	2009-11-22 12:30:40.000000000 +0200
-+++ msgs/pl.msg	2009-11-22 12:35:07.000000000 +0200
-@@ -369,3 +369,27 @@
- {"You need an x:data capable client to search","Potrzebujesz klienta obsługującego x:data aby wyszukiwać"}.
- {"Your contact offline message queue is full. The message has been discarded.","Kolejka wiadomości offline adresata jest pełna. Wiadomość została odrzucona."}.
- {"Your messages to ~s are being blocked. To unblock them, visit ~s","Twoje wiadomości do ~s są blokowane. Aby je odblokować, odwiedź ~s"}.
+diff --git src/msgs/uk.msg src/msgs/uk.msg
+index 6e21c90..1cdd1ea 100644
+--- src/msgs/uk.msg
++++ src/msgs/uk.msg
+@@ -407,3 +407,31 @@
+ {"Your Jabber account was successfully created.","Ваш Jabber-акаунт було успішно створено."}.
+ {"Your Jabber account was successfully deleted.","Ваш Jabber-акаунт було успішно видалено."}.
+ {"Your messages to ~s are being blocked. To unblock them, visit ~s","Ваші повідомлення до ~s блокуються. Для розблокування відвідайте ~s"}.
 +% mod_logdb
-+{"Users Messages", "Wiadomości użytkownika"}.
-+{"Date", "Data"}.
-+{"Count", "Liczba"}.
-+{"Logged messages for ", "Zapisane wiadomości dla "}.
-+{" at ", " o "}.
-+{"No logged messages for ", "Brak zapisanych wiadomości dla "}.
-+{"Date, Time", "Data, Godzina"}.
-+{"Direction: Jid", "Kierunek: Jid"}.
-+{"Subject", "Temat"}.
-+{"Body", "Treść"}.
-+{"Messages","Wiadomości"}.
-+{"Filter Selected", "Odfiltruj zaznaczone"}.
-+{"Do Not Log Messages", "Nie zapisuj wiadomości"}.
-+{"Log Messages", "Zapisuj wiadomości"}.
-+{"Messages logging engine", "System zapisywania historii rozmów"}.
-+{"Default", "Domyślne"}.
-+{"Set logging preferences", "Ustaw preferencje zapisywania"}.
-+{"Messages logging engine settings", "Ustawienia systemu logowania"}.
-+{"Set run-time settings", "Zapisz ustawienia systemu logowania"}.
-+{"Groupchat messages logging", "Zapisywanie rozmów z konferencji"}.
-+{"Jids/Domains to ignore", "JID/Domena która ma być ignorowana"}.
-+{"Purge messages older than (days)", "Usuń wiadomości starsze niż (w dniach)"}.
-+{"Poll users settings (seconds)", "Czas aktualizacji preferencji użytkowników (sekundy)"}.
---- msgs/nl-2.1.0.msg	2009-11-22 12:30:40.000000000 +0200
-+++ msgs/nl.msg	2009-11-22 12:34:41.000000000 +0200
-@@ -369,3 +369,15 @@
- {"You need an x:data capable client to search","U hebt een client nodig die x:data ondersteunt om te zoeken"}.
- {"Your contact offline message queue is full. The message has been discarded.","Te veel offline berichten voor dit contactpersoon. Het bericht is niet opgeslagen."}.
- {"Your messages to ~s are being blocked. To unblock them, visit ~s","Uw berichten aan ~s worden geblokkeerd. Om ze te deblokkeren, ga naar ~s"}.
-+% mod_logdb
-+{"Users Messages", "Gebruikersberichten"}.
-+{"Date", "Datum"}.
-+{"Count", "Aantal"}.
-+{"Logged messages for ", "Gelogde berichten van "}.
-+{" at ", " op "}.
-+{"No logged messages for ", "Geen gelogde berichten van "}.
-+{"Date, Time", "Datum en tijd"}.
-+{"Direction: Jid", "Richting: Jabber ID"}.
-+{"Subject", "Onderwerp"}.
-+{"Body", "Berichtveld"}.
-+{"Messages", "Berichten"}.
---- ./mod_roster-2.1.0.erl	2009-11-22 12:30:40.000000000 +0200
-+++ mod_roster.erl	2009-11-22 12:40:40.000000000 +0200
-@@ -61,7 +61,7 @@
- -include("mod_roster.hrl").
- -include("web/ejabberd_http.hrl").
- -include("web/ejabberd_web_admin.hrl").
--
-+-include("mod_logdb.hrl").
- 
- start(Host, Opts) ->
-     IQDisc = gen_mod:get_opt(iqdisc, Opts, one_queue),
-@@ -937,6 +937,14 @@
-     Res = user_roster_parse_query(User, Server, Items1, Query),
-     Items = mnesia:dirty_index_read(roster, US, #roster.us),
-     SItems = lists:sort(Items),
-+
-+    Settings = case gen_mod:is_loaded(Server, mod_logdb) of
-+         true ->
-+             mod_logdb:get_user_settings(User, Server);
-+         false ->
-+             []
-+    end,
-+
-     FItems =
- 	case SItems of
- 	    [] ->
-@@ -984,7 +992,33 @@
- 					      [?INPUTT("submit",
- 						       "remove" ++
- 						       ejabberd_web_admin:term_to_id(R#roster.jid),
--						       "Remove")])])
-+						       "Remove")]),
-+                                         case gen_mod:is_loaded(Server, mod_logdb) of
-+                                              true ->
-+                                                 Peer = jlib:jid_to_string(R#roster.jid),
-+                                                 A = lists:member(Peer, Settings#user_settings.dolog_list),
-+                                                 B = lists:member(Peer, Settings#user_settings.donotlog_list),
-+                                                 {Name, Value} =
-+                                                   if
-+                                                     A ->
-+                                                       {"donotlog", "Do Not Log Messages"};
-+                                                     B ->
-+                                                       {"dolog", "Log Messages"};
-+                                                     Settings#user_settings.dolog_default == true ->
-+                                                       {"donotlog", "Do Not Log Messages"};
-+                                                     Settings#user_settings.dolog_default == false ->
-+                                                       {"dolog", "Log Messages"}
-+                                                   end,
-+
-+                                                 ?XAE("td", [{"class", "valign"}],
-+                                                      [?INPUTT("submit",
-+                                                               Name ++
-+                                                               ejabberd_web_admin:term_to_id(R#roster.jid),
-+                                                               Value)]);
-+                                              false ->
-+                                                 ?X([])
-+                                         end
-+                                        ])
- 			    end, SItems))])]
- 	end,
-     [?XC("h1", ?T("Roster of ") ++ us_to_list(US))] ++
-@@ -1084,11 +1118,42 @@
- 						 {"subscription", "remove"}],
- 						[]}]}}),
- 			      throw(submitted);
--			  false ->
--			      ok
--		      end
--
--	      end
-+                          false ->
-+                            case lists:keysearch(
-+                                   "donotlog" ++ ejabberd_web_admin:term_to_id(JID), 1, Query) of
-+                                {value, _} ->
-+                                     Peer = jlib:jid_to_string(JID),
-+                                     Settings = mod_logdb:get_user_settings(User, Server),
-+                                     DNLL = case lists:member(Peer, Settings#user_settings.donotlog_list) of
-+                                                 false -> lists:append(Settings#user_settings.donotlog_list, [Peer]);
-+                                                 true -> Settings#user_settings.donotlog_list
-+                                            end,
-+                                     DLL = lists:delete(jlib:jid_to_string(JID), Settings#user_settings.dolog_list),
-+                                     Sett = Settings#user_settings{donotlog_list=DNLL, dolog_list=DLL},
-+                                     % TODO: check returned value
-+                                     ok = mod_logdb:set_user_settings(User, Server, Sett),
-+                                     throw(nothing);
-+                                false ->
-+                                   case lists:keysearch(
-+                                          "dolog" ++ ejabberd_web_admin:term_to_id(JID), 1, Query) of
-+                                       {value, _} ->
-+                                          Peer = jlib:jid_to_string(JID),
-+                                          Settings = mod_logdb:get_user_settings(User, Server),
-+                                          DLL = case lists:member(Peer, Settings#user_settings.dolog_list) of
-+                                                     false -> lists:append(Settings#user_settings.dolog_list, [Peer]);
-+                                                     true -> Settings#user_settings.dolog_list
-+                                                end,
-+                                          DNLL = lists:delete(jlib:jid_to_string(JID), Settings#user_settings.donotlog_list),
-+                                          Sett = Settings#user_settings{donotlog_list=DNLL, dolog_list=DLL},
-+                                          % TODO: check returned value
-+                                          ok = mod_logdb:set_user_settings(User, Server, Sett),
-+                                          throw(nothing);
-+                                       false ->
-+                                           ok
-+                                   end % dolog
-+                            end % donotlog
-+                      end % remove
-+              end % validate
-       end, Items),
-     nothing.
- 
---- ./mod_roster_odbc-2.1.0.erl	2009-11-22 12:30:40.000000000 +0200
-+++ mod_roster_odbc.erl	2009-11-22 12:42:38.000000000 +0200
-@@ -59,7 +59,7 @@
- -include("mod_roster.hrl").
- -include("web/ejabberd_http.hrl").
- -include("web/ejabberd_web_admin.hrl").
--
-+-include("mod_logdb.hrl").
- 
- start(Host, Opts) ->
-     IQDisc = gen_mod:get_opt(iqdisc, Opts, one_queue),
-@@ -1038,6 +1038,14 @@
-     Res = user_roster_parse_query(User, Server, Items1, Query),
-     Items = get_roster(LUser, LServer),
-     SItems = lists:sort(Items),
-+
-+    Settings = case gen_mod:is_loaded(Server, mod_logdb) of
-+         true ->
-+             mod_logdb:get_user_settings(User, Server);
-+         false ->
-+             []
-+    end,
-+
-     FItems =
- 	case SItems of
- 	    [] ->
-@@ -1085,7 +1093,33 @@
- 					      [?INPUTT("submit",
- 						       "remove" ++
- 						       ejabberd_web_admin:term_to_id(R#roster.jid),
--						       "Remove")])])
-+						       "Remove")]),
-+                                         case gen_mod:is_loaded(Server, mod_logdb) of
-+                                              true ->
-+                                                 Peer = jlib:jid_to_string(R#roster.jid),
-+                                                 A = lists:member(Peer, Settings#user_settings.dolog_list),
-+                                                 B = lists:member(Peer, Settings#user_settings.donotlog_list),
-+                                                 {Name, Value} =
-+                                                   if
-+                                                     A ->
-+                                                       {"donotlog", "Do Not Log Messages"};
-+                                                     B ->
-+                                                       {"dolog", "Log Messages"};
-+                                                     Settings#user_settings.dolog_default == true ->
-+                                                       {"donotlog", "Do Not Log Messages"};
-+                                                     Settings#user_settings.dolog_default == false ->
-+                                                       {"dolog", "Log Messages"}
-+                                                   end,
-+
-+                                                 ?XAE("td", [{"class", "valign"}],
-+                                                      [?INPUTT("submit",
-+                                                               Name ++
-+                                                               ejabberd_web_admin:term_to_id(R#roster.jid),
-+                                                               Value)]);
-+                                              false ->
-+                                                 ?X([])
-+                                         end
-+                                        ])
- 			    end, SItems))])]
- 	end,
-     [?XC("h1", ?T("Roster of ") ++ us_to_list(US))] ++
-@@ -1185,11 +1219,42 @@
- 						 {"subscription", "remove"}],
- 						[]}]}}),
- 			      throw(submitted);
--			  false ->
--			      ok
--		      end
--
--	      end
-+                          false ->
-+                            case lists:keysearch(
-+                                   "donotlog" ++ ejabberd_web_admin:term_to_id(JID), 1, Query) of
-+                                {value, _} ->
-+                                     Peer = jlib:jid_to_string(JID),
-+                                     Settings = mod_logdb:get_user_settings(User, Server),
-+                                     DNLL = case lists:member(Peer, Settings#user_settings.donotlog_list) of
-+                                                 false -> lists:append(Settings#user_settings.donotlog_list, [Peer]);
-+                                                 true -> Settings#user_settings.donotlog_list
-+                                            end,
-+                                     DLL = lists:delete(jlib:jid_to_string(JID), Settings#user_settings.dolog_list),
-+                                     Sett = Settings#user_settings{donotlog_list=DNLL, dolog_list=DLL},
-+                                     % TODO: check returned value
-+                                     ok = mod_logdb:set_user_settings(User, Server, Sett),
-+                                     throw(nothing);
-+                                false ->
-+                                   case lists:keysearch(
-+                                          "dolog" ++ ejabberd_web_admin:term_to_id(JID), 1, Query) of
-+                                       {value, _} ->
-+                                          Peer = jlib:jid_to_string(JID),
-+                                          Settings = mod_logdb:get_user_settings(User, Server),
-+                                          DLL = case lists:member(Peer, Settings#user_settings.dolog_list) of
-+                                                     false -> lists:append(Settings#user_settings.dolog_list, [Peer]);
-+                                                     true -> Settings#user_settings.dolog_list
-+                                                end,
-+                                          DNLL = lists:delete(jlib:jid_to_string(JID), Settings#user_settings.donotlog_list),
-+                                          Sett = Settings#user_settings{donotlog_list=DNLL, dolog_list=DLL},
-+                                          % TODO: check returned value
-+                                          ok = mod_logdb:set_user_settings(User, Server, Sett),
-+                                          throw(nothing);
-+                                       false ->
-+                                           ok
-+                                   end % dolog
-+                            end % donotlog
-+                      end % remove
-+              end % validate
-       end, Items),
-     nothing.
- 
++{"Users Messages", "Повідомлення користувачів"}.
++{"Date", "Дата"}.
++{"Count", "Кількість"}.
++{"Logged messages for ", "Збережені повідомлення для "}.
++{" at ", " за "}.
++{"No logged messages for ", "Відсутні повідомлення для "}.
++{"Date, Time", "Дата, Час"}.
++{"Direction: Jid", "Напрямок: Jid"}.
++{"Subject", "Тема"}.
++{"Body", "Текст"}.
++{"Messages", "Повідомлення"}.
++{"Filter Selected", "Відфільтрувати виділені"}.
++{"Do Not Log Messages", "Не зберігати повідомлення"}.
++{"Log Messages", "Зберігати повідомлення"}.
++{"Messages logging engine", "Система збереження повідомлень"}.
++{"Default", "За замовчуванням"}.
++{"Set logging preferences", "Вкажіть налагоджування збереження повідомлень"}.
++{"Messages logging engine users", "Користувачі системи збереження повідомлень"}.
++{"Messages logging engine settings", "Налагоджування системи збереження повідомлень"}.
++{"Set run-time settings", "Вкажіть поточні налагоджування"}.
++{"Groupchat messages logging", "Збереження повідомлень типу groupchat"}.
++{"Jids/Domains to ignore", "Ігнорувати наступні jids/домени"}.
++{"Purge messages older than (days)", "Видаляти повідомлення старіші ніж (дні)"}.
++{"Poll users settings (seconds)", "Оновлювати налагоджування користувачів кожні (секунд)"}.
++{"Drop", "Видаляти"}.
++{"Do not drop", "Не видаляти"}.
++{"Drop messages on user removal", "Видаляти повідомлення під час видалення користувача"}.
