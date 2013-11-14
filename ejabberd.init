@@ -21,7 +21,7 @@ export EJABBERD_DOC_PATH EJABBERD_PID_PATH
 start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/ejabberd ]; then
-		msg_starting ejabberd
+		msg_starting ejabberd ; busy
 		/usr/sbin/ejabberdctl start
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then

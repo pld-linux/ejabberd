@@ -53,12 +53,11 @@ Source23:	ejabberd-p1_pgsql-20130515.tar.gz
 Source24:	ejabberd-p1_stun-20130624.tar.gz
 # Source24-md5:	9a1c5ad9b3b95364d3f76446fcf58dc3
 #
-Patch0:		%{realname}-makefile.patch
+Patch0:		%{realname}-paths.patch
 # not available for 13.10
 #Patch1:		%{realname}-vcard-access-get.patch
 # http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-2.1.12.diff
 Patch2:		%{realname}-mod_logdb.patch
-Patch3:		%{realname}-inetrc_path.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -106,7 +105,6 @@ Server-side logging module.
 %if %{with logdb}
 %patch2 -p0
 %endif
-%patch3 -p1
 
 # do not let it use 'git describe' to fetch version
 # it uses nonsense during manual builds and fails on the builder

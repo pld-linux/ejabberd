@@ -1,6 +1,15 @@
 diff -dur -x '*~' ejabberd-13.10.orig/Makefile.in ejabberd-13.10/Makefile.in
---- ejabberd-13.10.orig/Makefile.in	2013-11-14 20:21:37.000000000 +0100
-+++ ejabberd-13.10/Makefile.in	2013-11-14 20:30:48.745590816 +0100
+--- ejabberd-13.10.orig/Makefile.in	2013-09-27 11:19:22.000000000 +0200
++++ ejabberd-13.10/Makefile.in	2013-11-14 22:08:25.461196174 +0100
+@@ -9,7 +9,7 @@
+ DESTDIR =
+ 
+ # /etc/ejabberd/
+-ETCDIR = $(DESTDIR)@sysconfdir@/ejabberd
++ETCDIR = $(DESTDIR)@sysconfdir@/jabber
+ 
+ # /sbin/
+ SBINDIR = $(DESTDIR)@sbindir@
 @@ -123,7 +123,7 @@
  	[ -f $(ETCDIR)/ejabberdctl.cfg ] \
  		&& $(INSTALL) -b -m 640 $(G_USER) ejabberdctl.cfg.example $(ETCDIR)/ejabberdctl.cfg-new \
@@ -12,7 +21,16 @@ diff -dur -x '*~' ejabberd-13.10.orig/Makefile.in ejabberd-13.10/Makefile.in
  	[ -d $(SBINDIR) ] || $(INSTALL) -d -m 755 $(SBINDIR)
 diff -dur -x '*~' ejabberd-13.10.orig/ejabberdctl.template ejabberd-13.10/ejabberdctl.template
 --- ejabberd-13.10.orig/ejabberdctl.template	2013-09-27 11:19:22.000000000 +0200
-+++ ejabberd-13.10/ejabberdctl.template	2013-11-14 20:27:04.240688181 +0100
++++ ejabberd-13.10/ejabberdctl.template	2013-11-14 22:08:57.068093561 +0100
+@@ -56,7 +56,7 @@
+ 
+ # Define ejabberd variable if they have not been defined from the command line
+ if [ "$ETCDIR" = "" ] ; then
+-    ETCDIR={{sysconfdir}}/ejabberd
++    ETCDIR={{sysconfdir}}/jabber
+ fi
+ if [ "$EJABBERDCTL_CONFIG_PATH" = "" ] ; then
+     EJABBERDCTL_CONFIG_PATH=$ETCDIR/ejabberdctl.cfg
 @@ -104,7 +104,7 @@
  SASL_LOG_PATH=$LOGS_DIR/erlang.log
  DATETIME=`date "+%Y%m%d-%H%M%S"`
