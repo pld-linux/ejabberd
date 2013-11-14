@@ -1,6 +1,7 @@
---- ejabberd-2.0.0/src/Makefile.in.orig	2008-02-21 11:02:12.000000000 +0100
-+++ ejabberd-2.0.0/src/Makefile.in	2008-02-22 14:52:47.000000000 +0100
-@@ -74,7 +74,7 @@
+diff -dur ejabberd-13.10.orig/Makefile.in ejabberd-13.10/Makefile.in
+--- ejabberd-13.10.orig/Makefile.in	2013-09-27 11:19:22.000000000 +0200
++++ ejabberd-13.10/Makefile.in	2013-11-14 09:23:06.000000000 +0100
+@@ -9,7 +9,7 @@
  DESTDIR =
  
  # /etc/ejabberd/
@@ -9,3 +10,4 @@
  
  # /sbin/
  SBINDIR = $(DESTDIR)@sbindir@
+Only in ejabberd-13.10: Makefile.in~
