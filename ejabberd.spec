@@ -108,6 +108,11 @@ Server-side logging module.
 %endif
 %patch3 -p1
 
+# do not let it use 'git describe' to fetch version
+# it uses nonsense during manual builds and fails on the builder
+sed -i -e"s/AC_INIT(ejabberd,[^,]*,/AC_INIT(ejabberd,community %{version},/" configure.ac
+! grep -q "git describe" configure.ac
+
 %build
 %{__aclocal} -I m4
 %{__autoconf}
