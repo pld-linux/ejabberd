@@ -115,6 +115,7 @@ Server-side logging module.
 %configure \
 	%{?with_pam --enable-pam} \
 	--with-openssl=%{_prefix} \
+	--enable-user=jabber \
 	--enable-full-xml \
 	--enable-nif \
 	--enable-odbc \
@@ -156,6 +157,9 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/var/lib/%{realname},/etc/{sysconfig,rc.d/init.d},%{_sbindir}}
 
 %{__make} install -j1 \
+	CHOWN_COMMAND=true \
+	O_USER="" \
+	G_USER="" \
 	DESTDIR=$RPM_BUILD_ROOT
 
 sed -e's,@libdir@,%{_libdir},g' -e 's,@EJABBERD_DOC_PATH@,%{_docdir}/%{name}-%{version}/doc,g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{realname}
