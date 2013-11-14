@@ -14,20 +14,25 @@
 # Get service config - may override defaults
 [ -f /etc/sysconfig/ejabberd ] && . /etc/sysconfig/ejabberd
 
-[ -z "$NODENAME" ] && NODENAME=$(hostname)
-
 EJABBERD_DOC_PATH="@EJABBERD_DOC_PATH@"
-export EJABBERD_DOC_PATH
+EJABBERD_PID_PATH=/var/run/jabber/ejabberd.pid
+export EJABBERD_DOC_PATH EJABBERD_PID_PATH
 
 start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/ejabberd ]; then
-		export ERL_MAX_PORTS ERL_FULLSWEEP_AFTER
 		msg_starting ejabberd
-		daemon /usr/sbin/ejabberd
+		/usr/sbin/ejabberdctl start
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
+			/usr/sbin/ejabberdctl started
+			RETVAL=$?
+		fi
+		if [ $RETVAL -eq 0 ]; then
 			touch /var/lock/subsys/ejabberd
+			ok
+		else
+			fail
 		fi
 	else
 		msg_already_running ejabberd
@@ -37,9 +42,13 @@ start() {
 stop() {
 	# Stop daemons.
 	if [ -f /var/lock/subsys/ejabberd ]; then
-		msg_stopping ejabberd
-		/usr/sbin/ejabberdctl ejabberd@${NODENAME} stop 2>/dev/null
+		msg_stopping ejabberd ; busy
+		/usr/sbin/ejabberdctl stop 2>/dev/null
 		RETVAL=$?
+		if [ $RETVAL -eq 0 ]; then
+			/usr/sbin/ejabberdctl stopped 2>/dev/null
+			RETVAL=$?
+		fi
 		if [ $RETVAL -eq 0 ]; then
 			ok
 		else
@@ -61,40 +70,21 @@ case "$1" in
 	;;
   restart)
 	stop
-	sleep 2
 	start
 	;;
   reload|force-reload)
 	if [ -f /var/lock/subsys/ejabberd ]; then
-		msg_reloading ejabberd
-		busy
-		/usr/sbin/ejabberdctl ejabberd@${NODENAME} restart
+		stop
+		start
 		RETVAL=$?
-		if [ $RETVAL -eq 0 ]; then
-		    ok
-		else
-		    RETVAL=1
-		    fail
-		fi
 	else
 		msg_not_running ejabberd
 		RETVAL=7
 	fi
 	;;
   status)
-	EPMDOUT=`@libdir@/erlang/bin/epmd -names`
-	echo "$EPMDOUT" | head -n 1
-	echo "$EPMDOUT" | grep ejabberd
+	status --pidfile $EJABBERD_PID_PATH ejabberd
 	RETVAL=$?
-	if [ "$RETVAL" -ne "0" ] ; then
-		if [ -f /var/lock/subsys/ejabberd ]; then
-			nls "%s dead but subsys locked" "ejabberd"
-			RETVAL=2
-		else
-			nls "%s is stopped" "ejabberd"
-			RETVAL=3
-		fi
-	fi
 	;;
   *)
 	msg_usage "$0 {start|stop|status|restart|reload|force-reload}"

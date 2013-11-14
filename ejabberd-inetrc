@@ -1,3 +1,0 @@
-{file, hosts, "/etc/hosts"}.
-{file, resolv, "/etc/resolv.conf"}.
-{lookup, [file, dns]}.

@@ -1,7 +1,5 @@
 #
 # TODO:
-#	- config migration from old versions
-#	- check/udpate the init script
 #	- add systemd unit
 
 # Conditional build:
@@ -22,9 +20,6 @@ Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{
 # Source0-md5:	94ce4fe244ee72771eeafe27209d6d3c
 Source1:	%{realname}.init
 Source2:	%{realname}.sysconfig
-Source3:	%{realname}.sh
-Source4:	%{realname}ctl.sh
-Source5:	%{realname}-inetrc
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10:	ejabberd-goldrush-20131108.tar.gz
@@ -63,6 +58,7 @@ Patch0:		%{realname}-makefile.patch
 #Patch1:		%{realname}-vcard-access-get.patch
 # http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-2.1.12.diff
 Patch2:		%{realname}-mod_logdb.patch
+Patch3:		%{realname}-inetrc_path.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -84,6 +80,8 @@ Requires:	erlang
 Requires:	expat >= 1.95
 Requires:	rc-scripts
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%define		_noautoprovfiles	%{_libdir}/%{name}/priv/lib/
 
 %description
 ejabberd is a Free and Open Source fault-tolerant distributed Jabber
@@ -108,6 +106,7 @@ Server-side logging module.
 %if %{with logdb}
 %patch2 -p0
 %endif
+%patch3 -p1
 
 %build
 %{__aclocal} -I m4
@@ -166,14 +165,14 @@ sed -e's,@libdir@,%{_libdir},g' -e 's,@EJABBERD_DOC_PATH@,%{_docdir}/%{name}-%{v
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{realname}
 
 chmod u+rw $RPM_BUILD_ROOT%{_sbindir}/%{realname}*
-sed -e's,@libdir@,%{_libdir},g' %{SOURCE3} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}
-sed -e's,@libdir@,%{_libdir},g' %{SOURCE4} > $RPM_BUILD_ROOT%{_sbindir}/%{realname}ctl
-install %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/jabber
 
 chmod 755 $RPM_BUILD_ROOT%{_libdir}/ejabberd/priv/lib/*.so
 
 rm -rf _doc 2>/dev/null || :
 mv $RPM_BUILD_ROOT%{_docdir}/%{name} _doc
+
+touch $RPM_BUILD_ROOT%{_sysconfdir}/jabber/ejabberd.cfg
+touch $RPM_BUILD_ROOT/var/lib/ejabberd/.erlang.cookie
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -185,6 +184,11 @@ if [ -e /etc/jabber/ejabberd.cfg ] ; then
 		echo "this is not supported by this ejabberd version in PLD" >&2
 		exit 1
 	fi
+	%banner -e %{name} <<'EOF'
+Old-style /etc/jabber/ejabberd.cfg configuration file exists. You should
+consider converting it to the new YAML format. You can do this with the
+ejabberctl command.
+EOF
 fi
 
 %post
@@ -192,15 +196,8 @@ if [ -f %{_sysconfdir}/jabber/secret ] ; then
 	SECRET=`cat %{_sysconfdir}/jabber/secret`
 	if [ -n "$SECRET" ] ; then
 		echo "Updating component authentication secret in ejabberd config file..."
-		%{__sed} -i -e "s/>secret</>$SECRET</" /etc/jabber/ejabberd.cfg
+		%{__sed} -i -e "s/>secret</>$SECRET</" /etc/jabber/ejabberd.yml
 	fi
-fi
-
-if [ ! -f %{_sysconfdir}/jabber/cookie ] ; then
-	echo "Generating erl authentication cookie..."
-	umask 066
-	perl -e 'open R,"/dev/urandom"; read R,$r,16;
-		printf "%02x",ord(chop $r) while($r);' > %{_sysconfdir}/jabber/cookie
 fi
 
 /sbin/chkconfig --add ejabberd
@@ -212,17 +209,44 @@ if [ "$1" = "0" ]; then
 	/sbin/chkconfig --del ejabberd
 fi
 
+%triggerpostun -- %{name} < 13.10
+# convert old 'NODENAME' in /etc/sysconfig/ejabberd
+# to 'ERLANG_NODE' in /etc/jabber/ejabberdctl.cfg
+# and move other settings
+NODENAME="$(hostname)"
+if [ -e /etc/sysconfig/ejabberd ] ; then
+	. /etc/sysconfig/ejabberd || :
+fi
+subst="s/^#ERLANG_NODE=.*/ERLANG_NODE=ejabberd@${NODENAME}/"
+if [ -n "$ERL_MAX_PORTS" ] ; then
+	subst="$subst;s/^#ERL_MAX_PORTS=.*/ERL_MAX_PORTS=${ERL_MAX_PORTS}/"
+fi
+sed -i -e"$subst" /etc/jabber/ejabberdctl.cfg || :
+if [ -e /etc/sysconfig/ejabberd ] ; then
+	sed -i.rpmsave \
+		-e'/^[#[:space:]]*NODENAME=/d;/^# Node name/d' \
+		-e'/^[#[:space:]]*ERL_MAX_PORTS=/d;/^# uncomment this to allow more then 1024 connections/d' \
+		-e'/^[#[:space:]]*ERL_FULLSWEEP_AFTER=/d;/^# uncomment this to limit memory usage/d' \
+		/etc/sysconfig/ejabberd || :
+fi
+cp %{_sysconfdir}/jabber/cookie /var/lib/ejabberd/.erlang.cookie || :
+
 %files
 %defattr(644,root,root,755)
 %doc sql _doc/*
 %attr(755,root,root) %{_sbindir}/*
-%attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/*
+%attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberd-inetrc
+%attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberd.yml
+%attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberdctl.cfg
+# legacy config may still be there
+%attr(640,root,jabber) %ghost %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberd.cfg
 %attr(770,root,jabber) /var/log/ejabberd
 %if %{with logdb}
 %exclude %{_libdir}/ejabberd/ebin/mod_logdb*
 %endif
 %{_libdir}/ejabberd
 %dir %attr(770,root,jabber) /var/lib/ejabberd
+%ghost %attr(400,jabber,jabber) %ghost %config(noreplace) %verify(not md5 mtime size) /var/lib/ejabberd/.erlang.cookie
 %attr(754,root,root) /etc/rc.d/init.d/%{realname}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{realname}
 

@@ -1,0 +1,24 @@
+diff -dur -x '*~' ejabberd-13.10.orig/Makefile.in ejabberd-13.10/Makefile.in
+--- ejabberd-13.10.orig/Makefile.in	2013-11-14 20:21:37.000000000 +0100
++++ ejabberd-13.10/Makefile.in	2013-11-14 20:30:48.745590816 +0100
+@@ -123,7 +123,7 @@
+ 	[ -f $(ETCDIR)/ejabberdctl.cfg ] \
+ 		&& $(INSTALL) -b -m 640 $(G_USER) ejabberdctl.cfg.example $(ETCDIR)/ejabberdctl.cfg-new \
+ 		|| $(INSTALL) -b -m 640 $(G_USER) ejabberdctl.cfg.example $(ETCDIR)/ejabberdctl.cfg
+-	$(INSTALL) -b -m 644 $(G_USER) inetrc $(ETCDIR)/inetrc
++	$(INSTALL) -b -m 644 $(G_USER) inetrc $(ETCDIR)/ejabberd-inetrc
+ 	#
+ 	# Administration script
+ 	[ -d $(SBINDIR) ] || $(INSTALL) -d -m 755 $(SBINDIR)
+diff -dur -x '*~' ejabberd-13.10.orig/ejabberdctl.template ejabberd-13.10/ejabberdctl.template
+--- ejabberd-13.10.orig/ejabberdctl.template	2013-09-27 11:19:22.000000000 +0200
++++ ejabberd-13.10/ejabberdctl.template	2013-11-14 20:27:04.240688181 +0100
+@@ -104,7 +104,7 @@
+ SASL_LOG_PATH=$LOGS_DIR/erlang.log
+ DATETIME=`date "+%Y%m%d-%H%M%S"`
+ ERL_CRASH_DUMP=$LOGS_DIR/erl_crash_$DATETIME.dump
+-ERL_INETRC=$ETCDIR/inetrc
++ERL_INETRC=$ETCDIR/ejabberd-inetrc
+ HOME=$SPOOLDIR
+ 
+ # define erl parameters

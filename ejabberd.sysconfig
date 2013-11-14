@@ -1,11 +1,3 @@
-# Nice level for jabberd
+# Nice level for ejabberd
 SERVICE_RUN_NICE_LEVEL="+0"
 
-# Node name
-NODENAME="localhost"
-
-# uncomment this to allow more then 1024 connections (increases memory usage)
-#ERL_MAX_PORTS=32000
-
-# uncomment this to limit memory usage (and make ejabberd slower)
-#ERL_FULLSWEEP_AFTER=0
