@@ -8,6 +8,11 @@ if [ "$(basename $current_dir)" != "deps" ] \
 	exit 1
 fi
 
+if [ -e ../config.status ] ; then
+	echo "You should first run ./configure with all wanted options."
+	exit 1
+fi
+
 rm -f .got || :
 for dir in * ; do
 	[ -d "$dir" ] || continue
