@@ -66,13 +66,14 @@ Patch2:		%{realname}-mod_logdb.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
-BuildRequires:	erlang >= R10B_5
+BuildRequires:	erlang >= 1:R15B01
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
 %if %{with pam}
 BuildRequires:	pam-devel
 %endif
 BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	yaml-devel
 BuildRequires:	zlib-devel
 Requires(post):	/usr/bin/perl
 Requires(post):	jabber-common
