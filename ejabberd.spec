@@ -2,22 +2,19 @@
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
 %bcond_with	logdb		# enable mod_logdb (server-side message logging)
-#
-
-%define	realname	ejabberd
 
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
-Name:		%{realname}
+Name:		ejabberd
 Version:	13.10
 Release:	0.1
 License:	GPL
 Group:		Applications/Communications
-Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{version}.tgz
+Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
 # Source0-md5:	94ce4fe244ee72771eeafe27209d6d3c
-Source1:	%{realname}.init
-Source2:	%{realname}.sysconfig
-Source3:	%{realname}.service
+Source1:	%{name}.init
+Source2:	%{name}.sysconfig
+Source3:	%{name}.service
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10:	ejabberd-goldrush-20131108.tar.gz
@@ -51,12 +48,12 @@ Source23:	ejabberd-p1_pgsql-20130515.tar.gz
 Source24:	ejabberd-p1_stun-20130624.tar.gz
 # Source24-md5:	9a1c5ad9b3b95364d3f76446fcf58dc3
 #
-Patch0:		%{realname}-paths.patch
-Patch1:		%{realname}-config.patch
+Patch0:		%{name}-paths.patch
+Patch1:		%{name}-config.patch
 # not available for 13.10
-#Patch2:		%{realname}-vcard-access-get.patch
+#Patch2:		%{name}-vcard-access-get.patch
 # http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-2.1.12.diff
-Patch3:		%{realname}-mod_logdb.patch
+Patch3:		%{name}-mod_logdb.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -168,7 +165,7 @@ cd ../..
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/var/lib/%{realname},/etc/{sysconfig,rc.d/init.d}} \
+install -d $RPM_BUILD_ROOT{/var/lib/%{name},/etc/{sysconfig,rc.d/init.d}} \
 		$RPM_BUILD_ROOT{%{systemdunitdir},%{_sbindir}}
 
 unset GIT_DIR GIT_WORK_TREE
@@ -179,11 +176,11 @@ unset GIT_DIR GIT_WORK_TREE
 	G_USER="" \
 	DESTDIR=$RPM_BUILD_ROOT
 
-sed -e's,@libdir@,%{_libdir},g' -e 's,@EJABBERD_DOC_PATH@,%{_docdir}/%{name}-%{version}/doc,g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{realname}
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{realname}
+sed -e's,@libdir@,%{_libdir},g' -e 's,@EJABBERD_DOC_PATH@,%{_docdir}/%{name}-%{version}/doc,g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 install %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/%{name}.service
 
-chmod u+rw $RPM_BUILD_ROOT%{_sbindir}/%{realname}*
+chmod u+rw $RPM_BUILD_ROOT%{_sbindir}/%{name}*
 
 chmod 755 $RPM_BUILD_ROOT%{_libdir}/ejabberd/priv/lib/*.so
 
@@ -290,8 +287,8 @@ cp %{_sysconfdir}/jabber/cookie /var/lib/ejabberd/.erlang.cookie || :
 %{_libdir}/ejabberd
 %dir %attr(770,root,jabber) /var/lib/ejabberd
 %ghost %attr(400,jabber,jabber) %ghost %config(noreplace) %verify(not md5 mtime size) /var/lib/ejabberd/.erlang.cookie
-%attr(754,root,root) /etc/rc.d/init.d/%{realname}
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{realname}
+%attr(754,root,root) /etc/rc.d/init.d/%{name}
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %{systemdunitdir}/%{name}.service
 
 %if %{with logdb}
