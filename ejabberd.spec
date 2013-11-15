@@ -114,6 +114,8 @@ Server-side logging module.
 # fool them with this dummy repository
 unset GIT_DIR GIT_WORK_TREE
 git init
+git config user.email "dummy@example.com"
+git config user.name "Dummy"
 git add configure.ac
 git commit -a -m "dummy commit"
 git tag "%{version}"
