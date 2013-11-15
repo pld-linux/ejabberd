@@ -54,10 +54,11 @@ Source24:	ejabberd-p1_stun-20130624.tar.gz
 # Source24-md5:	9a1c5ad9b3b95364d3f76446fcf58dc3
 #
 Patch0:		%{realname}-paths.patch
+Patch1:		%{realname}-config.patch
 # not available for 13.10
-#Patch1:		%{realname}-vcard-access-get.patch
+#Patch2:		%{realname}-vcard-access-get.patch
 # http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-2.1.12.diff
-Patch2:		%{realname}-mod_logdb.patch
+Patch3:		%{realname}-mod_logdb.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -102,9 +103,10 @@ Server-side logging module.
 %prep
 %setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24
 %patch0 -p1
-#%%patch1 -p1
+%patch1 -p1
+#%%patch2 -p1
 %if %{with logdb}
-%patch2 -p0
+%patch3 -p0
 %endif
 
 # Various parts of the build system use 'git describe'
@@ -208,10 +210,11 @@ fi
 
 %post
 if [ -f %{_sysconfdir}/jabber/secret ] ; then
-	SECRET=`cat %{_sysconfdir}/jabber/secret`
+	SECRET="$(cat %{_sysconfdir}/jabber/secret)"
 	if [ -n "$SECRET" ] ; then
-		echo "Updating component authentication secret in ejabberd config file..."
-		%{__sed} -i -e "s/>secret</>$SECRET</" /etc/jabber/ejabberd.yml
+		echo -n "Updating component authentication secret in ejabberd config file..." >&2
+		%{__sed} -i -e "s/@service_secret@/$SECRET/" /etc/jabber/ejabberd.yml
+		echo "done" >&2
 	fi
 fi
 

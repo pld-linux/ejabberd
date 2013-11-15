@@ -1,0 +1,28 @@
+diff -dur ejabberd-13.10.orig/ejabberd.yml.example ejabberd-13.10/ejabberd.yml.example
+--- ejabberd-13.10.orig/ejabberd.yml.example	2013-09-27 11:19:22.000000000 +0200
++++ ejabberd-13.10/ejabberd.yml.example	2013-11-15 19:08:28.341305894 +0100
+@@ -3,6 +3,12 @@
+ ###
+ ###
+ 
++### This is a setup for working "localhost" server.
++### To make fully functional world-accessible Jabber server you will need to:
++### - change 'localhost' everywhere below to your desired Jabber server domain name
++### - provide SSL certificates and uncomment ssl settings
++### - modify everything else according to your needs
++
+ ### The parameters used in this configuration file are explained in more detail
+ ### in the ejabberd Installation and Operation Guide.
+ ### Please consult the Guide in case of doubts, it is included with
+@@ -103,9 +109,9 @@
+   ##   ip: "127.0.0.1"
+   ##   hosts:
+   ##     "icq.example.org":
+-  ##       password: "secret"
++  ##       password: "@service_secret@"
+   ##     "sms.example.org":
+-  ##       password: "secret"
++  ##       password: "@service_secret@"
+ 
+   ##
+   ## ejabberd_stun: Handles STUN Binding requests
