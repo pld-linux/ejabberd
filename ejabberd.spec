@@ -1,6 +1,3 @@
-#
-# TODO:
-#	- add systemd unit
 
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
@@ -20,6 +17,7 @@ Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{realname}-%{
 # Source0-md5:	94ce4fe244ee72771eeafe27209d6d3c
 Source1:	%{realname}.init
 Source2:	%{realname}.sysconfig
+Source3:	%{realname}.service
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10:	ejabberd-goldrush-20131108.tar.gz
@@ -68,7 +66,7 @@ BuildRequires:	openssl-devel
 %if %{with pam}
 BuildRequires:	pam-devel
 %endif
-BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	rpmbuild(macros) >= 1.671
 BuildRequires:	yaml-devel
 BuildRequires:	zlib-devel
 BuildRequires:	git-core
@@ -77,9 +75,11 @@ Requires(post):	jabber-common
 Requires(post):	sed >= 4.0
 Requires(post):	textutils
 Requires(post,preun):	/sbin/chkconfig
+Requires(post,preun,postun):	systemd-units >= 38
 Requires:	erlang
 Requires:	expat >= 1.95
 Requires:	rc-scripts
+Requires:	systemd-units >= 38
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_noautoprovfiles	%{_libdir}/%{name}/priv/lib/
@@ -168,7 +168,8 @@ cd ../..
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/var/lib/%{realname},/etc/{sysconfig,rc.d/init.d},%{_sbindir}}
+install -d $RPM_BUILD_ROOT{/var/lib/%{realname},/etc/{sysconfig,rc.d/init.d}} \
+		$RPM_BUILD_ROOT{%{systemdunitdir},%{_sbindir}}
 
 unset GIT_DIR GIT_WORK_TREE
 
@@ -180,6 +181,7 @@ unset GIT_DIR GIT_WORK_TREE
 
 sed -e's,@libdir@,%{_libdir},g' -e 's,@EJABBERD_DOC_PATH@,%{_docdir}/%{name}-%{version}/doc,g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{realname}
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{realname}
+install %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/%{name}.service
 
 chmod u+rw $RPM_BUILD_ROOT%{_sbindir}/%{realname}*
 
@@ -196,7 +198,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %pre
 if [ -e /etc/jabber/ejabberd.cfg ] ; then
-	if grep -Eq '^[^#]*access_get' ; then
+	if grep -Eq '^[^#]*access_get' /etc/jabber/ejabberd.cfg ; then
 		echo "Your 'ejabberd.cfg' config file seems to use 'access_get' option of mod_vcard" >&2
 		echo "this is not supported by this ejabberd version in PLD" >&2
 		exit 1
@@ -221,10 +223,32 @@ fi
 /sbin/chkconfig --add ejabberd
 %service ejabberd restart "ejabberd server"
 
+%systemd_post %{name}.service
+
 %preun
 if [ "$1" = "0" ]; then
 	%service ejabberd stop
 	/sbin/chkconfig --del ejabberd
+fi
+%systemd_preun %{name}.service
+
+%postun
+%systemd_reload
+
+%triggerprein -- %{name} < 13.10
+# only if started and we know upgrade won't be aborted in %%pre
+if [ -e /var/lock/subsys/ejabberd ] && ! grep -Eq '^[^#]*access_get' /etc/jabber/ejabberd.cfg 2>/dev/null ; then
+	# old init script won't stop ejabberd correctly
+	# stop it's all processes here
+	# we assume any 'epmd', 'beam', 'beam.smp' or 'heart' process
+	# running with uid of jabber is ejabberd process
+	pids="$(ps -C "epmd beam beam.smp heart" -o pid=,user= | awk '/jabber/ { print $1 }')" || :
+	if [ -n "$pids" ] ; then
+		%banner -e %{name} <<'EOF'
+Killing all 'epmd, beam, beam.smp, heart' processed owned by the 'jabber' user to make sure old ejabberd is down.
+EOF
+		kill $pids || :
+	fi
 fi
 
 %triggerpostun -- %{name} < 13.10
@@ -248,6 +272,7 @@ if [ -e /etc/sysconfig/ejabberd ] ; then
 		/etc/sysconfig/ejabberd || :
 fi
 cp %{_sysconfdir}/jabber/cookie /var/lib/ejabberd/.erlang.cookie || :
+%systemd_trigger %{name}.service
 
 %files
 %defattr(644,root,root,755)
@@ -267,6 +292,7 @@ cp %{_sysconfdir}/jabber/cookie /var/lib/ejabberd/.erlang.cookie || :
 %ghost %attr(400,jabber,jabber) %ghost %config(noreplace) %verify(not md5 mtime size) /var/lib/ejabberd/.erlang.cookie
 %attr(754,root,root) /etc/rc.d/init.d/%{realname}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{realname}
+%{systemdunitdir}/%{name}.service
 
 %if %{with logdb}
 %files logdb

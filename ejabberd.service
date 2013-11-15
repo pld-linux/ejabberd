@@ -1,0 +1,16 @@
+[Unit]
+Description=Fault-tolerant distributed Jabber/XMPP server
+After=network.target
+
+[Service]
+Type=forking
+Environment=EJABBERD_PID_PATH=/var/run/jabber/ejabberd.pid
+ExecStart=/usr/sbin/ejabberdctl start
+ExecStartPost=/usr/sbin/ejabberdctl started
+ExecStop=/usr/sbin/ejabberdctl stop
+ExecStopPost=/usr/sbin/ejabberdctl stopped
+PIDFile=/var/run/jabber/ejabberd.pid
+User=jabber
+
+[Install]
+WantedBy=multi-user.target
