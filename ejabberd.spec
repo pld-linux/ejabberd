@@ -73,7 +73,7 @@ Requires(post):	sed >= 4.0
 Requires(post):	textutils
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun,postun):	systemd-units >= 38
-Requires:	erlang
+Requires:	erlang >= 1:R15B01
 Requires:	expat >= 1.95
 Requires:	rc-scripts
 Requires:	systemd-units >= 38
