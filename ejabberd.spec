@@ -109,7 +109,8 @@ Server-side logging module.
 # do not let it use 'git describe' to fetch version
 # it uses nonsense during manual builds and fails on the builder
 sed -i -e"s/AC_INIT(ejabberd,[^,]*,/AC_INIT(ejabberd,community %{version},/" configure.ac
-! grep -q "git describe" configure.ac
+sed -i -e's/\([[:space:]]*REVISION=\).*git.*describe.*/\1"%{version}"/' contrib/extract_translations/prepare-translation.sh
+! grep -q "git describe" configure.ac contrib/extract_translations/prepare-translation.sh
 
 %build
 %{__aclocal} -I m4
