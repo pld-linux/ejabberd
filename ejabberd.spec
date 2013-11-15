@@ -70,6 +70,7 @@ BuildRequires:	pam-devel
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	yaml-devel
 BuildRequires:	zlib-devel
+BuildRequires:	git-core
 Requires(post):	/usr/bin/perl
 Requires(post):	jabber-common
 Requires(post):	sed >= 4.0
@@ -106,13 +107,19 @@ Server-side logging module.
 %patch2 -p0
 %endif
 
-# do not let it use 'git describe' to fetch version
-# it uses nonsense during manual builds and fails on the builder
-sed -i -e"s/AC_INIT(ejabberd,[^,]*,/AC_INIT(ejabberd,community %{version},/" configure.ac
-sed -i -e's/\([[:space:]]*REVISION=\).*git.*describe.*/\1"%{version}"/' contrib/extract_translations/prepare-translation.sh
-! grep -q "git describe" configure.ac contrib/extract_translations/prepare-translation.sh
+# Various parts of the build system use 'git describe'
+# which returns nonsense on manual builds using the builder script
+# and which fails on the PLD builders
+# I was not able to locate all 'git describe' invocation, sot let's
+# fool them with this dummy repository
+unset GIT_DIR GIT_WORK_TREE
+git init
+git add configure.ac
+git commit -a -m "dummy commit"
+git tag "%{version}"
 
 %build
+unset GIT_DIR GIT_WORK_TREE
 %{__aclocal} -I m4
 %{__autoconf}
 %configure \
@@ -158,6 +165,8 @@ cd ../..
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/var/lib/%{realname},/etc/{sysconfig,rc.d/init.d},%{_sbindir}}
+
+unset GIT_DIR GIT_WORK_TREE
 
 %{__make} install -j1 \
 	CHOWN_COMMAND=true \
