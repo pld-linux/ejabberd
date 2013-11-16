@@ -203,7 +203,7 @@ if [ -e /etc/jabber/ejabberd.cfg ] ; then
 	%banner -e %{name} <<'EOF'
 Old-style /etc/jabber/ejabberd.cfg configuration file exists. You should
 consider converting it to the new YAML format. You can do this with the
-'ejabberctl convert_to_yaml' command.
+'ejabberdctl convert_to_yaml' command (ejabberd must be already running).
 EOF
 fi
 
