@@ -195,15 +195,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %pre
 if [ -e /etc/jabber/ejabberd.cfg ] ; then
-	if grep -Eq '^[^#]*access_get' /etc/jabber/ejabberd.cfg ; then
-		echo "Your 'ejabberd.cfg' config file seems to use 'access_get' option of mod_vcard" >&2
-		echo "this is not supported by this ejabberd version in PLD" >&2
-		exit 1
-	fi
 	%banner -e %{name} <<'EOF'
 Old-style /etc/jabber/ejabberd.cfg configuration file exists. You should
 consider converting it to the new YAML format. You can do this with the
-ejabberctl command.
+'ejabberctl convert_to_yaml' command.
 EOF
 fi
 
@@ -216,11 +211,14 @@ if [ -f %{_sysconfdir}/jabber/secret ] ; then
 		echo "done" >&2
 	fi
 fi
-
 /sbin/chkconfig --add ejabberd
-%service ejabberd restart "ejabberd server"
-
-%systemd_post %{name}.service
+if [ -e /var/run/%{name}-upgrade-trigger ] ; then
+	# service will be restarted in the postun trigger
+	rm -f /var/run/%{name}-upgrade-trigger || :
+else
+	%service ejabberd restart "ejabberd server"
+	%systemd_post %{name}.service
+fi
 
 %preun
 if [ "$1" = "0" ]; then
@@ -233,8 +231,15 @@ fi
 %systemd_reload
 
 %triggerprein -- %{name} < 13.10
-# only if started and we know upgrade won't be aborted in %%pre
-if [ -e /var/lock/subsys/ejabberd ] && ! grep -Eq '^[^#]*access_get' /etc/jabber/ejabberd.cfg 2>/dev/null ; then
+if [ -e /etc/jabber/ejabberd.cfg ] ; then
+	if grep -Eq '^[^%]*access_get' /etc/jabber/ejabberd.cfg ; then
+		echo "Your 'ejabberd.cfg' config file seems to use 'access_get' option of mod_vcard" >&2
+		echo "this is not supported by this ejabberd version in PLD" >&2
+		exit 1
+	fi
+	rm -f /etc/jabber/ejabberd.yml.rpmnew 2>/dev/null || :
+fi
+if [ -e /var/lock/subsys/ejabberd ] ; then
 	# old init script won't stop ejabberd correctly
 	# stop it's all processes here
 	# we assume any 'epmd', 'beam', 'beam.smp' or 'heart' process
@@ -243,10 +248,12 @@ if [ -e /var/lock/subsys/ejabberd ] && ! grep -Eq '^[^#]*access_get' /etc/jabber
 	if [ -n "$pids" ] ; then
 		%banner -e %{name} <<'EOF'
 Killing all 'epmd, beam, beam.smp, heart' processed owned by the 'jabber' user to make sure old ejabberd is down.
+
 EOF
 		kill $pids || :
 	fi
 fi
+touch /var/run/%{name}-upgrade-trigger || :
 
 %triggerpostun -- %{name} < 13.10
 # convert old 'NODENAME' in /etc/sysconfig/ejabberd
@@ -257,6 +264,15 @@ if [ -e /etc/sysconfig/ejabberd ] ; then
 	. /etc/sysconfig/ejabberd || :
 fi
 subst="s/^#ERLANG_NODE=.*/ERLANG_NODE=ejabberd@${NODENAME}/"
+if [ "$NODENAME" != "localhost" ] ; then
+	%banner -e %{name} <<'EOF'
+Configured node name (ejabberd@${NODENAME}) is not at 'localhost'.
+– setting INET_DIST_INTERFACE=0.0.0.0 in /etc/jabber/ejabberdctl.cfg.
+You should consider tuning that or your firewall configuration.
+
+EOF
+	subst="$subst;s/^#INET_DIST_INTERFACE=.*/INET_DIST_INTERFACE=0.0.0.0/"
+fi
 if [ -n "$ERL_MAX_PORTS" ] ; then
 	subst="$subst;s/^#ERL_MAX_PORTS=.*/ERL_MAX_PORTS=${ERL_MAX_PORTS}/"
 fi
@@ -269,6 +285,17 @@ if [ -e /etc/sysconfig/ejabberd ] ; then
 		/etc/sysconfig/ejabberd || :
 fi
 cp %{_sysconfdir}/jabber/cookie /var/lib/ejabberd/.erlang.cookie || :
+chown jabber:jabber /var/lib/ejabberd/.erlang.cookie || :
+chmod 400 /var/lib/ejabberd/.erlang.cookie || :
+if [ -e /etc/jabber/ejabberd.cfg -a ! -e /etc/jabber/ejabberd.yml.rpmnew ] ; then
+	mv /etc/jabber/ejabberd.yml /etc/jabber/ejabberd.yml.rpmnew
+	echo 'include_config_file: "/etc/jabber/ejabberd.cfg"' > /etc/jabber/ejabberd.yml || :
+fi
+
+# post action postponed here
+%service ejabberd restart "ejabberd server"
+%systemd_post %{name}.service
+
 %systemd_trigger %{name}.service
 
 %files
