@@ -2,6 +2,7 @@
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
 %bcond_with	logdb		# enable mod_logdb (server-side message logging)
+%bcond_with	weaker_crypto	# enable SSLv3
 
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
@@ -54,6 +55,7 @@ Patch1:		%{name}-config.patch
 #Patch2:		%{name}-vcard-access-get.patch
 # http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-2.1.12.diff
 Patch3:		%{name}-mod_logdb.patch
+Patch4:		%{name}-no_sslv3_or_3des.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -104,6 +106,9 @@ Server-side logging module.
 #%%patch2 -p1
 %if %{with logdb}
 %patch3 -p0
+%endif
+%if %{without weaker_crypto}
+%patch4 -p1
 %endif
 
 # Various parts of the build system use 'git describe'
