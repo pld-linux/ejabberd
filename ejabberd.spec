@@ -16,6 +16,7 @@ Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{vers
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
+Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10:	ejabberd-goldrush-20131108.tar.gz
@@ -171,7 +172,8 @@ cd ../..
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/var/lib/%{name},/etc/{sysconfig,rc.d/init.d}} \
-		$RPM_BUILD_ROOT{%{systemdunitdir},%{_sbindir}}
+		$RPM_BUILD_ROOT{%{systemdunitdir},%{_sbindir}} \
+		$RPM_BUILD_ROOT/etc/logrotate.d
 
 unset GIT_DIR GIT_WORK_TREE
 
@@ -184,6 +186,7 @@ unset GIT_DIR GIT_WORK_TREE
 sed -e's,@libdir@,%{_libdir},g' -e 's,@EJABBERD_DOC_PATH@,%{_docdir}/%{name}-%{version}/doc,g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
 install %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/%{name}.service
+install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/%{name}
 
 chmod u+rw $RPM_BUILD_ROOT%{_sbindir}/%{name}*
 
@@ -322,6 +325,7 @@ fi
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/%{name}
 %{systemdunitdir}/%{name}.service
+/etc/logrotate.d/%{name}
 
 %if %{with logdb}
 %files logdb
