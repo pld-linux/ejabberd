@@ -8,7 +8,7 @@ Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	13.10
-Release:	2
+Release:	3
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
@@ -80,6 +80,7 @@ Requires:	erlang >= 1:R15B01
 Requires:	expat >= 1.95
 Requires:	rc-scripts
 Requires:	systemd-units >= 38
+Conflicts:	logrotate < 3.8.0
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_noautoprovfiles	%{_libdir}/%{name}/priv/lib/
@@ -173,7 +174,7 @@ cd ../..
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/var/lib/%{name},/etc/{sysconfig,rc.d/init.d}} \
 		$RPM_BUILD_ROOT{%{systemdunitdir},%{_sbindir}} \
-		$RPM_BUILD_ROOT/etc/logrotate.d
+		$RPM_BUILD_ROOT{/etc/logrotate.d,/var/log/archive/%{name}}
 
 unset GIT_DIR GIT_WORK_TREE
 
@@ -315,7 +316,8 @@ fi
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberdctl.cfg
 # legacy config may still be there
 %attr(640,root,jabber) %ghost %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberd.cfg
-%attr(770,root,jabber) /var/log/ejabberd
+%attr(770,root,jabber) /var/log/%{name}
+%attr(770,root,jabber) /var/log/archive/%{name}
 %if %{with logdb}
 %exclude %{_libdir}/ejabberd/ebin/mod_logdb*
 %endif
