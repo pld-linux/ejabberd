@@ -1,16 +1,15 @@
-diff -dur ejabberd-13.10.orig/deps/p1_tls/c_src/p1_tls_drv.c ejabberd-13.10/deps/p1_tls/c_src/p1_tls_drv.c
---- ejabberd-13.10.orig/deps/p1_tls/c_src/p1_tls_drv.c	2013-07-17 13:50:12.000000000 +0200
-+++ ejabberd-13.10/deps/p1_tls/c_src/p1_tls_drv.c	2013-11-16 15:29:02.705022418 +0100
-@@ -44,7 +44,7 @@
+--- ejabberd-13.12/deps/p1_tls/c_src/p1_tls_drv.c.orig	2013-12-23 22:55:13.000000000 +0100
++++ ejabberd-13.12/deps/p1_tls/c_src/p1_tls_drv.c	2014-03-13 14:21:50.000000000 +0100
+@@ -47,7 +47,7 @@
  #define SSL_OP_NO_TICKET 0
  #endif
  
--#define CIPHERS "DEFAULT:!EXPORT:!LOW:!SSLv2"
-+#define CIPHERS "DEFAULT:!EXPORT:!LOW:!SSLv2:!3DES"
+-#define CIPHERS "DEFAULT:!EXPORT:!LOW:!RC4:!SSLv2"
++#define CIPHERS "DEFAULT:!EXPORT:!LOW:!RC4:!SSLv2:!3DES"
  
  /*
   * R15B changed several driver callbacks to use ErlDrvSizeT and
-@@ -490,11 +490,11 @@
+@@ -515,11 +515,11 @@
  	 SSL_set_bio(d->ssl, d->bio_read, d->bio_write);
  
  	 if (command == SET_CERTIFICATE_FILE_ACCEPT) {

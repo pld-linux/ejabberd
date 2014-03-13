@@ -7,42 +7,42 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	13.10
-Release:	3
+Version:	13.12
+Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	94ce4fe244ee72771eeafe27209d6d3c
+# Source0-md5:	e740d957c6865d04a950e662b4c31baa
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
 Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
-Source10:	ejabberd-goldrush-20131108.tar.gz
-# Source10-md5:	3f61708d20fcee2e7d47036cc470f4e9
-Source11:	ejabberd-lager-20131111.tar.gz
-# Source11-md5:	e0933da9d0462b045f6b9c4bbd320d3e
+Source10:	ejabberd-goldrush-20140123.tar.gz
+# Source10-md5:	f9e1e506b53e65559a788b8048da8603
+Source11:	ejabberd-lager-20140312.tar.gz
+# Source11-md5:	f9ebaaaa84ce8d4ca18af2ebd55afad9
 Source12:	ejabberd-p1_cache_tab-20130515.tar.gz
 # Source12-md5:	f2500cffdaff434b354d01eeb24d136d
-Source13:	ejabberd-p1_iconv-20130602.tar.gz
-# Source13-md5:	ab0118d4097ee756f65fd087265c88ae
-Source14:	ejabberd-p1_stringprep-20131113.tar.gz
-# Source14-md5:	282d70c792a78ea9a7415b0b4e65e157
-Source15:	ejabberd-p1_tls-20130717.tar.gz
-# Source15-md5:	1211c5d8f0a95b58dfc5fb5bf4e13ded
-Source16:	ejabberd-p1_xml-20131017.tar.gz
-# Source16-md5:	dc7ebd7ed1ed6340ff0e7739173d4438
-Source17:	ejabberd-p1_yaml-20131031.tar.gz
-# Source17-md5:	82d4bb5c5d56ab93a60f5d1c6e583dc1
-Source18:	ejabberd-p1_zlib-20130515.tar.gz
-# Source18-md5:	a203d9359122ead64966eeb0bd1c8cf7
+Source13:	ejabberd-p1_iconv-20131209.tar.gz
+# Source13-md5:	3b4d8c1b3de2414b52d24d72c2736aa6
+Source14:	ejabberd-p1_stringprep-20131209.tar.gz
+# Source14-md5:	0feb0fc4b729b1b0723074a52c2ac221
+Source15:	ejabberd-p1_tls-20131223.tar.gz
+# Source15-md5:	dfda942a9a4e3d629073c1610c2859ac
+Source16:	ejabberd-p1_xml-20140228.tar.gz
+# Source16-md5:	731a5d1e3ccd9a6d672d098aa09ccd46
+Source17:	ejabberd-p1_yaml-20131209.tar.gz
+# Source17-md5:	406933f73d7b6776783f3ce662342d8c
+Source18:	ejabberd-p1_zlib-20131209.tar.gz
+# Source18-md5:	61aae112cec597f336da4e84b7875df6
 Source19:	ejabberd-xmlrpc-20130116.tar.gz
 # Source19-md5:	22e02ff7ca174b4ac225005f63da10ad
 Source20:	ejabberd-jiffy-20130702.tar.gz
 # Source20-md5:	01b156e97005f07ce8bb46ecf27471ff
-Source21:	ejabberd-p1_mysql-20131024.tar.gz
-# Source21-md5:	c02921f21ba030357d2cbbbf182af54a
+Source21:	ejabberd-p1_mysql-20140310.tar.gz
+# Source21-md5:	58615bae6d7c7641a4007bff0c5d5753
 Source22:	ejabberd-p1_pam-20130515.tar.gz
 # Source22-md5:	0ca31094d93dfb047f05c7539136433a
 Source23:	ejabberd-p1_pgsql-20130515.tar.gz
@@ -132,7 +132,6 @@ unset GIT_DIR GIT_WORK_TREE
 %{__autoconf}
 %configure \
 	%{?with_pam --enable-pam} \
-	--with-openssl=%{_prefix} \
 	--enable-user=jabber \
 	--enable-full-xml \
 	--enable-nif \
@@ -145,6 +144,7 @@ unset GIT_DIR GIT_WORK_TREE
 	--enable-json \
 	--enable-iconv \
 	--enable-lager
+
 touch deps/.got
 
 cd deps/p1_iconv
