@@ -21,18 +21,13 @@ export EJABBERD_DOC_PATH EJABBERD_PID_PATH
 start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/ejabberd ]; then
-		msg_starting ejabberd ; busy
-		/usr/sbin/ejabberdctl start
+		msg_starting ejabberd
+		daemon /usr/sbin/ejabberdctl start
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
-			/usr/sbin/ejabberdctl started
+			msg_starting "ejabberd start confirmation"
+			daemon /usr/sbin/ejabberdctl started
 			RETVAL=$?
-		fi
-		if [ $RETVAL -eq 0 ]; then
-			touch /var/lock/subsys/ejabberd
-			ok
-		else
-			fail
 		fi
 	else
 		msg_already_running ejabberd
@@ -42,17 +37,13 @@ start() {
 stop() {
 	# Stop daemons.
 	if [ -f /var/lock/subsys/ejabberd ]; then
-		msg_stopping ejabberd ; busy
-		/usr/sbin/ejabberdctl stop 2>/dev/null
+		msg_stopping ejabberd
+		daemon /usr/sbin/ejabberdctl stop
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
-			/usr/sbin/ejabberdctl stopped 2>/dev/null
+			msg_starting "ejabberd stop confirmation"
+			daemon /usr/sbin/ejabberdctl stopped
 			RETVAL=$?
-		fi
-		if [ $RETVAL -eq 0 ]; then
-			ok
-		else
-			fail
 		fi
 		rm -f /var/lock/subsys/ejabberd
 	else
