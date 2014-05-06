@@ -54,11 +54,7 @@ Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
 # not available for 13.10
 #Patch2:		%{name}-vcard-access-get.patch
-# OLD:
-# http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-2.1.12.diff
-# CURRENT:
-# git tree: https://github.com/paleg/ejabberd/tree/13.12-mod_logdb
-# git diff d03de1bb436760afd9cb80f51d367009985fffba > patch
+# http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-13.10.diff
 Patch3:		%{name}-mod_logdb.patch
 Patch4:		%{name}-no_sslv3_or_3des.patch
 URL:		http://www.ejabberd.im/
