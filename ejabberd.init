@@ -29,6 +29,7 @@ start() {
 			daemon /usr/sbin/ejabberdctl started
 			RETVAL=$?
 		fi
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/ejabberd
 	else
 		msg_already_running ejabberd
 	fi
