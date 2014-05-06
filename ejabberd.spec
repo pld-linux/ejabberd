@@ -1,14 +1,14 @@
 
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
-%bcond_with	logdb		# enable mod_logdb (server-side message logging)
+%bcond_without	logdb		# enable mod_logdb (server-side message logging)
 %bcond_with	weaker_crypto	# enable SSLv3
 
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	13.12
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
@@ -54,7 +54,11 @@ Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
 # not available for 13.10
 #Patch2:		%{name}-vcard-access-get.patch
+# OLD:
 # http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-2.1.12.diff
+# CURRENT:
+# git tree: https://github.com/paleg/ejabberd/tree/13.12-mod_logdb
+# git diff d03de1bb436760afd9cb80f51d367009985fffba > patch
 Patch3:		%{name}-mod_logdb.patch
 Patch4:		%{name}-no_sslv3_or_3des.patch
 URL:		http://www.ejabberd.im/
@@ -107,7 +111,7 @@ Server-side logging module.
 %patch1 -p1
 #%%patch2 -p1
 %if %{with logdb}
-%patch3 -p0
+%patch3 -p1
 %endif
 %if %{without weaker_crypto}
 %patch4 -p1
