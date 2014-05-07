@@ -318,7 +318,7 @@ index 0000000..06a894b
 +   undefined.
 diff --git a/src/mod_logdb.erl b/src/mod_logdb.erl
 new file mode 100644
-index 0000000..516f92b
+index 0000000..72f1982
 --- /dev/null
 +++ b/src/mod_logdb.erl
 @@ -0,0 +1,2152 @@
@@ -430,7 +430,7 @@ index 0000000..516f92b
 +    DBsRaw = gen_mod:get_opt(dbs, Opts, fun(A) -> A end, [{mnesia, []}]),
 +    DBs = case lists:keysearch(mnesia, 1, DBsRaw) of
 +               false -> lists:append(DBsRaw, [{mnesia,[]}]);
-+               DBsResult -> DBsResult
++               {value, _} -> DBsRaw
 +          end,
 +    VHostDB = gen_mod:get_opt(vhosts, Opts, fun(A) -> A end, [{VHost, mnesia}]),
 +    % 10 is default becouse of using in clustered environment
@@ -451,7 +451,7 @@ index 0000000..516f92b
 +                 end
 +         end,
 +
-+    ?MYDEBUG("Starting mod_logdb for ~s with ~s backend", [VHost, DBName]),
++    ?MYDEBUG("Starting mod_logdb for '~s' with '~s' backend", [VHost, DBName]),
 +
 +    DBMod = list_to_atom(atom_to_list(?MODULE) ++ "_" ++ atom_to_list(DBName)),
 +
