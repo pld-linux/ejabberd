@@ -38,13 +38,19 @@ start() {
 stop() {
 	# Stop daemons.
 	if [ -f /var/lock/subsys/ejabberd ]; then
-		msg_stopping ejabberd
-		daemon /usr/sbin/ejabberdctl stop
+		msg_stopping ejabberd ; busy
+		out=$(/usr/sbin/ejabberdctl stop 2>&1)
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
-			msg_starting "ejabberd stop confirmation"
-			daemon /usr/sbin/ejabberdctl stopped
+			out2=$(/usr/sbin/ejabberdctl stopped 2>&1)
 			RETVAL=$?
+		fi
+		if [ $RETVAL -eq 0 ]; then
+			ok
+		else
+			fail
+			[ -n "$out" ] && echo $out
+			[ -n "$out2" ] && echo $out2
 		fi
 		rm -f /var/lock/subsys/ejabberd
 	else
