@@ -7,12 +7,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	13.12
-Release:	5
+Version:	14.07
+Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	e740d957c6865d04a950e662b4c31baa
+# Source0-md5:	bb52a686c0895362822a81df5b25edc3
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
@@ -21,34 +21,38 @@ Source4:	%{name}.logrotate
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10:	ejabberd-goldrush-20140123.tar.gz
 # Source10-md5:	f9e1e506b53e65559a788b8048da8603
-Source11:	ejabberd-lager-20140312.tar.gz
+Source11:	ejabberd-lager-20140722.tar.gz
 # Source11-md5:	f9ebaaaa84ce8d4ca18af2ebd55afad9
-Source12:	ejabberd-p1_cache_tab-20130515.tar.gz
+Source12:	ejabberd-p1_cache_tab-20140717.tar.gz
 # Source12-md5:	f2500cffdaff434b354d01eeb24d136d
-Source13:	ejabberd-p1_iconv-20131209.tar.gz
+Source13:	ejabberd-p1_iconv-20140430.tar.gz
 # Source13-md5:	3b4d8c1b3de2414b52d24d72c2736aa6
 Source14:	ejabberd-p1_stringprep-20131209.tar.gz
 # Source14-md5:	0feb0fc4b729b1b0723074a52c2ac221
-Source15:	ejabberd-p1_tls-20131223.tar.gz
+Source15:	ejabberd-p1_tls-20140710.tar.gz
 # Source15-md5:	dfda942a9a4e3d629073c1610c2859ac
-Source16:	ejabberd-p1_xml-20140228.tar.gz
+Source16:	ejabberd-p1_xml-20140724.tar.gz
 # Source16-md5:	731a5d1e3ccd9a6d672d098aa09ccd46
-Source17:	ejabberd-p1_yaml-20131209.tar.gz
+Source17:	ejabberd-p1_yaml-20140611.tar.gz
 # Source17-md5:	406933f73d7b6776783f3ce662342d8c
-Source18:	ejabberd-p1_zlib-20131209.tar.gz
+Source18:	ejabberd-p1_zlib-20140507.tar.gz
 # Source18-md5:	61aae112cec597f336da4e84b7875df6
-Source19:	ejabberd-xmlrpc-20130116.tar.gz
+Source19:	ejabberd-xmlrpc-20140317.tar.gz
 # Source19-md5:	22e02ff7ca174b4ac225005f63da10ad
-Source20:	ejabberd-jiffy-20130702.tar.gz
+Source20:	ejabberd-jiffy-20140823.tar.gz
 # Source20-md5:	01b156e97005f07ce8bb46ecf27471ff
-Source21:	ejabberd-p1_mysql-20140310.tar.gz
+Source21:	ejabberd-p1_mysql-20140404.tar.gz
 # Source21-md5:	58615bae6d7c7641a4007bff0c5d5753
 Source22:	ejabberd-p1_pam-20130515.tar.gz
 # Source22-md5:	0ca31094d93dfb047f05c7539136433a
-Source23:	ejabberd-p1_pgsql-20130515.tar.gz
+Source23:	ejabberd-p1_pgsql-20140405.tar.gz
 # Source23-md5:	1958be8e59d1b472499ef1bdf8edc1db
-Source24:	ejabberd-p1_stun-20130624.tar.gz
+Source24:	ejabberd-p1_stun-20140821.tar.gz
 # Source24-md5:	9a1c5ad9b3b95364d3f76446fcf58dc3
+Source25:	ejabberd-p1_utils-20140825.tar.gz
+# Source25-md5: 9a1c5ad9b3b95364d3f76446fcf58dc3
+Source26:	ejabberd-esip-20140717.tar.gz
+# Source26-md5: 9a1c5ad9b3b95364d3f76446fcf58dc3
 #
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
@@ -102,7 +106,7 @@ Requires:	%{name} = %{version}-%{release}
 Server-side logging module.
 
 %prep
-%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24
+%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26
 %patch0 -p1
 %patch1 -p1
 #%%patch2 -p1
@@ -140,7 +144,6 @@ unset GIT_DIR GIT_WORK_TREE
 	--enable-pgsql \
 	%{?with_pam:--enable-pam} \
 	--enable-zlib \
-	--enable-stun \
 	--enable-json \
 	--enable-iconv \
 	--enable-lager
@@ -165,6 +168,9 @@ cd deps/p1_yaml
 %configure
 cd ../..
 cd deps/p1_zlib
+%configure
+cd ../..
+cd deps/esip
 %configure
 cd ../..
 
