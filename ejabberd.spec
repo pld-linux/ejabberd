@@ -20,39 +20,39 @@ Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10:	ejabberd-goldrush-20140123.tar.gz
-# Source10-md5:	f9e1e506b53e65559a788b8048da8603
+# Source10-md5:	04404b38f30ced010557ca568369b92a
 Source11:	ejabberd-lager-20140722.tar.gz
-# Source11-md5:	f9ebaaaa84ce8d4ca18af2ebd55afad9
+# Source11-md5:	3f78dc4741a78b2e81d0fd5ec7e6827d
 Source12:	ejabberd-p1_cache_tab-20140717.tar.gz
-# Source12-md5:	f2500cffdaff434b354d01eeb24d136d
+# Source12-md5:	4b23cc1e1dc5e4482a3b412ac07ccc14
 Source13:	ejabberd-p1_iconv-20140430.tar.gz
-# Source13-md5:	3b4d8c1b3de2414b52d24d72c2736aa6
+# Source13-md5:	690346781d7294c005dcc631fcb7d2aa
 Source14:	ejabberd-p1_stringprep-20131209.tar.gz
-# Source14-md5:	0feb0fc4b729b1b0723074a52c2ac221
+# Source14-md5:	4631268d34a193f8e2055e47a5141950
 Source15:	ejabberd-p1_tls-20140710.tar.gz
-# Source15-md5:	dfda942a9a4e3d629073c1610c2859ac
+# Source15-md5:	0f4540812fe540ed31d5499736aa93bd
 Source16:	ejabberd-p1_xml-20140724.tar.gz
-# Source16-md5:	731a5d1e3ccd9a6d672d098aa09ccd46
+# Source16-md5:	2437645a9abaecde290c8b8a5ec0e63c
 Source17:	ejabberd-p1_yaml-20140611.tar.gz
-# Source17-md5:	406933f73d7b6776783f3ce662342d8c
+# Source17-md5:	edbce7c9437317411c3763651d96b850
 Source18:	ejabberd-p1_zlib-20140507.tar.gz
-# Source18-md5:	61aae112cec597f336da4e84b7875df6
+# Source18-md5:	c31a49be996d21cae7a293ef21c35b17
 Source19:	ejabberd-xmlrpc-20140317.tar.gz
-# Source19-md5:	22e02ff7ca174b4ac225005f63da10ad
+# Source19-md5:	a17ba12ff474fd6e0a15c1348694fcf5
 Source20:	ejabberd-jiffy-20140823.tar.gz
-# Source20-md5:	01b156e97005f07ce8bb46ecf27471ff
+# Source20-md5:	a1ccd298ab9b95141e0e26273125e201
 Source21:	ejabberd-p1_mysql-20140404.tar.gz
-# Source21-md5:	58615bae6d7c7641a4007bff0c5d5753
+# Source21-md5:	6d133ae5371ce2eb102faa0c71f6f0ba
 Source22:	ejabberd-p1_pam-20130515.tar.gz
 # Source22-md5:	0ca31094d93dfb047f05c7539136433a
 Source23:	ejabberd-p1_pgsql-20140405.tar.gz
-# Source23-md5:	1958be8e59d1b472499ef1bdf8edc1db
+# Source23-md5:	4100906c9f643c39c94e97e37449b800
 Source24:	ejabberd-p1_stun-20140821.tar.gz
-# Source24-md5:	9a1c5ad9b3b95364d3f76446fcf58dc3
+# Source24-md5:	babf832ccbf92d2f93baaac89b11111b
 Source25:	ejabberd-p1_utils-20140825.tar.gz
-# Source25-md5: 9a1c5ad9b3b95364d3f76446fcf58dc3
+# Source25-md5:	c371a3c647fead52c7f3bb6c18f32f43
 Source26:	ejabberd-esip-20140717.tar.gz
-# Source26-md5: 9a1c5ad9b3b95364d3f76446fcf58dc3
+# Source26-md5:	69d1d4994170713da507fe1572cabd04
 #
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
