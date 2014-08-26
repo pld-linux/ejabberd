@@ -27,7 +27,7 @@ diff -dur -x '*~' ejabberd-13.10.orig/ejabberdctl.template ejabberd-13.10/ejabbe
  # Define ejabberd variable if they have not been defined from the command line
  if [ "$ETC_DIR" = "" ] ; then
 -    ETC_DIR={{sysconfdir}}/ejabberd
-+    ETC_DIR={{sysconfdir}}/jabberd
++    ETC_DIR={{sysconfdir}}/jabber
  fi
  if [ "$EJABBERDCTL_CONFIG_PATH" = "" ] ; then
      EJABBERDCTL_CONFIG_PATH=$ETC_DIR/ejabberdctl.cfg
