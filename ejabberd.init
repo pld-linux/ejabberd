@@ -22,11 +22,11 @@ start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/ejabberd ]; then
 		msg_starting ejabberd
-		daemon /usr/sbin/ejabberdctl start
+		daemon --user jabber /usr/sbin/ejabberdctl start
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
 			msg_starting "ejabberd start confirmation"
-			daemon /usr/sbin/ejabberdctl started
+			daemon --user jabber /usr/sbin/ejabberdctl started
 			RETVAL=$?
 		fi
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/ejabberd
@@ -39,10 +39,10 @@ stop() {
 	# Stop daemons.
 	if [ -f /var/lock/subsys/ejabberd ]; then
 		msg_stopping ejabberd ; busy
-		out=$(/usr/sbin/ejabberdctl stop 2>&1)
+		out=$(/bin/su - jabber -s /bin/sh -c "/usr/sbin/ejabberdctl stop" 2>&1)
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
-			out2=$(/usr/sbin/ejabberdctl stopped 2>&1)
+			out2=$(/bin/su - jabber -s /bin/sh -c "/usr/sbin/ejabberdctl stopped" 2>&1)
 			RETVAL=$?
 		fi
 		if [ $RETVAL -eq 0 ]; then
