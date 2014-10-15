@@ -1,27 +1,15 @@
-diff -dur -x '*~' ejabberd-13.10.orig/Makefile.in ejabberd-13.10/Makefile.in
---- ejabberd-13.10.orig/Makefile.in	2013-09-27 11:19:22.000000000 +0200
-+++ ejabberd-13.10/Makefile.in	2013-11-14 22:08:25.461196174 +0100
-@@ -9,7 +9,7 @@
- DESTDIR =
- 
- # /etc/ejabberd/
--ETCDIR = $(DESTDIR)@sysconfdir@/ejabberd
-+ETCDIR = $(DESTDIR)@sysconfdir@/jabber
- 
- # /sbin/
- SBINDIR = $(DESTDIR)@sbindir@
-@@ -123,7 +123,7 @@
- 	[ -f $(ETCDIR)/ejabberdctl.cfg ] \
- 		&& $(INSTALL) -b -m 640 $(G_USER) ejabberdctl.cfg.example $(ETCDIR)/ejabberdctl.cfg-new \
- 		|| $(INSTALL) -b -m 640 $(G_USER) ejabberdctl.cfg.example $(ETCDIR)/ejabberdctl.cfg
--	$(INSTALL) -b -m 644 $(G_USER) inetrc $(ETCDIR)/inetrc
-+	$(INSTALL) -b -m 644 $(G_USER) inetrc $(ETCDIR)/ejabberd-inetrc
- 	#
- 	# Administration script
- 	[ -d $(SBINDIR) ] || $(INSTALL) -d -m 755 $(SBINDIR)
-diff -dur -x '*~' ejabberd-13.10.orig/ejabberdctl.template ejabberd-13.10/ejabberdctl.template
---- ejabberd-13.10.orig/ejabberdctl.template	2013-09-27 11:19:22.000000000 +0200
-+++ ejabberd-13.10/ejabberdctl.template	2013-11-14 22:08:57.068093561 +0100
+diff -urN ejabberd-14.07.org/ejabberdctl.template ejabberd-14.07/ejabberdctl.template
+--- ejabberd-14.07.org/ejabberdctl.template	2014-07-22 17:42:49.000000000 +0200
++++ ejabberd-14.07/ejabberdctl.template	2014-10-15 09:32:59.091076905 +0200
+@@ -22,7 +22,7 @@
+     EXEC_CMD="false"
+     for GID in `id -G`; do
+         if [ $GID -eq 0 ] ; then
+-            EXEC_CMD="su $INSTALLUSER -p -c"
++            EXEC_CMD="su -s /bin/sh $INSTALLUSER -p -c"
+         fi
+     done
+     if [ `id -g` -eq `id -g $INSTALLUSER` ] ; then
 @@ -55,7 +55,7 @@
  
  # Define ejabberd variable if they have not been defined from the command line
@@ -40,4 +28,24 @@ diff -dur -x '*~' ejabberd-13.10.orig/ejabberdctl.template ejabberd-13.10/ejabbe
  
  # define erl parameters
  ERLANG_OPTS="+K $POLL -smp $SMP +P $ERL_PROCESSES $ERL_OPTIONS"
-
+diff -urN ejabberd-14.07.org/Makefile.in ejabberd-14.07/Makefile.in
+--- ejabberd-14.07.org/Makefile.in	2014-07-22 17:42:49.000000000 +0200
++++ ejabberd-14.07/Makefile.in	2014-10-15 09:32:42.603846549 +0200
+@@ -9,7 +9,7 @@
+ DESTDIR =
+ 
+ # /etc/ejabberd/
+-ETCDIR = $(DESTDIR)@sysconfdir@/ejabberd
++ETCDIR = $(DESTDIR)@sysconfdir@/jabber
+ 
+ # /sbin/
+ SBINDIR = $(DESTDIR)@sbindir@
+@@ -123,7 +123,7 @@
+ 	[ -f $(ETCDIR)/ejabberdctl.cfg ] \
+ 		&& $(INSTALL) -b -m 640 $(G_USER) ejabberdctl.cfg.example $(ETCDIR)/ejabberdctl.cfg-new \
+ 		|| $(INSTALL) -b -m 640 $(G_USER) ejabberdctl.cfg.example $(ETCDIR)/ejabberdctl.cfg
+-	$(INSTALL) -b -m 644 $(G_USER) inetrc $(ETCDIR)/inetrc
++	$(INSTALL) -b -m 644 $(G_USER) inetrc $(ETCDIR)/ejabberd-inetrc
+ 	#
+ 	# Administration script
+ 	[ -d $(SBINDIR) ] || $(INSTALL) -d -m 755 $(SBINDIR)
