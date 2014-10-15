@@ -39,7 +39,7 @@ stop() {
 	# Stop daemons.
 	if [ -f /var/lock/subsys/ejabberd ]; then
 		msg_stopping ejabberd ; busy
-		out=$(/bin/su - jabber -s /bin/sh -c "/usr/sbin/ejabberdctl stop" 2>&1)
+		out=$(/bin/su - jabber -s /bin/sh -c "/usr/sbin/ejabberdctl stop_kindly 5 \\\"Server will be stopped now.\\\"" 2>&1)
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
 			out2=$(/bin/su - jabber -s /bin/sh -c "/usr/sbin/ejabberdctl stopped" 2>&1)
