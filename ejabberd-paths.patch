@@ -1,7 +1,15 @@
 diff -urN ejabberd-14.07.org/ejabberdctl.template ejabberd-14.07/ejabberdctl.template
 --- ejabberd-14.07.org/ejabberdctl.template	2014-07-22 17:42:49.000000000 +0200
-+++ ejabberd-14.07/ejabberdctl.template	2014-10-15 09:32:59.091076905 +0200
-@@ -22,7 +22,7 @@
++++ ejabberd-14.07/ejabberdctl.template	2014-10-15 09:38:33.692517899 +0200
+@@ -8,6 +8,7 @@
+ ERL_MAX_ETS_TABLES=1400
+ FIREWALL_WINDOW=""
+ ERLANG_NODE=ejabberd@localhost
++HOME=/home/services/jabber; export HOME
+ 
+ # define default environment variables
+ SCRIPT_DIR=`cd ${0%/*} && pwd`
+@@ -22,7 +23,7 @@
      EXEC_CMD="false"
      for GID in `id -G`; do
          if [ $GID -eq 0 ] ; then
@@ -10,7 +18,7 @@ diff -urN ejabberd-14.07.org/ejabberdctl.template ejabberd-14.07/ejabberdctl.tem
          fi
      done
      if [ `id -g` -eq `id -g $INSTALLUSER` ] ; then
-@@ -55,7 +55,7 @@
+@@ -55,7 +56,7 @@
  
  # Define ejabberd variable if they have not been defined from the command line
  if [ "$ETC_DIR" = "" ] ; then
@@ -19,7 +27,7 @@ diff -urN ejabberd-14.07.org/ejabberdctl.template ejabberd-14.07/ejabberdctl.tem
  fi
  if [ "$EJABBERDCTL_CONFIG_PATH" = "" ] ; then
      EJABBERDCTL_CONFIG_PATH=$ETC_DIR/ejabberdctl.cfg
-@@ -103,7 +103,7 @@
+@@ -103,7 +104,7 @@
  SASL_LOG_PATH=$LOGS_DIR/erlang.log
  DATETIME=`date "+%Y%m%d-%H%M%S"`
  ERL_CRASH_DUMP=$LOGS_DIR/erl_crash_$DATETIME.dump
