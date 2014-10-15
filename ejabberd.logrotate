@@ -5,7 +5,7 @@
 	nocreate
 	sharedscripts
 	postrotate
-		/usr/sbin/ejabberdctl reopen_log
+		/bin/su -s /bin/sh - jabber /usr/sbin/ejabberdctl reopen_log
 		# ejabberd tries to rename old logs on 'reopen_log'
 		# in some cases this may leave empty *.0 files
 		for f in /var/log/ejabberd/*.0 ; do
