@@ -9,12 +9,12 @@ diff -urN ejabberd-14.07.org/ejabberdctl.template ejabberd-14.07/ejabberdctl.tem
  
  # define default environment variables
  SCRIPT_DIR=`cd ${0%/*} && pwd`
-@@ -22,7 +23,7 @@
-     EXEC_CMD="false"
-     for GID in `id -G`; do
-         if [ $GID -eq 0 ] ; then
--            EXEC_CMD="su $INSTALLUSER -p -c"
-+            EXEC_CMD="su -s /bin/sh $INSTALLUSER -p -c"
+@@ -28,7 +28,7 @@ if [ "$INSTALLUSER" != "" ] ; then
+                 mkdir -p "$INSTALLUSER_HOME"
+                 chown "$INSTALLUSER" "$INSTALLUSER_HOME"
+             fi
+-            EXEC_CMD="su $INSTALLUSER -c"
++            EXEC_CMD="su -s /bin/sh $INSTALLUSER -c"
          fi
      done
      if [ `id -g` -eq `id -g $INSTALLUSER` ] ; then

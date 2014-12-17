@@ -130,22 +130,6 @@ index 6e21c90..9838624 100644
 +{"Drop", "Видаляти"}.
 +{"Do not drop", "Не видаляти"}.
 +{"Drop messages on user removal", "Видаляти повідомлення під час видалення користувача"}.
-diff --git a/rebar.config.script b/rebar.config.script
-index f342a6c..2ad3f1f 100644
---- a/rebar.config.script
-+++ b/rebar.config.script
-@@ -81,9 +81,9 @@ PostHooks = [ConfigureCmd("p1_tls", ""),
- 
- CfgDeps = lists:flatmap(
-             fun({mysql, true}) ->
--                    [{p1_mysql, ".*", {git, "git://github.com/processone/mysql"}}];
-+                    [{p1_mysql, ".*", {git, "git://github.com/paleg/mysql", {branch, "multi"}}}];
-                ({pgsql, true}) ->
--                    [{p1_pgsql, ".*", {git, "git://github.com/processone/pgsql"}}];
-+                    [{p1_pgsql, ".*", {git, "git://github.com/paleg/pgsql", {branch, "errordescr_fix"}}}];
-                ({pam, true}) ->
-                     [{p1_pam, ".*", {git, "git://github.com/processone/epam"}}];
-                ({zlib, true}) ->
 diff --git a/src/gen_logdb.erl b/src/gen_logdb.erl
 new file mode 100644
 index 0000000..06a894b

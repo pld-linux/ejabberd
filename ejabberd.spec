@@ -7,52 +7,50 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	14.07
-Release:	2
+Version:	14.12
+Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	bb52a686c0895362822a81df5b25edc3
+# Source0-md5:	ddaddcbd3fc5c62528c7cd829f52b208
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
 Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
-Source10:	ejabberd-goldrush-20140123.tar.gz
-# Source10-md5:	04404b38f30ced010557ca568369b92a
-Source11:	ejabberd-lager-20140722.tar.gz
-# Source11-md5:	3f78dc4741a78b2e81d0fd5ec7e6827d
-Source12:	ejabberd-p1_cache_tab-20140717.tar.gz
-# Source12-md5:	4b23cc1e1dc5e4482a3b412ac07ccc14
-Source13:	ejabberd-p1_iconv-20140430.tar.gz
-# Source13-md5:	690346781d7294c005dcc631fcb7d2aa
-Source14:	ejabberd-p1_stringprep-20131209.tar.gz
-# Source14-md5:	4631268d34a193f8e2055e47a5141950
-Source15:	ejabberd-p1_tls-20140710.tar.gz
-# Source15-md5:	0f4540812fe540ed31d5499736aa93bd
-Source16:	ejabberd-p1_xml-20140724.tar.gz
-# Source16-md5:	2437645a9abaecde290c8b8a5ec0e63c
-Source17:	ejabberd-p1_yaml-20140611.tar.gz
-# Source17-md5:	edbce7c9437317411c3763651d96b850
-Source18:	ejabberd-p1_zlib-20140507.tar.gz
-# Source18-md5:	c31a49be996d21cae7a293ef21c35b17
-Source19:	ejabberd-xmlrpc-20140317.tar.gz
-# Source19-md5:	a17ba12ff474fd6e0a15c1348694fcf5
-Source20:	ejabberd-jiffy-20140823.tar.gz
-# Source20-md5:	a1ccd298ab9b95141e0e26273125e201
-Source21:	ejabberd-p1_mysql-20140404.tar.gz
-# Source21-md5:	6d133ae5371ce2eb102faa0c71f6f0ba
-Source22:	ejabberd-p1_pam-20130515.tar.gz
-# Source22-md5:	0ca31094d93dfb047f05c7539136433a
-Source23:	ejabberd-p1_pgsql-20140405.tar.gz
-# Source23-md5:	4100906c9f643c39c94e97e37449b800
-Source24:	ejabberd-p1_stun-20140821.tar.gz
-# Source24-md5:	babf832ccbf92d2f93baaac89b11111b
-Source25:	ejabberd-p1_utils-20140825.tar.gz
-# Source25-md5:	c371a3c647fead52c7f3bb6c18f32f43
-Source26:	ejabberd-esip-20140717.tar.gz
-# Source26-md5:	69d1d4994170713da507fe1572cabd04
+Source10: ejabberd-ehyperloglog-20131012.tar.gz
+# Source10-md5:	784383327ee173b97d8fce8166ebe71f
+Source11: ejabberd-esip-20141010.tar.gz
+# Source11-md5:	3f318e85879c9796beba0d34aae2e5fb
+Source12: ejabberd-goldrush-20140123.tar.gz
+# Source12-md5:	296a89fc0aff0591dfb95170d5a30e75
+Source13: ejabberd-jiffy-20141112.tar.gz
+# Source13-md5:	27ea8020f8ca568dba3602ec365f5256
+Source14: ejabberd-lager-20141124.tar.gz
+# Source14-md5:	bde2bb0cf71df3a78769857d4289f8a0
+Source15: ejabberd-p1_cache_tab-20140717.tar.gz
+# Source15-md5:	89dc91ad67c7053feea3123b3e955fcb
+Source16: ejabberd-p1_iconv-20141029.tar.gz
+# Source16-md5:	541c48eb4c84ec248b1bedf8d83b2423
+Source17: ejabberd-p1_mysql-20141016.tar.gz
+# Source17-md5:	95bc9cb0fec1c2c89b10483c35a9bb36
+Source18: ejabberd-p1_pgsql-20140430.tar.gz
+# Source18-md5:	7a784230a58f17bc1ff4d0c2618d4a3d
+Source19: ejabberd-p1_stringprep-20131209.tar.gz
+# Source19-md5:	5e16db1502c7454a37cc28c3e8d98856
+Source20: ejabberd-p1_stun-20140821.tar.gz
+# Source20-md5:	d2e4d95afb2db8602d98b332dd3d63e1
+Source21: ejabberd-p1_tls-20141023.tar.gz
+# Source21-md5:	a1d08d94f5aacefd68497e43afda7abf
+Source22: ejabberd-p1_utils-20141128.tar.gz
+# Source22-md5:	094316eee10101bcc2468763ec521199
+Source23: ejabberd-p1_xml-20141004.tar.gz
+# Source23-md5:	42fcb3e7c61368763f2917dcabd22d36
+Source24: ejabberd-p1_yaml-20140611.tar.gz
+# Source24-md5:	6d8fa1ce9e9a141425939952bd596bde
+Source25: ejabberd-p1_zlib-20140507.tar.gz
+# Source25-md5:	4a2a92b303a87628559a8e951e5f9a02
 #
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
@@ -106,7 +104,7 @@ Requires:	%{name} = %{version}-%{release}
 Server-side logging module.
 
 %prep
-%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26
+%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25
 %patch0 -p1
 %patch1 -p1
 #%%patch2 -p1
