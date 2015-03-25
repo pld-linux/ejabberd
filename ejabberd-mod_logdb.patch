@@ -6505,9 +6505,9 @@ index b1c5c92..df99681 100644
 +             {ok, {user, _, Nick, _, _}} -> Nick
 +        end,
 +    {reply, R, StateName, StateData};
- handle_sync_event(_Event, _From, StateName,
- 		  StateData) ->
-     Reply = ok, {reply, Reply, StateName, StateData}.
+ handle_sync_event({process_item_change, Item, UJID}, _From, StateName, StateData) ->
+     NSD = process_item_change(Item, StateData, UJID),
+     {reply, {ok, NSD}, StateName, NSD};
 diff --git a/src/mod_roster.erl b/src/mod_roster.erl
 index 7415aa3..f2a69f9 100644
 --- a/src/mod_roster.erl

@@ -7,12 +7,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	15.02
+Version:	15.03
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	3b01ff7bbce4456582e5f4a7455fc0a1
+# Source0-md5:	cc4c7fee048d972264c74d46ca1bbd76
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
@@ -20,37 +20,41 @@ Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10: ejabberd-ehyperloglog-20131012.tar.gz
-# Source10-md5:	bca8083ebd0f07308ac799bb8712ab2f
-Source11: ejabberd-esip-20150204.tar.gz
-# Source11-md5:	b734c9f1170b4a94e4b6482665525857
-Source12: ejabberd-goldrush-20140123.tar.gz
-# Source12-md5:	9fc333d5822ada2210680e6cf6274bab
-Source13: ejabberd-jiffy-20150203.tar.gz
-# Source13-md5:	db97acea5360d4c0b4f4472c03a240d9
-Source14: ejabberd-lager-20150212.tar.gz
-# Source14-md5:	8f00972e2632d6f5111c977611fd8ebd
-Source15: ejabberd-p1_cache_tab-20150109.tar.gz
-# Source15-md5:	1bde5b32bdcc206d3c9ec4fbaf9ba699
-Source16: ejabberd-p1_iconv-20150204.tar.gz
-# Source16-md5:	46c9ab0e84c8c9e2971c65e1a17c716a
-Source17: ejabberd-p1_mysql-20150204.tar.gz
-# Source17-md5:	5abc91225fcc1083548bb52f2ec60d72
-Source18: ejabberd-p1_pgsql-20150204.tar.gz
-# Source18-md5:	984aaca8efdb590332b95d558f3fa1ea
-Source19: ejabberd-p1_stringprep-20150204.tar.gz
-# Source19-md5:	9c0a312f30ab94db811d75fc8444d4ea
-Source20: ejabberd-p1_stun-20150204.tar.gz
-# Source20-md5:	22a8da80ef3542f800af7e61d03f3fcc
-Source21: ejabberd-p1_tls-20150204.tar.gz
-# Source21-md5:	1a89b22397950d55d3d48e003ffdc07b
-Source22: ejabberd-p1_utils-20150204.tar.gz
-# Source22-md5:	15fd0cafbc6bc92514430e1594fbeb12
-Source23: ejabberd-p1_xml-20150210.tar.gz
-# Source23-md5:	3d0fb147deff4b1921896ffbfd3e46cf
-Source24: ejabberd-p1_yaml-20150204.tar.gz
-# Source24-md5:	d7b410593d0ac6b827e51008415d5993
-Source25: ejabberd-p1_zlib-20150204.tar.gz
-# Source25-md5:	66c9f23a9ba13ce5d1259626237deb3e
+# Source10-md5:	71e3e8e0d0b509eafe1e23b0674ba408
+Source11: ejabberd-elixir-20150317.tar.gz
+# Source11-md5:	667189dc1df85d105c0deb7a11c56f26
+Source12: ejabberd-esip-20150204.tar.gz
+# Source12-md5:	c6f3cb921288c968df4f59048344fb68
+Source13: ejabberd-goldrush-20140123.tar.gz
+# Source13-md5:	40ad415a0474de146552a7dfdc427f94
+Source14: ejabberd-jiffy-20150203.tar.gz
+# Source14-md5:	a37dad15b021fb9d9dafb9990844ed59
+Source15: ejabberd-lager-20150212.tar.gz
+# Source15-md5:	fca565749f17cad57c86d81d41172c72
+Source16: ejabberd-p1_cache_tab-20150109.tar.gz
+# Source16-md5:	37b197df478cc9d505da32e147e73a7e
+Source17: ejabberd-p1_iconv-20150223.tar.gz
+# Source17-md5:	3d69e8ad57939194d794417eb16a12b0
+Source18: ejabberd-p1_mysql-20150204.tar.gz
+# Source18-md5:	e7e733d14a8917e8cf74cd4f54087958
+Source19: ejabberd-p1_pgsql-20150204.tar.gz
+# Source19-md5:	e1d3a6ca1521e0c8e29dd2e4a0007288
+Source20: ejabberd-p1_stringprep-20150204.tar.gz
+# Source20-md5:	b1fd67a1790a46085769465469287546
+Source21: ejabberd-p1_stun-20150204.tar.gz
+# Source21-md5:	8824f9356efc5cb7e7ad6ccc3a9e4afc
+Source22: ejabberd-p1_tls-20150204.tar.gz
+# Source22-md5:	0b7a556ada6e4b474edbbe4a3d8b469e
+Source23: ejabberd-p1_utils-20150204.tar.gz
+# Source23-md5:	ba005fc5f6e86a474ead5b1631826516
+Source24: ejabberd-p1_xml-20150210.tar.gz
+# Source24-md5:	f3704ad2a771e38d0d500dc459fc720a
+Source25: ejabberd-p1_yaml-20150204.tar.gz
+# Source25-md5:	56532600503a5a09441dd2e02db52ac0
+Source26: ejabberd-p1_zlib-20150223.tar.gz
+# Source26-md5:	f0de4ca87b4802a7727ba5eaf78e4a58
+Source27: ejabberd-rebar_elixir_plugin-20140818.tar.gz
+# Source27-md5:	cd9a76ae94b6d1b19499cdab7248fcf6
 #
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
@@ -104,7 +108,7 @@ Requires:	%{name} = %{version}-%{release}
 Server-side logging module.
 
 %prep
-%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25
+%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27
 %patch0 -p1
 %patch1 -p1
 #%%patch2 -p1
@@ -135,6 +139,7 @@ unset GIT_DIR GIT_WORK_TREE
 %configure \
 	%{?with_pam --enable-pam} \
 	--enable-user=jabber \
+	--enable-elixir \
 	--enable-full-xml \
 	--enable-nif \
 	--enable-odbc \
