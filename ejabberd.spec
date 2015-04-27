@@ -7,12 +7,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	15.03
+Version:	15.04
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	cc4c7fee048d972264c74d46ca1bbd76
+# Source0-md5:	0a914f14ccb7f2d0a45e641efed21afd
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
@@ -20,41 +20,41 @@ Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10: ejabberd-ehyperloglog-20131012.tar.gz
-# Source10-md5:	71e3e8e0d0b509eafe1e23b0674ba408
-Source11: ejabberd-elixir-20150317.tar.gz
-# Source11-md5:	667189dc1df85d105c0deb7a11c56f26
-Source12: ejabberd-esip-20150204.tar.gz
-# Source12-md5:	c6f3cb921288c968df4f59048344fb68
+# Source10-md5:	2cfc1b3aa27657093561a0db353729ef
+Source11: ejabberd-elixir-20150414.tar.gz
+# Source11-md5:	4d8051174896753120d908350afde614
+Source12: ejabberd-esip-20150417.tar.gz
+# Source12-md5:	c423d6e3239e61c4ad33a51d42d76ab2
 Source13: ejabberd-goldrush-20140123.tar.gz
-# Source13-md5:	40ad415a0474de146552a7dfdc427f94
+# Source13-md5:	6bc03a399ccffa90e28e5652281311de
 Source14: ejabberd-jiffy-20150203.tar.gz
-# Source14-md5:	a37dad15b021fb9d9dafb9990844ed59
+# Source14-md5:	2eba276e4020db79c671ca5a8579e98d
 Source15: ejabberd-lager-20150212.tar.gz
-# Source15-md5:	fca565749f17cad57c86d81d41172c72
-Source16: ejabberd-p1_cache_tab-20150109.tar.gz
-# Source16-md5:	37b197df478cc9d505da32e147e73a7e
-Source17: ejabberd-p1_iconv-20150223.tar.gz
-# Source17-md5:	3d69e8ad57939194d794417eb16a12b0
+# Source15-md5:	ddb1d51fc4571d29670658d00770a75f
+Source16: ejabberd-p1_cache_tab-20150331.tar.gz
+# Source16-md5:	bd6c7e0514dd25821c8aa3999d091357
+Source17: ejabberd-p1_iconv-20150406.tar.gz
+# Source17-md5:	4a9a767814bcc7ee6270b9a3565c56b4
 Source18: ejabberd-p1_mysql-20150204.tar.gz
-# Source18-md5:	e7e733d14a8917e8cf74cd4f54087958
+# Source18-md5:	5154bc83d3a2fb48f39758c95d2877bc
 Source19: ejabberd-p1_pgsql-20150204.tar.gz
-# Source19-md5:	e1d3a6ca1521e0c8e29dd2e4a0007288
+# Source19-md5:	3d9c26bee05e6ebf242406291ec6018c
 Source20: ejabberd-p1_stringprep-20150204.tar.gz
-# Source20-md5:	b1fd67a1790a46085769465469287546
-Source21: ejabberd-p1_stun-20150204.tar.gz
-# Source21-md5:	8824f9356efc5cb7e7ad6ccc3a9e4afc
-Source22: ejabberd-p1_tls-20150204.tar.gz
-# Source22-md5:	0b7a556ada6e4b474edbbe4a3d8b469e
+# Source20-md5:	1a74552cf7be8cb17389a36cb8730f0b
+Source21: ejabberd-p1_stun-20150404.tar.gz
+# Source21-md5:	375244720bf70a8c0ebd0a05f16500b6
+Source22: ejabberd-p1_tls-20150406.tar.gz
+# Source22-md5:	e688514472cce3045f5c35836b4871e2
 Source23: ejabberd-p1_utils-20150204.tar.gz
-# Source23-md5:	ba005fc5f6e86a474ead5b1631826516
-Source24: ejabberd-p1_xml-20150210.tar.gz
-# Source24-md5:	f3704ad2a771e38d0d500dc459fc720a
+# Source23-md5:	aa9c8d70730498b2476bff018a6dc8ef
+Source24: ejabberd-p1_xml-20150415.tar.gz
+# Source24-md5:	7cc0d484fa53705ac18509da38e0cd84
 Source25: ejabberd-p1_yaml-20150204.tar.gz
-# Source25-md5:	56532600503a5a09441dd2e02db52ac0
+# Source25-md5:	72a7a6b865b93acdb2d21a3e928bebd7
 Source26: ejabberd-p1_zlib-20150223.tar.gz
-# Source26-md5:	f0de4ca87b4802a7727ba5eaf78e4a58
-Source27: ejabberd-rebar_elixir_plugin-20140818.tar.gz
-# Source27-md5:	cd9a76ae94b6d1b19499cdab7248fcf6
+# Source26-md5:	de707b3a2309870165f0b5949d5f5dd1
+Source27: ejabberd-rebar_elixir_plugin-20150420.tar.gz
+# Source27-md5:	190e4578840a44d4a790b9be92fc345c
 #
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
