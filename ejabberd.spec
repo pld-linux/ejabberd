@@ -66,7 +66,7 @@ Patch4:		%{name}-no_sslv3_or_3des.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
-BuildRequires:	erlang >= 1:R15B01
+BuildRequires:	erlang >= 1:R16B03
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
 %if %{with pam}
