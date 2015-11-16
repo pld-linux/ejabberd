@@ -1,8 +1,8 @@
 diff --git a/priv/msgs/nl.msg b/priv/msgs/nl.msg
-index 70e739f..76df8cf 100644
+index c8bb951..f6f6dc5 100644
 --- a/priv/msgs/nl.msg
 +++ b/priv/msgs/nl.msg
-@@ -419,3 +419,17 @@
+@@ -375,3 +375,17 @@
  {"Your Jabber account was successfully created.","Uw Jabber-account is succesvol gecreeerd."}.
  {"Your Jabber account was successfully deleted.","Uw Jabber-account is succesvol verwijderd."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Uw berichten aan ~s worden geblokkeerd. Om ze te deblokkeren, ga naar ~s"}.
@@ -21,10 +21,10 @@ index 70e739f..76df8cf 100644
 +{"Body", "Berichtveld"}.
 +{"Messages", "Berichten"}.
 diff --git a/priv/msgs/pl.msg b/priv/msgs/pl.msg
-index 4bc2063..7540386 100644
+index 46e2f77..139dc5d 100644
 --- a/priv/msgs/pl.msg
 +++ b/priv/msgs/pl.msg
-@@ -419,3 +419,29 @@
+@@ -375,3 +375,29 @@
  {"Your Jabber account was successfully created.","Twoje konto zostało stworzone."}.
  {"Your Jabber account was successfully deleted.","Twoje konto zostało usunięte."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Twoje wiadomości do ~s są blokowane. Aby je odblokować, odwiedź ~s"}.
@@ -55,10 +55,10 @@ index 4bc2063..7540386 100644
 +{"Purge messages older than (days)", "Usuń wiadomości starsze niż (w dniach)"}.
 +{"Poll users settings (seconds)", "Czas aktualizacji preferencji użytkowników (sekundy)"}.
 diff --git a/priv/msgs/ru.msg b/priv/msgs/ru.msg
-index ece7348..b159f98 100644
+index e5ea42e..10575d0 100644
 --- a/priv/msgs/ru.msg
 +++ b/priv/msgs/ru.msg
-@@ -419,3 +419,33 @@
+@@ -375,3 +375,33 @@
  {"Your Jabber account was successfully created.","Ваш Jabber-аккаунт был успешно создан."}.
  {"Your Jabber account was successfully deleted.","Ваш Jabber-аккаунт был успешно удален."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Ваши сообщения к ~s блокируются. Для снятия блокировки перейдите по ссылке ~s"}.
@@ -93,10 +93,10 @@ index ece7348..b159f98 100644
 +{"Do not drop", "Не удалять"}.
 +{"Drop messages on user removal", "Удалять сообщения при удалении пользователя"}.
 diff --git a/priv/msgs/uk.msg b/priv/msgs/uk.msg
-index 6e21c90..9838624 100644
+index f6f9553..56b5dd5 100644
 --- a/priv/msgs/uk.msg
 +++ b/priv/msgs/uk.msg
-@@ -407,3 +407,33 @@
+@@ -367,3 +367,33 @@
  {"Your Jabber account was successfully created.","Ваш Jabber-акаунт було успішно створено."}.
  {"Your Jabber account was successfully deleted.","Ваш Jabber-акаунт було успішно видалено."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Ваші повідомлення до ~s блокуються. Для розблокування відвідайте ~s"}.
@@ -6492,27 +6492,27 @@ index 0000000..3c2ae95
 +    {error, undefined, Rez}.
 +
 diff --git a/src/mod_muc_room.erl b/src/mod_muc_room.erl
-index b1c5c92..df99681 100644
+index df06bce..b460f46 100644
 --- a/src/mod_muc_room.erl
 +++ b/src/mod_muc_room.erl
-@@ -743,6 +743,12 @@ handle_sync_event({change_config, Config}, _From,
- handle_sync_event({change_state, NewStateData}, _From,
- 		  StateName, _StateData) ->
-     {reply, {ok, NewStateData}, StateName, NewStateData};
+@@ -757,6 +757,12 @@ handle_sync_event({change_state, NewStateData}, _From,
+ handle_sync_event({process_item_change, Item, UJID}, _From, StateName, StateData) ->
+     NSD = process_item_change(Item, StateData, UJID),
+     {reply, {ok, NSD}, StateName, NSD};
 +handle_sync_event({get_jid_nick, Jid}, _From, StateName, StateData) ->
-+    R = case ?DICT:find(jlib:jid_tolower(Jid), StateData#state.users) of
++    R = case (?DICT):find(jlib:jid_tolower(Jid), StateData#state.users) of
 +             error -> [];
 +             {ok, {user, _, Nick, _, _}} -> Nick
 +        end,
 +    {reply, R, StateName, StateData};
- handle_sync_event({process_item_change, Item, UJID}, _From, StateName, StateData) ->
-     NSD = process_item_change(Item, StateData, UJID),
-     {reply, {ok, NSD}, StateName, NSD};
+ handle_sync_event(_Event, _From, StateName,
+ 		  StateData) ->
+     Reply = ok, {reply, Reply, StateName, StateData}.
 diff --git a/src/mod_roster.erl b/src/mod_roster.erl
-index 7415aa3..f2a69f9 100644
+index 31fbeb1..764a628 100644
 --- a/src/mod_roster.erl
 +++ b/src/mod_roster.erl
-@@ -60,6 +60,8 @@
+@@ -63,6 +63,8 @@
  
  -include("ejabberd_web_admin.hrl").
  
@@ -6521,7 +6521,7 @@ index 7415aa3..f2a69f9 100644
  -export_type([subscription/0]).
  
  start(Host, Opts) ->
-@@ -1358,6 +1360,14 @@ user_roster(User, Server, Query, Lang) ->
+@@ -1426,6 +1428,14 @@ user_roster(User, Server, Query, Lang) ->
  				  Query),
      Items = get_roster(LUser, LServer),
      SItems = lists:sort(Items),
@@ -6536,7 +6536,7 @@ index 7415aa3..f2a69f9 100644
      FItems = case SItems of
  	       [] -> [?CT(<<"None">>)];
  	       _ ->
-@@ -1415,7 +1425,33 @@ user_roster(User, Server, Query, Lang) ->
+@@ -1483,7 +1493,33 @@ user_roster(User, Server, Query, Lang) ->
  							  [?INPUTT(<<"submit">>,
  								   <<"remove",
  								     (ejabberd_web_admin:term_to_id(R#roster.jid))/binary>>,
@@ -6571,7 +6571,7 @@ index 7415aa3..f2a69f9 100644
  					end,
  					SItems)))])]
  	     end,
-@@ -1540,9 +1576,42 @@ user_roster_item_parse_query(User, Server, Items,
+@@ -1608,9 +1644,42 @@ user_roster_item_parse_query(User, Server, Items,
  										=
  										[]}]}}),
  				      throw(submitted);
