@@ -1,15 +1,15 @@
---- ejabberd-13.12/deps/p1_tls/c_src/p1_tls_drv.c.orig	2013-12-23 22:55:13.000000000 +0100
-+++ ejabberd-13.12/deps/p1_tls/c_src/p1_tls_drv.c	2014-03-13 14:21:50.000000000 +0100
-@@ -47,7 +47,7 @@
+--- a/deps/fast_tls/c_src/fast_tls_drv.c~	2016-07-08 11:19:35.000000000 +0200
++++ b/deps/fast_tls/c_src/fast_tls_drv.c	2016-08-04 16:52:34.323491442 +0200
+@@ -56,7 +56,7 @@ typedef unsigned __int32 uint32_t;
  #define SSL_OP_NO_TICKET 0
  #endif
  
 -#define CIPHERS "DEFAULT:!EXPORT:!LOW:!RC4:!SSLv2"
 +#define CIPHERS "DEFAULT:!EXPORT:!LOW:!RC4:!SSLv2:!3DES"
  
- /*
-  * R15B changed several driver callbacks to use ErlDrvSizeT and
-@@ -548,13 +548,13 @@ static ErlDrvSSizeT tls_drv_control(ErlD
+ /* Wrappers around driver_alloc() that check  */
+ /* for OOM.                                   */
+@@ -711,13 +711,13 @@ static ErlDrvSSizeT tls_drv_control(ErlD
  	 SSL_set_bio(d->ssl, d->bio_read, d->bio_write);
  
  	 if (command == SET_CERTIFICATE_FILE_ACCEPT) {
