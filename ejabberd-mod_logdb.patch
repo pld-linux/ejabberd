@@ -6495,19 +6495,19 @@ diff --git a/src/mod_muc_room.erl b/src/mod_muc_room.erl
 index df06bce..b460f46 100644
 --- a/src/mod_muc_room.erl
 +++ b/src/mod_muc_room.erl
-@@ -757,6 +757,12 @@ handle_sync_event({change_state, NewStateData}, _From,
- handle_sync_event({process_item_change, Item, UJID}, _From, StateName, StateData) ->
-     NSD = process_item_change(Item, StateData, UJID),
-     {reply, {ok, NSD}, StateName, NSD};
+@@ -545,6 +545,12 @@ handle_sync_event({process_item_change,
+ 	NSD ->
+ 	    {reply, {ok, NSD}, StateName, NSD}
+     end;
 +handle_sync_event({get_jid_nick, Jid}, _From, StateName, StateData) ->
-+    R = case (?DICT):find(jlib:jid_tolower(Jid), StateData#state.users) of
-+             error -> [];
-+             {ok, {user, _, Nick, _, _}} -> Nick
-+        end,
-+    {reply, R, StateName, StateData};
- handle_sync_event(_Event, _From, StateName,
- 		  StateData) ->
-     Reply = ok, {reply, Reply, StateName, StateData}.
++     R = case (?DICT):find(jlib:jid_tolower(Jid), StateData#state.users) of
++		 error -> [];
++		 {ok, {user, _, Nick, _, _}} -> Nick
++	 end,
++     {reply, R, StateName, StateData};
+ handle_sync_event(get_subscribers, _From, StateName, StateData) ->
+     JIDs = lists:map(fun jid:make/1,
+ 		     ?DICT:fetch_keys(StateData#state.subscribers)),
 diff --git a/src/mod_roster.erl b/src/mod_roster.erl
 index 31fbeb1..764a628 100644
 --- a/src/mod_roster.erl

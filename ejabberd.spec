@@ -9,58 +9,58 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	16.08
+Version:	16.12
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	a225e99c50e91464cf8f78bd8d129664
+# Source0-md5:	fc571f0c0459860e876100ef1e1d225e
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
 Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
-Source10: ejabberd-cache_tab-20160630.tar.gz
-# Source10-md5:	28c7b761c5bdc70bbfa3c1d85fff9825
-Source11: ejabberd-elixir-20150928.tar.gz
-# Source11-md5:	1a0cba08de1687affe590e5abbc993cc
-Source12: ejabberd-esip-20160708.tar.gz
-# Source12-md5:	759e70d30fc1c5adbae3976e28c8c659
+Source10: ejabberd-cache_tab-20161125.tar.gz
+# Source10-md5:	2e249c108a599ba853e86ab1a7ad6425
+Source11: ejabberd-elixir-20160606.tar.gz
+# Source11-md5:	982db37dc8c8646a3053044dbdc7c030
+Source12: ejabberd-esip-20161222.tar.gz
+# Source12-md5:	5f1c5d6e87031f78cf5b901fbe012c50
 Source13: ejabberd-ezlib-20160122.tar.gz
-# Source13-md5:	41907afdd7195014b1e4cf4764564a37
-Source14: ejabberd-fast_tls-20160708.tar.gz
-# Source14-md5:	e4f56b9dce6fc68f9eb58417554fe24a
-Source15: ejabberd-fast_xml-20160708.tar.gz
-# Source15-md5:	f26c98665fe7370262412084d802a310
-Source16: ejabberd-fast_yaml-20160708.tar.gz
-# Source16-md5:	815111ff387608a9c0a41898d8fe0ad6
+# Source13-md5:	295896d09211eba4d2c23f7f80c8ae7e
+Source14: ejabberd-fast_tls-20161222.tar.gz
+# Source14-md5:	1cfa0d5501c73d3e68849a0c87217cbc
+Source15: ejabberd-fast_xml-20161125.tar.gz
+# Source15-md5:	c56bbbf355bf6c9c0fb7a2f1df7dbd07
+Source16: ejabberd-fast_yaml-20161125.tar.gz
+# Source16-md5:	41771c5f3e45e2e2e91f426a89a53f47
 Source17: ejabberd-goldrush-20151116.tar.gz
-# Source17-md5:	61324bdee5d304a7189c305a6b4fe39e
-Source18: ejabberd-iconv-20160708.tar.gz
-# Source18-md5:	5b8ad7ada3f46b766e4be985322225f9
-Source19: ejabberd-jiffy-20160106.tar.gz
-# Source19-md5:	50a03a4289ab5c37c3263e73c15873ef
+# Source17-md5:	5313eb34d8f4ab935307510c9c1c928d
+Source18: ejabberd-iconv-20161125.tar.gz
+# Source18-md5:	7e124d4f51703f994da6b7c5ae147213
+Source19: ejabberd-jiffy-20160331.tar.gz
+# Source19-md5:	96c2d7ef60375cf9c967d077be27678d
 Source20: ejabberd-lager-20160610.tar.gz
-# Source20-md5:	395b1fd4d056684c8b92d50d9916b7ed
+# Source20-md5:	501e65b999507b3043741fbb31512fce
 Source21: ejabberd-luerl-20151210.tar.gz
-# Source21-md5:	180f8ff3f24d00cbdabbf28c7e415f85
-Source22: ejabberd-p1_mysql-20160122.tar.gz
-# Source22-md5:	40b984a50b7d3a7bd00dd15aafd7a44a
+# Source21-md5:	22bd7e897cd41dd49623b0be698b9c5b
+Source22: ejabberd-p1_mysql-20161125.tar.gz
+# Source22-md5:	41ad1bf928ff160df1d9112da19de59f
 Source23: ejabberd-p1_oauth2-20160123.tar.gz
-# Source23-md5:	8dda6e87a6551724b0bc7d21b7a59357
-Source24: ejabberd-p1_pgsql-20160223.tar.gz
-# Source24-md5:	739c03ac9089f7f86d55cea3ee5bee25
-Source25: ejabberd-p1_utils-20160701.tar.gz
-# Source25-md5:	8a8734d8dd773ec0cf808e1a8bbdbde3
-Source26: ejabberd-p1_xmlrpc-20160123.tar.gz
-# Source26-md5:	8ec9db8add5754738f2272d690adb75c
-Source27: ejabberd-rebar_elixir_plugin-20160105.tar.gz
-# Source27-md5:	40f41b936c8c774174c953895f132f98
-Source28: ejabberd-stringprep-20160708.tar.gz
-# Source28-md5:	e9432b08b37602e54e8716c2b9e2edab
-Source29: ejabberd-stun-20160708.tar.gz
-# Source29-md5:	fea7f6b75606d51478a468ae664f0d64
+# Source23-md5:	d16a2368fad6859e2fc4d93a15d4cd43
+Source24: ejabberd-p1_pgsql-20161125.tar.gz
+# Source24-md5:	446809132277766ba515deb24e0d547c
+Source25: ejabberd-p1_utils-20161125.tar.gz
+# Source25-md5:	1df40d68faecf5b546bc49b046ffde67
+Source26: ejabberd-rebar_elixir_plugin-20160105.tar.gz
+# Source26-md5:	3e9fcc00865d05472934d6eb414a2a1e
+Source27: ejabberd-stringprep-20161125.tar.gz
+# Source27-md5:	ec50b6b2b36f3db4d8fb8257e66309f8
+Source28: ejabberd-stun-20161222.tar.gz
+# Source28-md5:	116eeb16312cd788d6901b0e5fdc1509
+Source29: ejabberd-xmpp-20161206.tar.gz
+# Source29-md5:	7281f2bec8b4ec9bc9a21ee9a415ca2c
 #
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
@@ -323,6 +323,9 @@ fi
 %defattr(644,root,root,755)
 %doc sql _doc/*
 %attr(755,root,root) %{_sbindir}/*
+%attr(755,root,root) %{_bindir}/elixir
+%attr(755,root,root) %{_bindir}/iex
+%attr(755,root,root) %{_bindir}/mix
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberd-inetrc
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberd.yml
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberdctl.cfg
@@ -350,10 +353,10 @@ fi
 %{_libdir}/p1_oauth2-*
 %{_libdir}/p1_pgsql-*
 %{_libdir}/p1_utils-*
-%{_libdir}/p1_xmlrpc-*
 %{_libdir}/rebar_elixir_plugin-*
 %{_libdir}/stringprep-*
 %{_libdir}/stun-*
+%{_libdir}/xmpp-*
 %dir %attr(770,root,jabber) /var/lib/ejabberd
 %ghost %attr(400,jabber,jabber) %ghost %config(noreplace) %verify(not md5 mtime size) /var/lib/ejabberd/.erlang.cookie
 %attr(754,root,root) /etc/rc.d/init.d/%{name}
