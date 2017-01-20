@@ -9,63 +9,63 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	16.12
+Version:	17.01
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	fc571f0c0459860e876100ef1e1d225e
+# Source0-md5:	c5fd21834cdd09bea60695d3b4863861
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
 Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
-Source10: ejabberd-cache_tab-20161125.tar.gz
-# Source10-md5:	2e249c108a599ba853e86ab1a7ad6425
-Source11: ejabberd-elixir-20160606.tar.gz
-# Source11-md5:	982db37dc8c8646a3053044dbdc7c030
-Source12: ejabberd-esip-20161222.tar.gz
-# Source12-md5:	5f1c5d6e87031f78cf5b901fbe012c50
-Source13: ejabberd-ezlib-20160122.tar.gz
-# Source13-md5:	295896d09211eba4d2c23f7f80c8ae7e
-Source14: ejabberd-fast_tls-20161222.tar.gz
-# Source14-md5:	1cfa0d5501c73d3e68849a0c87217cbc
-Source15: ejabberd-fast_xml-20161125.tar.gz
-# Source15-md5:	c56bbbf355bf6c9c0fb7a2f1df7dbd07
-Source16: ejabberd-fast_yaml-20161125.tar.gz
-# Source16-md5:	41771c5f3e45e2e2e91f426a89a53f47
-Source17: ejabberd-goldrush-20151116.tar.gz
-# Source17-md5:	5313eb34d8f4ab935307510c9c1c928d
-Source18: ejabberd-iconv-20161125.tar.gz
-# Source18-md5:	7e124d4f51703f994da6b7c5ae147213
-Source19: ejabberd-jiffy-20160331.tar.gz
-# Source19-md5:	96c2d7ef60375cf9c967d077be27678d
-Source20: ejabberd-lager-20160610.tar.gz
-# Source20-md5:	501e65b999507b3043741fbb31512fce
-Source21: ejabberd-luerl-20151210.tar.gz
-# Source21-md5:	22bd7e897cd41dd49623b0be698b9c5b
-Source22: ejabberd-p1_mysql-20161125.tar.gz
-# Source22-md5:	41ad1bf928ff160df1d9112da19de59f
-Source23: ejabberd-p1_oauth2-20160123.tar.gz
-# Source23-md5:	d16a2368fad6859e2fc4d93a15d4cd43
-Source24: ejabberd-p1_pgsql-20161125.tar.gz
-# Source24-md5:	446809132277766ba515deb24e0d547c
-Source25: ejabberd-p1_utils-20161125.tar.gz
-# Source25-md5:	1df40d68faecf5b546bc49b046ffde67
-Source26: ejabberd-rebar_elixir_plugin-20160105.tar.gz
-# Source26-md5:	3e9fcc00865d05472934d6eb414a2a1e
-Source27: ejabberd-stringprep-20161125.tar.gz
-# Source27-md5:	ec50b6b2b36f3db4d8fb8257e66309f8
-Source28: ejabberd-stun-20161222.tar.gz
-# Source28-md5:	116eeb16312cd788d6901b0e5fdc1509
-Source29: ejabberd-xmpp-20161206.tar.gz
-# Source29-md5:	7281f2bec8b4ec9bc9a21ee9a415ca2c
+Source10:	%{name}-cache_tab-20161226.tar.gz
+# Source10-md5:	d8b03d60176cfe6c31637b4f723b5244
+Source11:	%{name}-elixir-20160606.tar.gz
+# Source11-md5:	ebbd16c764c46f21e10b61ead087a502
+Source12:	%{name}-esip-20161222.tar.gz
+# Source12-md5:	235094d03e8f835832484d077a9dcc2d
+Source13:	%{name}-ezlib-20170110.tar.gz
+# Source13-md5:	faaa2adfdf2ce8d6cfa010efab73e45a
+Source14:	%{name}-fast_tls-20170110.tar.gz
+# Source14-md5:	8b7c12e3fd19d19b3103c48f6c8d8695
+Source15:	%{name}-fast_xml-20170110.tar.gz
+# Source15-md5:	e496fb29f6d27bf35b5d94ea2b28f52d
+Source16:	%{name}-fast_yaml-20170110.tar.gz
+# Source16-md5:	ca19fcfa88a1bbf4f5ac6a012c9653dd
+Source17:	%{name}-goldrush-20151116.tar.gz
+# Source17-md5:	087e50158cb8ed98381febf08943acaf
+Source18:	%{name}-iconv-20161125.tar.gz
+# Source18-md5:	f4acc0c7263a650cb9fdf53a72513dab
+Source19:	%{name}-jiffy-20160331.tar.gz
+# Source19-md5:	db0777025a5b6170b1af5b64b0cae520
+Source20:	%{name}-lager-20160610.tar.gz
+# Source20-md5:	d2488fc6e32610ba4dda254f27360068
+Source21:	%{name}-luerl-20151210.tar.gz
+# Source21-md5:	753d00ef2729b332e835b2134e637726
+Source22:	%{name}-p1_mysql-20161125.tar.gz
+# Source22-md5:	bde35c80527fa0d1a429258670479a24
+Source23:	%{name}-p1_oauth2-20160123.tar.gz
+# Source23-md5:	01cb28e412b29a645845a37c407c4fd8
+Source24:	%{name}-p1_pgsql-20170110.tar.gz
+# Source24-md5:	1edb7f7f8bdae9aba69abc1583ab60f6
+Source25:	%{name}-p1_utils-20161125.tar.gz
+# Source25-md5:	5c5f6e91adb16898ef575ac97be122dc
+Source26:	%{name}-rebar_elixir_plugin-20160105.tar.gz
+# Source26-md5:	36665a52941f09c27d6dcec22fc4a584
+Source27:	%{name}-stringprep-20161125.tar.gz
+# Source27-md5:	0bb04621b4203d85de78b99a9ab1fe93
+Source28:	%{name}-stun-20161222.tar.gz
+# Source28-md5:	7995d220358131e022da2d1a7e14cec5
+Source29:	%{name}-xmpp-20170120.tar.gz
+# Source29-md5:	c616d8870077284c04db84ad13ff9879
 #
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
 # not available for 13.10
-#Patch2:		%{name}-vcard-access-get.patch
+#Patch2: %{name}-vcard-access-get.patch
 # http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-13.12.diff
 Patch3:		%{name}-mod_logdb.patch
 Patch4:		%{name}-no_sslv3_or_3des.patch
@@ -78,10 +78,10 @@ BuildRequires:	openssl-devel
 %if %{with pam}
 BuildRequires:	pam-devel
 %endif
+BuildRequires:	git-core
 BuildRequires:	rpmbuild(macros) >= 1.671
 BuildRequires:	yaml-devel
 BuildRequires:	zlib-devel
-BuildRequires:	git-core
 Requires(post):	/usr/bin/perl
 Requires(post):	jabber-common
 Requires(post):	sed >= 4.0
@@ -197,9 +197,9 @@ unset GIT_DIR GIT_WORK_TREE
 	DESTDIR=$RPM_BUILD_ROOT
 
 sed -e's,@libdir@,%{_libdir},g' -e 's,@EJABBERD_DOC_PATH@,%{_docdir}/%{name}-%{version}/doc,g' %{SOURCE1} > $RPM_BUILD_ROOT/etc/rc.d/init.d/%{name}
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
-install %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/%{name}.service
-install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/%{name}
+cp -p %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/%{name}
+cp -p %{SOURCE3} $RPM_BUILD_ROOT%{systemdunitdir}/%{name}.service
+cp -p %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/%{name}
 
 chmod u+rw $RPM_BUILD_ROOT%{_sbindir}/%{name}*
 
