@@ -23,6 +23,7 @@ cd ..
 ./rebar get-deps
 cd deps
 
+nr=10
 for dir in * ; do
 	[ -d "$dir" ] || continue
 	cd $dir
@@ -30,4 +31,7 @@ for dir in * ; do
 	git archive --format=tar --prefix="deps/$dir/" HEAD \
 		| gzip -9 > "../ejabberd-$dir-$date.tar.gz"
 	cd ..
+	echo -e "Source${nr}:\tejabberd-$dir-$date.tar.gz"
+	echo -e "# Source${nr}-md5:\t$(set -- $(md5sum "ejabberd-$dir-$date.tar.gz"); echo $1)"
+	nr=$((nr+1))
 done
