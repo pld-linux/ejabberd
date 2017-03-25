@@ -58,6 +58,18 @@ stop() {
 	fi
 }
 
+reload() {
+	# Reload configuration
+	if [ ! -f /var/lock/subsys/ejabberd ]; then
+		msg_not_running ejabberd
+		RETVAL=7
+		return
+	fi
+	msg_reloading ejabberd
+	daemon --user jabber /usr/sbin/ejabberdctl reload_config
+	RETVAL=$?
+}
+
 # See how we were called.
 case "$1" in
   start)
@@ -71,14 +83,7 @@ case "$1" in
 	start
 	;;
   reload|force-reload)
-	if [ -f /var/lock/subsys/ejabberd ]; then
-		stop
-		start
-		RETVAL=$?
-	else
-		msg_not_running ejabberd
-		RETVAL=7
-	fi
+	reload
 	;;
   status)
 	status --pidfile $EJABBERD_PID_PATH ejabberd
