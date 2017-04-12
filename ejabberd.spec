@@ -10,7 +10,7 @@ Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	17.04
-Release:	0.2
+Release:	0.3
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
@@ -64,9 +64,7 @@ Source29:       ejabberd-xmpp-20170322.tar.gz
 #
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
-# not available for 13.10
-#Patch2: %{name}-vcard-access-get.patch
-# http://www.dp.uz.gov.ua/o.palij/mod_logdb/patch-mod_logdb-13.12.diff
+# https://github.com/paleg/ejabberd/tree/16.04-mod_logdb
 Patch3:		%{name}-mod_logdb.patch
 Patch4:		%{name}-no_sslv3_or_3des.patch
 URL:		http://www.ejabberd.im/
