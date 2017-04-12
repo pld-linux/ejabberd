@@ -305,7 +305,7 @@ new file mode 100644
 index 0000000..72f1982
 --- /dev/null
 +++ b/src/mod_logdb.erl
-@@ -0,0 +1,2152 @@
+@@ -0,0 +1,2169 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
@@ -324,7 +324,7 @@ index 0000000..72f1982
 +% supervisor
 +-export([start_link/2]).
 +% gen_mod
-+-export([start/2,stop/1]).
++-export([start/2,stop/1,mod_opt_type/1]).
 +% gen_server
 +-export([code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 +% hooks
@@ -2458,6 +2458,23 @@ index 0000000..72f1982
 +             ]
 +            )]
 +    end.
++mod_opt_type(dbs) ->
++    fun (A) -> A end;
++mod_opt_type(vhosts) ->
++    fun (A) -> A end;
++mod_opt_type(poll_users_settings) ->
++    fun (I) when is_integer(I), I > 0 -> I end;
++mod_opt_type(dolog_default) ->
++    fun (A) when is_boolean(A) -> A end;
++mod_opt_type(drop_messages_on_user_removal) ->
++    fun (A) when is_boolean(A) -> A end;
++mod_opt_type(ignore_jids) ->
++    fun (A) -> A end;
++mod_opt_type(groupchat) ->
++    fun (A) -> A end;
++mod_opt_type(purge_older_days) ->
++    fun (I) when is_integer(I), I > 0 -> I end;
++mod_opt_type(_) -> [dbs, vhosts, poll_users_settings, dolog_default, drop_messages_on_user_removal, ignore_jids, groupchat, purge_older_days].
 diff --git a/src/mod_logdb.hrl b/src/mod_logdb.hrl
 new file mode 100644
 index 0000000..d44f0df
@@ -2504,7 +2521,7 @@ new file mode 100644
 index 0000000..a8ae766
 --- /dev/null
 +++ b/src/mod_logdb_mnesia.erl
-@@ -0,0 +1,557 @@
+@@ -0,0 +1,558 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mnesia.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
@@ -2528,7 +2545,7 @@ index 0000000..a8ae766
 +% gen_server
 +-export([code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 +% gen_mod
-+-export([start/2, stop/1]).
++-export([start/2, stop/1, mod_opt_type/1]).
 +% gen_logdb
 +-export([log_message/2,
 +         rebuild_stats/1,
@@ -3062,12 +3079,13 @@ index 0000000..a8ae766
 +               {type, bag},
 +               {attributes, record_info(fields, msg)},
 +               {record_name, msg}]).
++mod_opt_type(_) -> [].
 diff --git a/src/mod_logdb_mnesia_old.erl b/src/mod_logdb_mnesia_old.erl
 new file mode 100644
 index 0000000..e962d9a
 --- /dev/null
 +++ b/src/mod_logdb_mnesia_old.erl
-@@ -0,0 +1,259 @@
+@@ -0,0 +1,260 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mnesia_old.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
@@ -3086,7 +3104,7 @@ index 0000000..e962d9a
 +
 +-behaviour(gen_logdb).
 +
-+-export([start/2, stop/1,
++-export([start/2, stop/1, mod_opt_type/1,
 +         log_message/2,
 +         rebuild_stats/1,
 +         rebuild_stats_at/2,
@@ -3327,12 +3345,13 @@ index 0000000..e962d9a
 +             ?ERROR_MSG("Failed to create stats table: ~p", [Reason]),
 +             error
 +    end.
++mod_opt_type(_) -> [].
 diff --git a/src/mod_logdb_mysql.erl b/src/mod_logdb_mysql.erl
 new file mode 100644
 index 0000000..62f437c
 --- /dev/null
 +++ b/src/mod_logdb_mysql.erl
-@@ -0,0 +1,1055 @@
+@@ -0,0 +1,1056 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
@@ -3356,7 +3375,7 @@ index 0000000..62f437c
 +% gen_server
 +-export([code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 +% gen_mod
-+-export([start/2, stop/1]).
++-export([start/2, stop/1, mod_opt_type/1]).
 +% gen_logdb
 +-export([log_message/2,
 +         rebuild_stats/1,
@@ -4388,12 +4407,13 @@ index 0000000..62f437c
 +get_result({error, MySQLRes}) ->
 +    Reason = p1_mysql:get_result_reason(MySQLRes),
 +    {error, Reason}.
++mod_opt_type(_) -> [].
 diff --git a/src/mod_logdb_mysql5.erl b/src/mod_logdb_mysql5.erl
 new file mode 100644
 index 0000000..d1f399f
 --- /dev/null
 +++ b/src/mod_logdb_mysql5.erl
-@@ -0,0 +1,983 @@
+@@ -0,0 +1,985 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql5.erl
 +%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
@@ -4417,7 +4437,7 @@ index 0000000..d1f399f
 +% gen_server
 +-export([code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 +% gen_mod
-+-export([start/2, stop/1]).
++-export([start/2, stop/1, mod_opt_type/1]).
 +% gen_logdb
 +-export([log_message/2,
 +         rebuild_stats/1,
@@ -5250,6 +5270,8 @@ index 0000000..d1f399f
 +          DBId
 +  end.
 +
++mod_opt_type(_) -> [].
++
 +get_logmessage(VHost) ->
 +    UName = users_table(VHost),
 +    SName = servers_table(VHost),
@@ -5409,7 +5431,7 @@ index 0000000..3c2ae95
 +% gen_server
 +-export([code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
 +% gen_mod
-+-export([start/2, stop/1]).
++-export([start/2, stop/1, mod_opt_type/1]).
 +% gen_logdb
 +-export([log_message/2,
 +         rebuild_stats/1,
@@ -6490,7 +6512,7 @@ index 0000000..3c2ae95
 +    {error, Error};
 +get_result(Rez) ->
 +    {error, undefined, Rez}.
-+
++mod_opt_type(_) -> [].
 diff --git a/src/mod_muc_room.erl b/src/mod_muc_room.erl
 index df06bce..b460f46 100644
 --- a/src/mod_muc_room.erl
