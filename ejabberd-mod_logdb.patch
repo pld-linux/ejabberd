@@ -130,19 +130,32 @@ index 568ac092..3a324ed1 100644
 +{"Drop", "Видаляти"}.
 +{"Do not drop", "Не видаляти"}.
 +{"Drop messages on user removal", "Видаляти повідомлення під час видалення користувача"}.
+diff --git a/rebar.config b/rebar.config
+index aef3a017..b35db36f 100644
+--- a/rebar.config
++++ b/rebar.config
+@@ -31,8 +31,8 @@
+         {jiffy, ".*", {git, "https://github.com/davisp/jiffy", {tag, "0.14.8"}}},
+         {p1_oauth2, ".*", {git, "https://github.com/processone/p1_oauth2", {tag, "0.6.1"}}},
+         {luerl, ".*", {git, "https://github.com/rvirding/luerl", {tag, "v0.2"}}},
+-        {if_var_true, mysql, {p1_mysql, ".*", {git, "https://github.com/processone/p1_mysql",
+-                                               {tag, "1.0.2"}}}},
++        {if_var_true, mysql, {p1_mysql, ".*", {git, "https://github.com/paleg/p1_mysql",
++                                               {branch, "multi"}}}},
+         {if_var_true, pgsql, {p1_pgsql, ".*", {git, "https://github.com/processone/p1_pgsql",
+                                                {tag, "1.1.2"}}}},
+         {if_var_true, sqlite, {sqlite3, ".*", {git, "https://github.com/processone/erlang-sqlite3",
 diff --git a/src/gen_logdb.erl b/src/gen_logdb.erl
 new file mode 100644
-index 00000000..06a894b4
+index 00000000..8bad1129
 --- /dev/null
 +++ b/src/gen_logdb.erl
-@@ -0,0 +1,164 @@
+@@ -0,0 +1,162 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : gen_logdb.erl
-+%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
++%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
 +%%% Purpose : Describes generic behaviour for mod_logdb backends.
-+%%% Version : trunk
-+%%% Id      : $Id: gen_logdb.erl 1273 2009-02-05 18:12:57Z malik $
-+%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
++%%% Url     : https://paleg.github.io/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
 +-module(gen_logdb).
@@ -302,17 +315,15 @@ index 00000000..06a894b4
 +   undefined.
 diff --git a/src/mod_logdb.erl b/src/mod_logdb.erl
 new file mode 100644
-index 00000000..79e2d3d3
+index 00000000..d5983820
 --- /dev/null
 +++ b/src/mod_logdb.erl
-@@ -0,0 +1,2174 @@
+@@ -0,0 +1,1952 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb.erl
-+%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
++%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
 +%%% Purpose : Frontend for log user messages to db
-+%%% Version : trunk
-+%%% Id      : $Id: mod_logdb.erl 1360 2009-07-30 06:00:14Z malik $
-+%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
++%%% Url     : https://paleg.github.io/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
 +-module(mod_logdb).
@@ -324,24 +335,23 @@ index 00000000..79e2d3d3
 +% supervisor
 +-export([start_link/2]).
 +% gen_mod
-+-export([start/2,stop/1,mod_opt_type/1]).
++-export([start/2, stop/1,
++         mod_opt_type/1,
++         depends/2, reload/3]).
 +% gen_server
-+-export([code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2]).
++-export([code_change/3,
++         handle_call/3, handle_cast/2, handle_info/2,
++         init/1, terminate/2]).
 +% hooks
-+-export([send_packet/4, receive_packet/5, remove_user/2]).
++-export([send_packet/1, receive_packet/1, offline_message/1, remove_user/2]).
 +-export([get_local_identity/5,
 +         get_local_features/5,
 +         get_local_items/5,
 +         adhoc_local_items/4,
 +         adhoc_local_commands/4
-+%         get_sm_identity/5,
-+%         get_sm_features/5,
-+%         get_sm_items/5,
-+%         adhoc_sm_items/4,
-+%         adhoc_sm_commands/4]).
 +        ]).
 +% ejabberdctl
-+-export([rebuild_stats/3,
++-export([rebuild_stats/1,
 +         copy_messages/1, copy_messages_ctl/3, copy_messages_int_tc/1]).
 +%
 +-export([get_vhost_stats/1, get_vhost_stats_at/2,
@@ -369,9 +379,9 @@ index 00000000..79e2d3d3
 +
 +-include("mod_logdb.hrl").
 +-include("ejabberd.hrl").
++-include("xmpp.hrl").
 +-include("mod_roster.hrl").
-+-include("jlib.hrl").
-+-include("ejabberd_ctl.hrl").
++-include("ejabberd_commands.hrl").
 +-include("adhoc.hrl").
 +-include("ejabberd_web_admin.hrl").
 +-include("ejabberd_http.hrl").
@@ -400,7 +410,14 @@ index 00000000..79e2d3d3
 +         worker,
 +         [?MODULE]},
 +    % add child to ejabberd_sup
-+    supervisor:start_child(ejabberd_sup, ChildSpec).
++    supervisor:start_child(ejabberd_gen_mod_sup, ChildSpec).
++
++depends(_Host, _Opts) ->
++    [].
++
++reload(_Host, _NewOpts, _OldOpts) ->
++    % TODO
++    ok.
 +
 +% supervisor starts gen_server
 +start_link(VHost, Opts) ->
@@ -417,7 +434,7 @@ index 00000000..79e2d3d3
 +               {value, _} -> DBsRaw
 +          end,
 +    VHostDB = gen_mod:get_opt(vhosts, Opts, fun(A) -> A end, [{VHost, mnesia}]),
-+    % 10 is default becouse of using in clustered environment
++    % 10 is default because of using in clustered environment
 +    PollUsersSettings = gen_mod:get_opt(poll_users_settings, Opts, fun(A) -> A end, 10),
 +
 +    {DBName, DBOpts} =
@@ -459,13 +476,10 @@ index 00000000..79e2d3d3
 +    ejabberd_hooks:delete(remove_user, VHost, ?MODULE, remove_user, 90),
 +    ejabberd_hooks:delete(user_send_packet, VHost, ?MODULE, send_packet, 90),
 +    ejabberd_hooks:delete(user_receive_packet, VHost, ?MODULE, receive_packet, 90),
-+    %ejabberd_hooks:delete(adhoc_sm_commands, VHost, ?MODULE, adhoc_sm_commands, 110),
-+    %ejabberd_hooks:delete(adhoc_sm_items, VHost, ?MODULE, adhoc_sm_items, 110),
++    ejabberd_hooks:delete(offline_message_hook, VHost, ?MODULE, offline_message, 40),
++
 +    ejabberd_hooks:delete(adhoc_local_commands, VHost, ?MODULE, adhoc_local_commands, 50),
 +    ejabberd_hooks:delete(adhoc_local_items, VHost, ?MODULE, adhoc_local_items, 50),
-+    %ejabberd_hooks:delete(disco_sm_identity, VHost, ?MODULE, get_sm_identity, 50),
-+    %ejabberd_hooks:delete(disco_sm_features, VHost, ?MODULE, get_sm_features, 50),
-+    %ejabberd_hooks:delete(disco_sm_items, VHost, ?MODULE, get_sm_items, 50),
 +    ejabberd_hooks:delete(disco_local_identity, VHost, ?MODULE, get_local_identity, 50),
 +    ejabberd_hooks:delete(disco_local_features, VHost, ?MODULE, get_local_features, 50),
 +    ejabberd_hooks:delete(disco_local_items, VHost, ?MODULE, get_local_items, 50),
@@ -477,14 +491,7 @@ index 00000000..79e2d3d3
 +
 +    ?MYDEBUG("Removed hooks for ~p", [VHost]),
 +
-+    %ejabberd_ctl:unregister_commands(VHost, [{"rebuild_stats", "rebuild mod_logdb module stats for vhost"}], ?MODULE, rebuild_stats),
-+    %Supported_backends = lists:flatmap(fun({Backend, _Opts}) ->
-+    %                                        [atom_to_list(Backend), " "]
-+    %                                   end, State#state.dbs),
-+    %ejabberd_ctl:unregister_commands(
-+    %                       VHost,
-+    %                       [{"copy_messages backend", "copy messages from backend to current backend. backends could be: " ++ Supported_backends }],
-+    %                       ?MODULE, copy_messages_ctl),
++    ejabberd_commands:unregister_commands(get_commands_spec()),
 +    ?MYDEBUG("Unregistered commands for ~p", [VHost]).
 +
 +stop(VHost) ->
@@ -492,8 +499,20 @@ index 00000000..79e2d3d3
 +    %gen_server:call(Proc, {cleanup}),
 +    %?MYDEBUG("Cleanup in stop finished!!!!", []),
 +    %timer:sleep(10000),
-+    ok = supervisor:terminate_child(ejabberd_sup, Proc),
-+    ok = supervisor:delete_child(ejabberd_sup, Proc).
++    ok = supervisor:terminate_child(ejabberd_gen_mod_sup, Proc),
++    ok = supervisor:delete_child(ejabberd_gen_mod_sup, Proc).
++
++get_commands_spec() ->
++    [#ejabberd_commands{name = rebuild_stats, tags = [logdb],
++            desc = "Rebuild mod_logdb stats for given host",
++            module = ?MODULE, function = rebuild_stats,
++            args = [{host, binary}],
++            result = {res, rescode}},
++     #ejabberd_commands{name = copy_messages, tags = [logdb],
++            desc = "Copy logdb messages from given backend to current backend for given host",
++            module = ?MODULE, function = copy_messages_ctl,
++            args = [{host, binary}, {backend, binary}, {date, binary}],
++            result = {res, rescode}}].
 +
 +mod_opt_type(dbs) ->
 +    fun (A) when is_list(A) -> A end;
@@ -652,10 +671,10 @@ index 00000000..79e2d3d3
 +    DBMod:rebuild_stats(VHost),
 +    {noreply, State};
 +handle_cast({copy_messages, Backend}, State) ->
-+    spawn(?MODULE, copy_messages, [[State, Backend]]),
++    spawn(?MODULE, copy_messages, [[State, Backend, []]]),
 +    {noreply, State};
 +handle_cast({copy_messages, Backend, Date}, State) ->
-+    spawn(?MODULE, copy_messages, [[State, Backend, Date]]),
++    spawn(?MODULE, copy_messages, [[State, Backend, [binary_to_list(Date)]]]),
 +    {noreply, State};
 +handle_cast(Msg, State) ->
 +    ?INFO_MSG("Got cast Msg:~p, State:~p", [Msg, State]),
@@ -714,17 +733,13 @@ index 00000000..79e2d3d3
 +           ejabberd_hooks:add(remove_user, VHost, ?MODULE, remove_user, 90),
 +           ejabberd_hooks:add(user_send_packet, VHost, ?MODULE, send_packet, 90),
 +           ejabberd_hooks:add(user_receive_packet, VHost, ?MODULE, receive_packet, 90),
++           ejabberd_hooks:add(offline_message_hook, VHost, ?MODULE, offline_message, 40),
 +
-+           ejabberd_hooks:add(disco_local_items, VHost, ?MODULE, get_local_items, 50),
-+           ejabberd_hooks:add(disco_local_features, VHost, ?MODULE, get_local_features, 50),
-+           ejabberd_hooks:add(disco_local_identity, VHost, ?MODULE, get_local_identity, 50),
-+           %ejabberd_hooks:add(disco_sm_items, VHost, ?MODULE, get_sm_items, 50),
-+           %ejabberd_hooks:add(disco_sm_features, VHost, ?MODULE, get_sm_features, 50),
-+           %ejabberd_hooks:add(disco_sm_identity, VHost, ?MODULE, get_sm_identity, 50),
-+           ejabberd_hooks:add(adhoc_local_items, VHost, ?MODULE, adhoc_local_items, 50),
 +           ejabberd_hooks:add(adhoc_local_commands, VHost, ?MODULE, adhoc_local_commands, 50),
-+           %ejabberd_hooks:add(adhoc_sm_items, VHost, ?MODULE, adhoc_sm_items, 50),
-+           %ejabberd_hooks:add(adhoc_sm_commands, VHost, ?MODULE, adhoc_sm_commands, 50),
++           ejabberd_hooks:add(disco_local_items, VHost, ?MODULE, get_local_items, 50),
++           ejabberd_hooks:add(disco_local_identity, VHost, ?MODULE, get_local_identity, 50),
++           ejabberd_hooks:add(disco_local_features, VHost, ?MODULE, get_local_features, 50),
++           ejabberd_hooks:add(adhoc_local_items, VHost, ?MODULE, adhoc_local_items, 50),
 +
 +           ejabberd_hooks:add(webadmin_menu_host, VHost, ?MODULE, webadmin_menu, 70),
 +           ejabberd_hooks:add(webadmin_user, VHost, ?MODULE, webadmin_user, 50),
@@ -733,17 +748,7 @@ index 00000000..79e2d3d3
 +
 +           ?MYDEBUG("Added hooks for ~p", [VHost]),
 +
-+           %ejabberd_ctl:register_commands(
-+           %                VHost,
-+           %                [{"rebuild_stats", "rebuild mod_logdb module stats for vhost"}],
-+           %                ?MODULE, rebuild_stats),
-+           %Supported_backends = lists:flatmap(fun({Backend, _Opts}) ->
-+           %                                       [atom_to_list(Backend), " "]
-+           %                                   end, State#state.dbs),
-+           %ejabberd_ctl:register_commands(
-+           %                VHost,
-+           %                [{"copy_messages backend", "copy messages from backend to current backend. backends could be: " ++ Supported_backends }],
-+           %                ?MODULE, copy_messages_ctl),
++           ejabberd_commands:register_commands(get_commands_spec()),
 +           ?MYDEBUG("Registered commands for ~p", [VHost]),
 +
 +           NewState=State#state{monref = MonRef, backendPid=SPid, purgeRef=TrefPurge, pollRef=TrefPoll},
@@ -805,21 +810,32 @@ index 00000000..79e2d3d3
 +%
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +% TODO: change to/from to list as sql stores it as list
-+send_packet(P, _C2SState, Owner, Peer) ->
++send_packet({Pkt, #{jid := Owner} = C2SState}) ->
 +    VHost = Owner#jid.lserver,
++    Peer = xmpp:get_to(Pkt),
++    %?MYDEBUG("send_packet. Peer=~p, Owner=~p", [Peer, Owner]),
 +    Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
-+    gen_server:cast(Proc, {addlog, to, Owner, Peer, P}),
-+    P.
++    gen_server:cast(Proc, {addlog, to, Owner, Peer, Pkt}),
++    {Pkt, C2SState}.
 +
-+receive_packet(P, _C2SState, _JID, Peer, Owner) ->
++receive_packet({Pkt, #{jid := Owner} = C2SState}) ->
 +    VHost = Owner#jid.lserver,
++    Peer = xmpp:get_from(Pkt),
++    %?MYDEBUG("receive_packet. Pkt=~p", [Pkt]),
 +    Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
-+    gen_server:cast(Proc, {addlog, from, Owner, Peer, P}),
-+    P.
++    gen_server:cast(Proc, {addlog, from, Owner, Peer, Pkt}),
++    {Pkt, C2SState}.
++
++offline_message({_Action, #message{from = Peer, to = Owner} = Pkt} = Acc) ->
++    VHost = Owner#jid.lserver,
++    %?MYDEBUG("offline_message. Pkt=~p", [Pkt]),
++    Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
++    gen_server:cast(Proc, {addlog, from, Owner, Peer, Pkt}),
++    Acc.
 +
 +remove_user(User, Server) ->
-+    LUser = jlib:nodeprep(User),
-+    LServer = jlib:nameprep(Server),
++    LUser = jid:nodeprep(User),
++    LServer = jid:nameprep(Server),
 +    Proc = gen_mod:get_module_proc(LServer, ?PROCNAME),
 +    gen_server:cast(Proc, {remove_user, LUser}).
 +
@@ -828,23 +844,20 @@ index 00000000..79e2d3d3
 +% ejabberdctl
 +%
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+rebuild_stats(_Val, VHost, ["rebuild_stats"]) ->
++rebuild_stats(VHost) ->
 +    Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
 +    gen_server:cast(Proc, {rebuild_stats}),
-+    {stop, ?STATUS_SUCCESS};
-+rebuild_stats(Val, _VHost, _Args) ->
-+    Val.
++    ok.
 +
-+copy_messages_ctl(_Val, VHost, ["copy_messages", Backend]) ->
++copy_messages_ctl(VHost, Backend, <<"all">>) ->
 +    Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
 +    gen_server:cast(Proc, {copy_messages, Backend}),
-+    {stop, ?STATUS_SUCCESS};
-+copy_messages_ctl(_Val, VHost, ["copy_messages", Backend, Date]) ->
++    ok;
++copy_messages_ctl(VHost, Backend, Date) ->
 +    Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
 +    gen_server:cast(Proc, {copy_messages, Backend, Date}),
-+    {stop, ?STATUS_SUCCESS};
-+copy_messages_ctl(Val, _VHost, _Args) ->
-+    Val.
++    ok.
++
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +%
 +% misc operations
@@ -853,68 +866,44 @@ index 00000000..79e2d3d3
 +
 +% handle_cast({addlog, E}, _)
 +% raw packet -> #msg
-+packet_parse(Owner, Peer, Packet, Direction, State) ->
-+    case fxml:get_subtag(Packet, <<"body">>) of
-+         false ->
-+           ignore;
-+         Body_xml ->
-+           Message_type =
-+              case fxml:get_tag_attr_s(<<"type">>, Packet) of
-+                   <<"error">> ->   throw(ignore);
-+                   []          ->   <<"normal">>;
-+                   MType       ->   MType
-+              end,
++packet_parse(_Owner, _Peer, #message{type = error}, _Direction, _State) ->
++    ignore;
++packet_parse(_Owner, _Peer, #message{meta = #{sm_copy := true}}, _Direction, _State) ->
++    ignore;
++packet_parse(_Owner, _Peer, #message{meta = #{from_offline := true}}, _Direction, _State) ->
++    ignore;
++packet_parse(Owner, Peer, #message{body = Body, subject = Subject, type = Type}, Direction, State) ->
++    %?MYDEBUG("Owner=~p, Peer=~p, Direction=~p", [Owner, Peer, Direction]),
++    %?MYDEBUG("Body=~p, Subject=~p, Type=~p", [Body, Subject, Type]),
++    SubjectText = xmpp:get_text(Subject),
++    BodyText = xmpp:get_text(Body),
++    if (SubjectText == <<"">>) and (BodyText == <<"">>) ->
++        throw(ignore);
++       true -> ok
++    end,
 +
-+           case Message_type of
-+                <<"groupchat">> when State#state.groupchat == send, Direction == to ->
-+                   ok;
-+                <<"groupchat">> when State#state.groupchat == send, Direction == from ->
-+                   throw(ignore);
-+                <<"groupchat">> when State#state.groupchat == half ->
-+                   Rooms = ets:match(muc_online_room, '$1'),
-+                   Ni=lists:foldl(fun([{muc_online_room, {GName, GHost}, Pid}], Names) ->
-+                                   case gen_fsm:sync_send_all_state_event(Pid, {get_jid_nick,Owner}) of
-+                                        [] -> Names;
-+                                        Nick ->
-+                                           lists:append(Names, [jlib:jid_to_string({GName, GHost, Nick})])
-+                                   end
-+                                  end, [], Rooms),
-+                   case lists:member(jlib:jid_to_string(Peer), Ni) of
-+                        true when Direction == from ->
-+                          throw(ignore);
-+                        _ ->
-+                          ok
-+                   end;
-+                <<"groupchat">> when State#state.groupchat == none ->
-+                   throw(ignore);
-+                _ ->
-+                   ok
-+           end,
++    case Type of
++         groupchat when State#state.groupchat == send, Direction == to ->
++            ok;
++         groupchat when State#state.groupchat == send, Direction == from ->
++            throw(ignore);
++         groupchat when State#state.groupchat == none ->
++            throw(ignore);
++         _ ->
++            ok
++    end,
 +
-+           Message_body = fxml:get_tag_cdata(Body_xml),
-+           Message_subject =
-+              case fxml:get_subtag(Packet, <<"subject">>) of
-+                   false ->
-+                     <<"">>;
-+                   Subject_xml ->
-+                     fxml:get_tag_cdata(Subject_xml)
-+              end,
-+
-+           OwnerName = stringprep:tolower(Owner#jid.user),
-+           PName = stringprep:tolower(Peer#jid.user),
-+           PServer = stringprep:tolower(Peer#jid.server),
-+           PResource = Peer#jid.resource,
-+
-+           #msg{timestamp     = get_timestamp(),
-+                owner_name    = OwnerName,
-+                peer_name     = PName,
-+                peer_server   = PServer,
-+                peer_resource = PResource,
-+                direction     = Direction,
-+                type          = Message_type,
-+                subject       = Message_subject,
-+                body          = Message_body}
-+    end.
++    #msg{timestamp     = get_timestamp(),
++         owner_name    = stringprep:tolower(Owner#jid.user),
++         peer_name     = stringprep:tolower(Peer#jid.user),
++         peer_server   = stringprep:tolower(Peer#jid.server),
++         peer_resource = Peer#jid.resource,
++         direction     = Direction,
++         type          = misc:atom_to_binary(Type),
++         subject       = SubjectText,
++         body          = BodyText};
++packet_parse(_, _, _, _, _) ->
++    ignore.
 +
 +% called from handle_cast({addlog, _}, _) -> true (log messages) | false (do not log messages)
 +filter(Owner, Peer, State) ->
@@ -1065,7 +1054,7 @@ index 00000000..79e2d3d3
 +         {value, _} ->
 +             PMsgs = lists:filter(
 +                              fun(Msg) ->
-+                                   ID = jlib:encode_base64(term_to_binary(Msg#msg.timestamp)),
++                                   ID = misc:encode_base64(term_to_binary(Msg#msg.timestamp)),
 +                                   lists:member({<<"selected">>, ID}, Query)
 +                              end, Msgs),
 +             Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
@@ -1080,7 +1069,7 @@ index 00000000..79e2d3d3
 +             Dates = get_dates(VHost),
 +             PDates = lists:filter(
 +                              fun(Date) ->
-+                                   ID = jlib:encode_base64( << User/binary, (iolist_to_binary(Date))/binary >> ),
++                                   ID = misc:encode_base64( << User/binary, (iolist_to_binary(Date))/binary >> ),
 +                                   lists:member({<<"selected">>, ID}, Query)
 +                              end, Dates),
 +             Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
@@ -1107,7 +1096,7 @@ index 00000000..79e2d3d3
 +             Dates = get_dates(VHost),
 +             PDates = lists:filter(
 +                              fun(Date) ->
-+                                   ID = jlib:encode_base64( << VHost/binary, (iolist_to_binary(Date))/binary >> ),
++                                   ID = misc:encode_base64( << VHost/binary, (iolist_to_binary(Date))/binary >> ),
 +                                   lists:member({<<"selected">>, ID}, Query)
 +                              end, Dates),
 +             Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
@@ -1131,7 +1120,7 @@ index 00000000..79e2d3d3
 +         {value, _} ->
 +             PStats = lists:filter(
 +                              fun({User, _Count}) ->
-+                                   ID = jlib:encode_base64( << (iolist_to_binary(User))/binary, VHost/binary >> ),
++                                   ID = misc:encode_base64( << (iolist_to_binary(User))/binary, VHost/binary >> ),
 +                                   lists:member({<<"selected">>, ID}, Query)
 +                              end, Stats),
 +             Proc = gen_mod:get_module_proc(VHost, ?PROCNAME),
@@ -1151,11 +1140,9 @@ index 00000000..79e2d3d3
 +             nothing
 +    end.
 +
-+copy_messages([#state{vhost=VHost}=State, From]) ->
-+    ?INFO_MSG("Going to copy messages from ~p for ~p", [From, VHost]),
-+
++copy_messages([#state{vhost=VHost}=State, From, DatesIn]) ->
 +    {FromDBName, FromDBOpts} =
-+         case lists:keysearch(list_to_atom(From), 1, State#state.dbs) of
++         case lists:keysearch(misc:binary_to_atom(From), 1, State#state.dbs) of
 +              {value, {FN, FO}} ->
 +                 {FN, FO};
 +              false ->
@@ -1167,34 +1154,24 @@ index 00000000..79e2d3d3
 +
 +    {ok, _FromPid} = FromDBMod:start(VHost, FromDBOpts),
 +
-+    Dates = FromDBMod:get_dates(VHost),
++    Dates = case DatesIn of
++                 [] -> FromDBMod:get_dates(VHost);
++                 _ -> DatesIn
++            end,
++
 +    DatesLength = length(Dates),
 +
-+    lists:foldl(fun(Date, Acc) ->
-+                   case copy_messages_int([FromDBMod, State#state.dbmod, VHost, Date]) of
-+                        ok ->
-+                          ?INFO_MSG("Copied messages at ~p (~p/~p)", [Date, Acc, DatesLength]);
-+                        Value ->
-+                          ?ERROR_MSG("Failed to copy messages at ~p (~p/~p): ~p", [Date, Acc, DatesLength, Value]),
-+                          FromDBMod:stop(VHost),
-+                          throw(error)
-+                   end,
-+                   Acc + 1
-+                  end, 1, Dates),
-+    ?INFO_MSG("Copied messages from ~p",  [From]),
-+    FromDBMod:stop(VHost);
-+copy_messages([#state{vhost=VHost}=State, From, Date]) ->
-+    {value, {FromDBName, FromDBOpts}} = lists:keysearch(list_to_atom(From), 1, State#state.dbs),
-+    FromDBMod = list_to_atom(atom_to_list(?MODULE) ++ "_" ++ atom_to_list(FromDBName)),
-+    {ok, _FromPid} = FromDBMod:start(VHost, FromDBOpts),
-+    case catch copy_messages_int([FromDBMod, State#state.dbmod, VHost, Date]) of
-+         {'exit', Reason} ->
-+           ?ERROR_MSG("Failed to copy messages at ~p: ~p", [Date, Reason]);
-+         ok ->
-+           ?INFO_MSG("Copied messages at ~p", [Date]);
-+         Value ->
-+           ?ERROR_MSG("Failed to copy messages at ~p: ~p", [Date, Value])
-+    end,
++    catch lists:foldl(fun(Date, Acc) ->
++                        case catch copy_messages_int([FromDBMod, State#state.dbmod, VHost, Date]) of
++                            ok ->
++                                ?INFO_MSG("Copied messages at ~p (~p/~p)", [Date, Acc, DatesLength]);
++                            Value ->
++                                ?ERROR_MSG("Failed to copy messages at ~p (~p/~p): ~p", [Date, Acc, DatesLength, Value]),
++                                throw(error)
++                        end,
++                        Acc + 1
++                      end, 1, Dates),
++    ?INFO_MSG("copy_messages from ~p finished",  [From]),
 +    FromDBMod:stop(VHost).
 +
 +copy_messages_int([FromDBMod, ToDBMod, VHost, Date]) ->
@@ -1208,10 +1185,10 @@ index 00000000..79e2d3d3
 +copy_messages_int_tc([FromDBMod, ToDBMod, VHost, Date]) ->
 +    ?INFO_MSG("Going to copy messages from ~p for ~p at ~p", [FromDBMod, VHost, Date]),
 +
-+    ok = FromDBMod:rebuild_stats_at(VHost, binary_to_list(Date)),
++    ok = FromDBMod:rebuild_stats_at(VHost, Date),
 +    catch mod_logdb:rebuild_stats_at(VHost, Date),
-+    {ok, FromStats} = FromDBMod:get_vhost_stats_at(VHost, binary_to_list(Date)),
-+    ToStats = case mod_logdb:get_vhost_stats_at(VHost, Date) of
++    {ok, FromStats} = FromDBMod:get_vhost_stats_at(VHost, Date),
++    ToStats = case mod_logdb:get_vhost_stats_at(VHost, iolist_to_binary(Date)) of
 +                   {ok, Stats} -> Stats;
 +                   {error, _} -> []
 +              end,
@@ -1222,13 +1199,20 @@ index 00000000..79e2d3d3
 +    StatsLength = length(FromStats),
 +
 +    CopyFun = if
-+                                                   % destination table is empty
-+                FromDBMod /= mod_logdb_mnesia_old, ToStats == [] ->
++                % destination table is empty
++                ToStats == [] ->
 +                    fun({User, _Count}, Acc) ->
-+                        {ok, Msgs} = FromDBMod:get_user_messages_at(binary_to_list(User), VHost, binary_to_list(Date)),
++                        {ok, Msgs} = FromDBMod:get_user_messages_at(User, VHost, Date),
 +                        MAcc =
 +                          lists:foldl(fun(Msg, MFAcc) ->
-+                                          ok = ToDBMod:log_message(VHost, Msg),
++                                          MsgBinary = Msg#msg{owner_name=iolist_to_binary(User),
++                                                              peer_name=iolist_to_binary(Msg#msg.peer_name),
++                                                              peer_server=iolist_to_binary(Msg#msg.peer_server),
++                                                              peer_resource=iolist_to_binary(Msg#msg.peer_resource),
++                                                              type=iolist_to_binary(Msg#msg.type),
++                                                              subject=iolist_to_binary(Msg#msg.subject),
++                                                              body=iolist_to_binary(Msg#msg.body)},
++                                          ok = ToDBMod:log_message(VHost, MsgBinary),
 +                                          MFAcc + 1
 +                                      end, 0, Msgs),
 +                        NewAcc = Acc + 1,
@@ -1236,10 +1220,10 @@ index 00000000..79e2d3d3
 +                        %timer:sleep(100),
 +                        NewAcc
 +                    end;
-+                                                   % destination table is not empty
-+                FromDBMod /= mod_logdb_mnesia_old, ToStats /= [] ->
++                % destination table is not empty
++                true ->
 +                    fun({User, _Count}, Acc) ->
-+                        {ok, ToMsgs} = ToDBMod:get_user_messages_at(binary_to_list(User), VHost, binary_to_list(Date)),
++                        {ok, ToMsgs} = ToDBMod:get_user_messages_at(User, VHost, Date),
 +                        lists:foreach(fun(#msg{timestamp=Tst}) when length(Tst) == 16 ->
 +                                            ets:insert(mod_logdb_temp, {Tst});
 +                                         % mysql, pgsql removes final zeros after decimal point
@@ -1248,12 +1232,19 @@ index 00000000..79e2d3d3
 +                                            [T] = io_lib:format("~.5f", [F]),
 +                                            ets:insert(mod_logdb_temp, {T})
 +                                      end, ToMsgs),
-+                        {ok, Msgs} = FromDBMod:get_user_messages_at(binary_to_list(User), VHost, binary_to_list(Date)),
++                        {ok, Msgs} = FromDBMod:get_user_messages_at(User, VHost, Date),
 +                        MAcc =
 +                          lists:foldl(fun(#msg{timestamp=ToTimestamp} = Msg, MFAcc) ->
 +                                          case ets:member(mod_logdb_temp, ToTimestamp) of
 +                                               false ->
-+                                                  ok = ToDBMod:log_message(VHost, Msg),
++                                                  MsgBinary = Msg#msg{owner_name=iolist_to_binary(User),
++                                                                      peer_name=iolist_to_binary(Msg#msg.peer_name),
++                                                                      peer_server=iolist_to_binary(Msg#msg.peer_server),
++                                                                      peer_resource=iolist_to_binary(Msg#msg.peer_resource),
++                                                                      type=iolist_to_binary(Msg#msg.type),
++                                                                      subject=iolist_to_binary(Msg#msg.subject),
++                                                                      body=iolist_to_binary(Msg#msg.body)},
++                                                  ok = ToDBMod:log_message(VHost, MsgBinary),
 +                                                  ets:insert(mod_logdb_temp, {ToTimestamp}),
 +                                                  MFAcc + 1;
 +                                               true ->
@@ -1265,79 +1256,8 @@ index 00000000..79e2d3d3
 +                        ?INFO_MSG("Copied ~p messages for ~p (~p/~p) at ~p", [MAcc, User, NewAcc, StatsLength, Date]),
 +                        %timer:sleep(100),
 +                        NewAcc
-+                    end;
-+                % copying from mod_logmnesia
-+                true ->
-+                    fun({User, _Count}, Acc) ->
-+                        ToStats =
-+                           case ToDBMod:get_user_messages_at(binary_to_list(User), VHost, binary_to_list(Date)) of
-+                                {ok, []} ->
-+                                  ok;
-+                                {ok, ToMsgs} ->
-+                                  lists:foreach(fun(#msg{timestamp=Tst}) when length(Tst) == 16 ->
-+                                                     ets:insert(mod_logdb_temp, {Tst});
-+                                                   % mysql, pgsql removes final zeros after decimal point
-+                                                   (#msg{timestamp=Tst}) when length(Tst) < 15 ->
-+                                                     {F, _} = string:to_float(Tst++".0"),
-+                                                     [T] = io_lib:format("~.5f", [F]),
-+                                                     ets:insert(mod_logdb_temp, {T})
-+                                                end, ToMsgs);
-+                                {error, _} ->
-+                                  ok
-+                           end,
-+                        {ok, Msgs} = FromDBMod:get_user_messages_at(binary_to_list(User), VHost, binary_to_list(Date)),
-+
-+                        MAcc =
-+                          lists:foldl(
-+                            fun({msg, TU, TS, TR, FU, FS, FR, Type, Subj, Body, Timest},
-+                                MFAcc) ->
-+                                  [Timestamp] = if is_float(Timest) == true ->
-+                                                     io_lib:format("~.5f", [Timest]);
-+                                                   % early versions of mod_logmnesia
-+                                                   is_integer(Timest) == true ->
-+                                                     io_lib:format("~.5f", [Timest-719528*86400.0]);
-+                                                   true ->
-+                                                     ?ERROR_MSG("Incorrect timestamp ~p", [Timest]),
-+                                                     throw(error)
-+                                                end,
-+                                  case ets:member(mod_logdb_temp, Timestamp) of
-+                                       false ->
-+                                          if
-+                                           % from
-+                                           TS == VHost ->
-+                                             TMsg = #msg{timestamp=Timestamp,
-+                                                         owner_name=TU,
-+                                                         peer_name=FU, peer_server=FS, peer_resource=FR,
-+                                                         direction=from,
-+                                                         type=Type,
-+                                                         subject=Subj, body=Body},
-+                                             ok = ToDBMod:log_message(VHost, TMsg);
-+                                           true -> ok
-+                                         end,
-+                                         if
-+                                           % to
-+                                           FS == VHost ->
-+                                             FMsg = #msg{timestamp=Timestamp,
-+                                                         owner_name=FU,
-+                                                         peer_name=TU, peer_server=TS, peer_resource=TR,
-+                                                         direction=to,
-+                                                         type=Type,
-+                                                         subject=Subj, body=Body},
-+                                             ok = ToDBMod:log_message(VHost, FMsg);
-+                                           true -> ok
-+                                         end,
-+                                         ets:insert(mod_logdb_temp, {Timestamp}),
-+                                         MFAcc + 1;
-+                                       true -> % not ets:member
-+                                          MFAcc
-+                                   end % case
-+                          end, 0, Msgs), % foldl
-+                        NewAcc = Acc + 1,
-+                        ?INFO_MSG("Copied ~p messages for ~p (~p/~p) at ~p", [MAcc, User, NewAcc, StatsLength, Date]),
-+                        %timer:sleep(100),
-+                        NewAcc
-+                    end % fun
-+              end, % if FromDBMod /= mod_logdb_mnesia_old
++                    end
++              end,
 +
 +    if
 +      FromStats == [] ->
@@ -1346,7 +1266,7 @@ index 00000000..79e2d3d3
 +        ?INFO_MSG("Stats are equal at ~p", [Date]);
 +      FromStatsS /= ToStatsS ->
 +        lists:foldl(CopyFun, 0, FromStats),
-+        ok = ToDBMod:rebuild_stats_at(VHost, binary_to_list(Date))
++        ok = ToDBMod:rebuild_stats_at(VHost, Date)
 +        %timer:sleep(1000)
 +    end,
 +
@@ -1396,22 +1316,19 @@ index 00000000..79e2d3d3
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +-define(ITEMS_RESULT(Allow, LNode, Fallback),
 +    case Allow of
-+        deny ->
-+            Fallback;
++        deny -> Fallback;
 +        allow ->
 +            case get_local_items(LServer, LNode,
-+                                 jlib:jid_to_string(To), Lang) of
-+                {result, Res} ->
-+                    {result, Res};
-+                {error, Error} ->
-+                    {error, Error}
++                                 jid:encode(To), Lang) of
++                {result, Res} -> {result, Res};
++                {error, Error} -> {error, Error}
 +            end
 +    end).
 +
-+get_local_items(Acc, From, #jid{lserver = LServer} = To, <<"">>, Lang) ->
++get_local_items(Acc, From, #jid{lserver = LServer} = To,
++                <<"">>, Lang) ->
 +    case gen_mod:is_loaded(LServer, mod_adhoc) of
-+        false ->
-+            Acc;
++        false -> Acc;
 +        _ ->
 +            Items = case Acc of
 +                         {result, Its} -> Its;
@@ -1422,7 +1339,7 @@ index 00000000..79e2d3d3
 +            if
 +              AllowUser == allow; AllowAdmin == allow ->
 +                case get_local_items(LServer, [],
-+                                     jlib:jid_to_string(To), Lang) of
++                                     jid:encode(To), Lang) of
 +                     {result, Res} ->
 +                        {result, Items ++ Res};
 +                     {error, _Error} ->
@@ -1432,24 +1349,25 @@ index 00000000..79e2d3d3
 +                {result, Items}
 +            end
 +    end;
-+get_local_items(Acc, From, #jid{lserver = LServer} = To, Node, Lang) ->
++get_local_items(Acc, From, #jid{lserver = LServer} = To,
++                Node, Lang) ->
 +    case gen_mod:is_loaded(LServer, mod_adhoc) of
-+        false ->
-+            Acc;
++        false -> Acc;
 +        _ ->
-+            LNode = str:tokens(Node, <<"/">>),
++            LNode = tokenize(Node),
 +            AllowAdmin = acl:match_rule(LServer, mod_logdb_admin, From),
++            Err = xmpp:err_forbidden(<<"Denied by ACL">>, Lang),
 +            case LNode of
 +                 [<<"mod_logdb">>] ->
-+                      ?ITEMS_RESULT(AllowAdmin, LNode, {error, ?ERR_FORBIDDEN});
++                      ?ITEMS_RESULT(AllowAdmin, LNode, {error, Err});
 +                 [<<"mod_logdb_users">>] ->
-+                      ?ITEMS_RESULT(AllowAdmin, LNode, {error, ?ERR_FORBIDDEN});
++                      ?ITEMS_RESULT(AllowAdmin, LNode, {error, Err});
 +                 [<<"mod_logdb_users">>, <<$@, _/binary>>] ->
-+                      ?ITEMS_RESULT(AllowAdmin, LNode, {error, ?ERR_FORBIDDEN});
++                      ?ITEMS_RESULT(AllowAdmin, LNode, {error, Err});
 +                 [<<"mod_logdb_users">>, _User] ->
-+                      ?ITEMS_RESULT(AllowAdmin, LNode, {error, ?ERR_FORBIDDEN});
++                      ?ITEMS_RESULT(AllowAdmin, LNode, {error, Err});
 +                 [<<"mod_logdb_settings">>] ->
-+                      ?ITEMS_RESULT(AllowAdmin, LNode, {error, ?ERR_FORBIDDEN});
++                      ?ITEMS_RESULT(AllowAdmin, LNode, {error, Err});
 +                 _ ->
 +                      Acc
 +            end
@@ -1458,11 +1376,14 @@ index 00000000..79e2d3d3
 +-define(T(Lang, Text), translate:translate(Lang, Text)).
 +
 +-define(NODE(Name, Node),
-+    #xmlel{name = <<"item">>,
-+           attrs =
-+           [{<<"jid">>, Server}, {<<"name">>, ?T(Lang, Name)},
-+            {<<"node">>, Node}],
-+           children = []}).
++    #disco_item{jid = jid:make(Server),
++            node = Node,
++            name = ?T(Lang, Name)}).
++
++-define(NS_ADMINX(Sub),
++    <<(?NS_ADMIN)/binary, "#", Sub/binary>>).
++
++tokenize(Node) -> str:tokens(Node, <<"/#">>).
 +
 +get_local_items(_Host, [], Server, Lang) ->
 +    {result,
@@ -1473,29 +1394,22 @@ index 00000000..79e2d3d3
 +     [?NODE(<<"Messages logging engine users">>, <<"mod_logdb_users">>),
 +      ?NODE(<<"Messages logging engine settings">>, <<"mod_logdb_settings">>)]
 +    };
-+get_local_items(Host, [<<"mod_logdb_users">>], Server, Lang) ->
-+    {result, get_all_vh_users(Host, Server, Lang)};
++get_local_items(Host, [<<"mod_logdb_users">>], Server, _Lang) ->
++    {result, get_all_vh_users(Host, Server)};
 +get_local_items(Host, [<<"mod_logdb_users">>, <<$@, Diap/binary>>], Server, Lang) ->
-+    case catch ejabberd_auth:get_vh_registered_users(Host) of
-+        {'EXIT', _Reason} ->
-+            ?ERR_INTERNAL_SERVER_ERROR;
-+        Users ->
-+            SUsers = lists:sort([{S, U} || {U, S} <- Users]),
-+            case catch begin
-+                           [S1, S2] = ejabberd_regexp:split(Diap, <<"-">>),
-+                           N1 = jlib:binary_to_integer(S1),
-+                           N2 = jlib:binary_to_integer(S2),
-+                           Sub = lists:sublist(SUsers, N1, N2 - N1 + 1),
-+                           lists:map(fun({S, U}) ->
-+                                      ?NODE(<< U/binary, "@", S/binary >>,
-+                                            << (iolist_to_binary("mod_logdb_users/"))/binary, U/binary, "@", S/binary >>)
-+                                     end, Sub)
-+                       end of
-+                {'EXIT', _Reason} ->
-+                    ?ERR_NOT_ACCEPTABLE;
-+                Res ->
-+                    {result, Res}
-+            end
++    Users = ejabberd_auth:get_vh_registered_users(Host),
++    SUsers = lists:sort([{S, U} || {U, S} <- Users]),
++    try
++        [S1, S2] = ejabberd_regexp:split(Diap, <<"-">>),
++        N1 = binary_to_integer(S1),
++        N2 = binary_to_integer(S2),
++        Sub = lists:sublist(SUsers, N1, N2 - N1 + 1),
++        {result, lists:map(fun({S, U}) ->
++                               ?NODE(<< U/binary, "@", S/binary >>,
++                                     << (iolist_to_binary("mod_logdb_users/"))/binary, U/binary, "@", S/binary >>)
++                           end, Sub)}
++    catch _:_ ->
++        xmpp:err_not_acceptable()
 +    end;
 +get_local_items(_Host, [<<"mod_logdb_users">>, _User], _Server, _Lang) ->
 +    {result, []};
@@ -1503,35 +1417,36 @@ index 00000000..79e2d3d3
 +    {result, []};
 +get_local_items(_Host, Item, _Server, _Lang) ->
 +    ?MYDEBUG("asked for items in ~p", [Item]),
-+    {error, ?ERR_ITEM_NOT_FOUND}.
++    {error, xmpp:err_item_not_found()}.
 +
-+-define(INFO_RESULT(Allow, Feats),
++-define(INFO_RESULT(Allow, Feats, Lang),
 +    case Allow of
-+      deny -> {error, ?ERR_FORBIDDEN};
++      deny -> {error, xmpp:err_forbidden(<<"Denied by ACL">>, Lang)};
 +      allow -> {result, Feats}
 +    end).
 +
-+get_local_features(Acc, From, #jid{lserver = LServer} = _To, Node, _Lang) ->
++get_local_features(Acc, From,
++                   #jid{lserver = LServer} = _To, Node, Lang) ->
 +    case gen_mod:is_loaded(LServer, mod_adhoc) of
 +        false ->
 +            Acc;
 +        _ ->
-+            LNode = str:tokens(Node, <<"/">>),
++            LNode = tokenize(Node),
 +            AllowUser = acl:match_rule(LServer, mod_logdb, From),
 +            AllowAdmin = acl:match_rule(LServer, mod_logdb_admin, From),
 +            case LNode of
 +                 [<<"mod_logdb">>] when AllowUser == allow; AllowAdmin == allow ->
-+                    ?INFO_RESULT(allow, [?NS_COMMANDS]);
++                    ?INFO_RESULT(allow, [?NS_COMMANDS], Lang);
 +                 [<<"mod_logdb">>] ->
-+                    ?INFO_RESULT(deny, [?NS_COMMANDS]);
++                    ?INFO_RESULT(deny, [?NS_COMMANDS], Lang);
 +                 [<<"mod_logdb_users">>] ->
-+                    ?INFO_RESULT(AllowAdmin, []);
++                    ?INFO_RESULT(AllowAdmin, [], Lang);
 +                 [<<"mod_logdb_users">>, [$@ | _]] ->
-+                    ?INFO_RESULT(AllowAdmin, []);
++                    ?INFO_RESULT(AllowAdmin, [], Lang);
 +                 [<<"mod_logdb_users">>, _User] ->
-+                    ?INFO_RESULT(AllowAdmin, [?NS_COMMANDS]);
++                    ?INFO_RESULT(AllowAdmin, [?NS_COMMANDS], Lang);
 +                 [<<"mod_logdb_settings">>] ->
-+                    ?INFO_RESULT(AllowAdmin, [?NS_COMMANDS]);
++                    ?INFO_RESULT(AllowAdmin, [?NS_COMMANDS], Lang);
 +                 [] ->
 +                    Acc;
 +                 _ ->
@@ -1540,87 +1455,65 @@ index 00000000..79e2d3d3
 +    end.
 +
 +-define(INFO_IDENTITY(Category, Type, Name, Lang),
-+    [#xmlel{name = <<"identity">>,
-+        attrs =
-+            [{<<"category">>, Category}, {<<"type">>, Type},
-+             {<<"name">>, ?T(Lang, Name)}],
-+        children = []}]).
++    [#identity{category = Category, type = Type, name = ?T(Lang, Name)}]).
 +
 +-define(INFO_COMMAND(Name, Lang),
 +    ?INFO_IDENTITY(<<"automation">>, <<"command-node">>,
 +               Name, Lang)).
 +
 +get_local_identity(Acc, _From, _To, Node, Lang) ->
-+    LNode = str:tokens(Node, <<"/">>),
++    LNode = tokenize(Node),
 +    case LNode of
 +         [<<"mod_logdb">>] ->
 +            ?INFO_COMMAND(<<"Messages logging engine">>, Lang);
 +         [<<"mod_logdb_users">>] ->
 +            ?INFO_COMMAND(<<"Messages logging engine users">>, Lang);
-+         [<<"mod_logdb_users">>, [$@ | _]] ->
-+            Acc;
 +         [<<"mod_logdb_users">>, User] ->
 +            ?INFO_COMMAND(User, Lang);
 +         [<<"mod_logdb_settings">>] ->
 +            ?INFO_COMMAND(<<"Messages logging engine settings">>, Lang);
-+         [] ->
-+            Acc;
 +         _ ->
 +            Acc
 +    end.
 +
-+%get_sm_items(Acc, From, To, Node, Lang) ->
-+%    ?MYDEBUG("get_sm_items Acc=~p From=~p To=~p Node=~p Lang=~p", [Acc, From, To, Node, Lang]),
-+%    Acc.
-+
-+%get_sm_features(Acc, From, To, Node, Lang) ->
-+%    ?MYDEBUG("get_sm_features Acc=~p From=~p To=~p Node=~p Lang=~p", [Acc, From, To, Node, Lang]),
-+%    Acc.
-+
-+%get_sm_identity(Acc, From, To, Node, Lang) ->
-+%    ?MYDEBUG("get_sm_identity Acc=~p From=~p To=~p Node=~p Lang=~p", [Acc, From, To, Node, Lang]),
-+%    Acc.
-+
-+adhoc_local_items(Acc, From, #jid{lserver = LServer, server = Server} = To,
-+                  Lang) ->
++adhoc_local_items(Acc, From,
++                  #jid{lserver = LServer, server = Server} = To, Lang) ->
++    % TODO: case acl:match_rule(LServer, ???, From) of
 +    Items = case Acc of
 +                {result, Its} -> Its;
 +                empty -> []
 +            end,
-+    Nodes = recursively_get_local_items(LServer, <<"">>, Server, Lang),
++    Nodes = recursively_get_local_items(LServer,
++                                        <<"">>, Server, Lang),
 +    Nodes1 = lists:filter(
-+               fun(N) ->
-+                        Nd = fxml:get_tag_attr_s("node", N),
++               fun(#disco_item{node = Nd}) ->
 +                        F = get_local_features([], From, To, Nd, Lang),
 +                        case F of
-+                            {result, [?NS_COMMANDS]} ->
-+                                true;
-+                            _ ->
-+                                false
++                            {result, [?NS_COMMANDS]} -> true;
++                            _ -> false
 +                        end
 +               end, Nodes),
 +    {result, Items ++ Nodes1}.
 +
-+recursively_get_local_items(_LServer, <<"mod_logdb_users">>, _Server, _Lang) ->
++recursively_get_local_items(_LServer,
++                            <<"mod_logdb_users">>, _Server, _Lang) ->
 +    [];
-+recursively_get_local_items(LServer, Node, Server, Lang) ->
-+    LNode = str:tokens(Node, <<"/">>),
-+    Items = case get_local_items(LServer, LNode, Server, Lang) of
-+                {result, Res} ->
-+                    Res;
-+                {error, _Error} ->
-+                    []
++recursively_get_local_items(LServer,
++                            Node, Server, Lang) ->
++    LNode = tokenize(Node),
++    Items = case get_local_items(LServer, LNode,
++                                 Server, Lang) of
++                {result, Res} -> Res;
++                {error, _Error} -> []
 +            end,
 +    Nodes = lists:flatten(
 +      lists:map(
-+        fun(N) ->
-+                S = fxml:get_tag_attr_s("jid", N),
-+                Nd = fxml:get_tag_attr_s("node", N),
-+                if (S /= Server) or (Nd == "") ->
++        fun(#disco_item{jid = #jid{server = S}, node = Nd} = Item) ->
++                if (S /= Server) or (Nd == <<"">>) ->
 +                    [];
 +                true ->
-+                    [N, recursively_get_local_items(
-+                          LServer, Nd, Server, Lang)]
++                    [Item, recursively_get_local_items(
++                            LServer, Nd, Server, Lang)]
 +                end
 +        end, Items)),
 +    Nodes.
@@ -1628,19 +1521,21 @@ index 00000000..79e2d3d3
 +-define(COMMANDS_RESULT(Allow, From, To, Request),
 +    case Allow of
 +        deny ->
-+            {error, ?ERR_FORBIDDEN};
++            {error, xmpp:err_forbidden(<<"Denied by ACL">>, Lang)};
 +        allow ->
 +            adhoc_local_commands(From, To, Request)
 +    end).
 +
 +adhoc_local_commands(Acc, From, #jid{lserver = LServer} = To,
-+                     #adhoc_request{node = Node} = Request) ->
-+    LNode = str:tokens(Node, <<"/">>),
++                     #adhoc_command{node = Node, lang = Lang} = Request) ->
++    LNode = tokenize(Node),
 +    AllowUser = acl:match_rule(LServer, mod_logdb, From),
 +    AllowAdmin = acl:match_rule(LServer, mod_logdb_admin, From),
 +    case LNode of
 +         [<<"mod_logdb">>] when AllowUser == allow; AllowAdmin == allow ->
 +             ?COMMANDS_RESULT(allow, From, To, Request);
++         [<<"mod_logdb_users">>, <<$@, _/binary>>] when AllowAdmin == allow ->
++             Acc;
 +         [<<"mod_logdb_users">>, _User] when AllowAdmin == allow ->
 +             ?COMMANDS_RESULT(allow, From, To, Request);
 +         [<<"mod_logdb_settings">>] when AllowAdmin == allow ->
@@ -1650,110 +1545,90 @@ index 00000000..79e2d3d3
 +    end.
 +
 +adhoc_local_commands(From, #jid{lserver = LServer} = _To,
-+                     #adhoc_request{lang = Lang,
++                     #adhoc_command{lang = Lang,
 +                                    node = Node,
-+                                    sessionid = SessionID,
++                                    sid = SessionID,
 +                                    action = Action,
 +                                    xdata = XData} = Request) ->
-+    LNode = str:tokens(Node, <<"/">>),
++    LNode = tokenize(Node),
 +    %% If the "action" attribute is not present, it is
 +    %% understood as "execute".  If there was no <actions/>
 +    %% element in the first response (which there isn't in our
 +    %% case), "execute" and "complete" are equivalent.
-+    ActionIsExecute = lists:member(Action,
-+                                   [<<"">>, <<"execute">>, <<"complete">>]),
-+    if Action == <<"cancel">> ->
++    ActionIsExecute = Action == execute orelse Action == complete,
++    if Action == cancel ->
 +            %% User cancels request
-+            adhoc:produce_response(
-+              Request,
-+              #adhoc_response{status = canceled});
-+       XData == false, ActionIsExecute ->
++            #adhoc_command{status = canceled, lang = Lang,
++                           node = Node, sid = SessionID};
++       XData == undefined, ActionIsExecute ->
 +            %% User requests form
-+            case get_form(LServer, LNode, From, Lang) of
++            case get_form(LServer, LNode, Lang) of
 +                {result, Form} ->
-+                    adhoc:produce_response(
++                    xmpp_util:make_adhoc_response(
 +                      Request,
-+                      #adhoc_response{status = executing,
-+                                      elements = Form});
++                      #adhoc_command{status = executing,
++                                     xdata = Form});
 +                {error, Error} ->
 +                    {error, Error}
 +            end;
-+       XData /= false, ActionIsExecute ->
++       XData /= undefined, ActionIsExecute ->
 +            %% User returns form.
-+            case jlib:parse_xdata_submit(XData) of
-+                invalid ->
-+                    {error, ?ERR_BAD_REQUEST};
-+                Fields ->
-+                    case catch set_form(From, LServer, LNode, Lang, Fields) of
-+                        {result, _Res} ->
-+                            adhoc:produce_response(
-+                              #adhoc_response{lang = Lang,
-+                                              node = Node,
-+                                              sessionid = SessionID,
-+                                              status = completed});
-+                        {'EXIT', _} -> {error, ?ERR_BAD_REQUEST};
-+                        {error, Error} -> {error, Error}
-+                    end
++            case catch set_form(From, LServer, LNode, Lang, XData) of
++                {result, Res} ->
++                    xmpp_util:make_adhoc_response(
++                      Request,
++                      #adhoc_command{xdata = Res, status = completed});
++                {'EXIT', _} -> {error, xmpp:err_bad_request()};
++                {error, Error} -> {error, Error}
 +            end;
 +       true ->
-+            {error, ?ERR_BAD_REQUEST}
++            {error, xmpp:err_bad_request(<<"Unexpected action">>, Lang)}
 +    end.
 +
-+-define(LISTLINE(Label, Value),
-+                 #xmlel{name = <<"option">>,
-+                        attrs = [{<<"label">>, ?T(Lang, Label)}],
-+                        children = [#xmlel{name = <<"value">>, attrs = [],
-+                                           children = [{xmlcdata, Value}]
-+                                   }]}).
-+-define(DEFVAL(Value), #xmlel{name = <<"value">>, attrs = [],
-+                              children = [{xmlcdata, Value}]}).
++-define(TVFIELD(Type, Var, Val),
++    #xdata_field{type = Type, var = Var, values = [Val]}).
++
++-define(HFIELD(),
++    ?TVFIELD(hidden, <<"FORM_TYPE">>, (?NS_ADMIN))).
 +
 +get_user_form(LUser, LServer, Lang) ->
-+    %From = jlib:jid_to_string(jlib:jid_remove_resource(Jid)),
++    ?MYDEBUG("get_user_form ~p ~p", [LUser, LServer]),
++    %From = jid:encode(jid:remove_resource(Jid)),
 +    #user_settings{dolog_default=DLD,
 +                   dolog_list=DLL,
 +                   donotlog_list=DNLL} = get_user_settings(LUser, LServer),
-+    {result,
-+     [#xmlel{name = <<"x">>,
-+             attrs = [{<<"xmlns">>, ?NS_XDATA}],
-+             children = [
-+                #xmlel{name = <<"title">>, attrs = [],
-+                   children =
-+                    [{xmlcdata,
-+                      ?T(Lang, <<"Messages logging engine settings">>)}]},
-+                #xmlel{name = <<"instructions">>, attrs = [],
-+                   children =
-+                    [{xmlcdata,
-+                      << (?T(Lang, <<"Set logging preferences">>))/binary, (iolist_to_binary(": "))/binary,
-+                          LUser/binary, "@", LServer/binary >> }]},
-+                #xmlel{name = <<"field">>,
-+                       attrs = [{<<"type">>, <<"list-single">>},
-+                                {<<"label">>, ?T(Lang, <<"Default">>)},
-+                                {<<"var">>, <<"dolog_default">>}],
-+                       children =
-+                        [?DEFVAL(jlib:atom_to_binary(DLD)),
-+                         ?LISTLINE(<<"Log Messages">>, <<"true">>),
-+                         ?LISTLINE(<<"Do Not Log Messages">>, <<"false">>)
-+                        ]},
-+                #xmlel{name = <<"field">>,
-+                       attrs = [{<<"type">>, <<"text-multi">>},
-+                                {<<"label">>, ?T(Lang, <<"Log Messages">>)},
-+                                {<<"var">>, <<"dolog_list">>}],
-+                       children = [#xmlel{name = <<"value">>, attrs = [],
-+                                          children = [{xmlcdata, iolist_to_binary(list_to_string(DLL))}]}
-+                                  ]
-+                      },
-+                #xmlel{name = <<"field">>,
-+                       attrs = [{<<"type">>, <<"text-multi">>},
-+                                {<<"label">>, ?T(Lang, <<"Do Not Log Messages">>)},
-+                                {<<"var">>, <<"donotlog_list">>}],
-+                       children = [#xmlel{name = <<"value">>, attrs = [],
-+                                          children = [{xmlcdata, iolist_to_binary(list_to_string(DNLL))}]}
-+                                  ]
-+                      }
-+             ]}]}.
++    Fs = [
++          #xdata_field{
++             type = 'list-single',
++             label = ?T(Lang, <<"Default">>),
++             var = <<"dolog_default">>,
++             values = [misc:atom_to_binary(DLD)],
++             options = [#xdata_option{label = ?T(Lang, <<"Log Messages">>),
++                                      value = <<"true">>},
++                        #xdata_option{label = ?T(Lang, <<"Do Not Log Messages">>),
++                                      value = <<"false">>}]},
++          #xdata_field{
++             type = 'text-multi',
++             label = ?T(Lang, <<"Log Messages">>),
++             var = <<"dolog_list">>,
++             values = DLL},
++          #xdata_field{
++             type = 'text-multi',
++             label = ?T(Lang, <<"Do Not Log Messages">>),
++             var = <<"donotlog_list">>,
++             values = DNLL}
++         ],
++    {result, #xdata{
++                title = ?T(Lang, <<"Messages logging engine settings">>),
++                type = form,
++                instructions = [<< (?T(Lang, <<"Set logging preferences">>))/binary,
++                                               (iolist_to_binary(": "))/binary,
++                                               LUser/binary, "@", LServer/binary >>],
++                fields = [?HFIELD()|
++                          Fs]}}.
 +
 +get_settings_form(Host, Lang) ->
++    ?MYDEBUG("get_settings_form ~p ~p", [Host, Lang]),
 +    #state{dbmod=_DBMod,
 +           dbs=_DBs,
 +           dolog_default=DLD,
@@ -1763,108 +1638,73 @@ index 00000000..79e2d3d3
 +           drop_messages_on_user_removal=MRemoval,
 +           poll_users_settings=PollTime} = mod_logdb:get_module_settings(Host),
 +
-+    %Backends = lists:map(fun({Backend, _Opts}) ->
-+    %                         ?LISTLINE(jlib:atom_to_binary(Backend), jlib:atom_to_binary(Backend))
-+    %                     end, DBs),
-+    %DB = iolist_to_binary(lists:sublist(atom_to_list(DBMod), length(atom_to_list(?MODULE)) + 2, length(atom_to_list(DBMod)))),
-+    %DBsL = lists:append([?DEFVAL(DB)], Backends),
-+
 +    PurgeDays =
 +       case PurgeDaysT of
 +            never -> <<"never">>;
 +            Num when is_integer(Num) -> integer_to_binary(Num);
 +            _ -> <<"unknown">>
 +       end,
-+    {result,
-+     [#xmlel{name = <<"x">>,
-+             attrs = [{<<"xmlns">>, ?NS_XDATA}],
-+             children = [#xmlel{name = <<"title">>, attrs = [],
-+                                children =
-+                                 [{xmlcdata,
-+                                   <<(?T(Lang, <<"Messages logging engine settings">>))/binary,
-+                                     (iolist_to_binary(" (run-time)"))/binary >>}]},
-+                         #xmlel{name = <<"instructions">>, attrs = [],
-+                                children =
-+                                 [{xmlcdata, ?T(Lang, <<"Set run-time settings">>)}]},
-+%                         #xmlel{name = <<"field">>,
-+%                                attrs = [{<<"type">>, <<"list-single">>},
-+%                                         {<<"label">>, ?T(Lang, <<"Backend">>)},
-+%                                         {<<"var">>, <<"backend">>}],
-+%                                children = DBsL},
-+%                         #xmlel{name = <<"field">>,
-+%                                attrs = [{<<"type">>, <<"text-multi">>},
-+%                                         {<<"label">>, ?T(Lang, <<"dbs">>)},
-+%                                         {<<"var">>, <<"dbs">>}],
-+%                                children = [#xmlel{name = <<"value">>, attrs = [],
-+%                                                   children = [{xmlcdata, iolist_to_binary(lists:flatten(io_lib:format("~p.",[DBs])))}]}
-+%                                           ]
-+%                               },
-+                         #xmlel{name = <<"field">>,
-+                                attrs = [{<<"type">>, <<"list-single">>},
-+                                         {<<"label">>, ?T(Lang, <<"Default">>)},
-+                                         {<<"var">>, <<"dolog_default">>}],
-+                                children =
-+                                 [?DEFVAL(jlib:atom_to_binary(DLD)),
-+                                  ?LISTLINE(<<"Log Messages">>, <<"true">>),
-+                                  ?LISTLINE(<<"Do Not Log Messages">>, <<"false">>)
-+                                 ]},
-+                         #xmlel{name = <<"field">>,
-+                                attrs = [{<<"type">>, <<"list-single">>},
-+                                         {<<"label">>, ?T(Lang, <<"Drop messages on user removal">>)},
-+                                         {<<"var">>, <<"drop_messages_on_user_removal">>}],
-+                                children =
-+                                 [?DEFVAL(jlib:atom_to_binary(MRemoval)),
-+                                  ?LISTLINE(<<"Drop">>, <<"true">>),
-+                                  ?LISTLINE(<<"Do not drop">>, <<"false">>)
-+                                 ]},
-+                         #xmlel{name = <<"field">>,
-+                                attrs = [{<<"type">>, <<"list-single">>},
-+                                         {<<"label">>, ?T(Lang, <<"Groupchat messages logging">>)},
-+                                         {<<"var">>, <<"groupchat">>}],
-+                                children =
-+                                 [?DEFVAL(jlib:atom_to_binary(GroupChat)),
-+                                  ?LISTLINE(<<"all">>, <<"all">>),
-+                                  ?LISTLINE(<<"none">>, <<"none">>),
-+                                  ?LISTLINE(<<"send">>, <<"send">>),
-+                                  ?LISTLINE(<<"half">>, <<"half">>)
-+                                 ]},
-+                         #xmlel{name = <<"field">>,
-+                                attrs = [{<<"type">>, <<"text-multi">>},
-+                                         {<<"label">>, ?T(Lang, <<"Jids/Domains to ignore">>)},
-+                                         {<<"var">>, <<"ignore_list">>}],
-+                                children = [#xmlel{name = <<"value">>, attrs = [],
-+                                                   children = [{xmlcdata, iolist_to_binary(list_to_string(IgnoreJids))}]}
-+                                           ]
-+                               },
-+                         #xmlel{name = <<"field">>,
-+                                attrs = [{<<"type">>, <<"text-single">>},
-+                                         {<<"label">>, ?T(Lang, <<"Purge messages older than (days)">>)},
-+                                         {<<"var">>, <<"purge_older_days">>}],
-+                                children = [#xmlel{name = <<"value">>, attrs = [],
-+                                                   children = [{xmlcdata, iolist_to_binary(PurgeDays)}]}
-+                                           ]
-+                               },
-+                         #xmlel{name = <<"field">>,
-+                                attrs = [{<<"type">>, <<"text-single">>},
-+                                         {<<"label">>, ?T(Lang, <<"Poll users settings (seconds)">>)},
-+                                         {<<"var">>, <<"poll_users_settings">>}],
-+                                children = [#xmlel{name = <<"value">>, attrs = [],
-+                                                   children = [{xmlcdata, integer_to_binary(PollTime)}]}
-+                                           ]
-+                               }
-+                        ]}
-+     ]}.
++    Fs = [
++          #xdata_field{
++             type = 'list-single',
++             label = ?T(Lang, <<"Default">>),
++             var = <<"dolog_default">>,
++             values = [misc:atom_to_binary(DLD)],
++             options = [#xdata_option{label = ?T(Lang, <<"Log Messages">>),
++                                      value = <<"true">>},
++                        #xdata_option{label = ?T(Lang, <<"Do Not Log Messages">>),
++                                      value = <<"false">>}]},
++          #xdata_field{
++             type = 'list-single',
++             label = ?T(Lang, <<"Drop messages on user removal">>),
++             var = <<"drop_messages_on_user_removal">>,
++             values = [misc:atom_to_binary(MRemoval)],
++             options = [#xdata_option{label = ?T(Lang, <<"Drop">>),
++                                      value = <<"true">>},
++                        #xdata_option{label = ?T(Lang, <<"Do not drop">>),
++                                      value = <<"false">>}]},
++          #xdata_field{
++             type = 'list-single',
++             label = ?T(Lang, <<"Groupchat messages logging">>),
++             var = <<"groupchat">>,
++             values = [misc:atom_to_binary(GroupChat)],
++             options = [#xdata_option{label = ?T(Lang, <<"all">>),
++                                      value = <<"all">>},
++                        #xdata_option{label = ?T(Lang, <<"none">>),
++                                      value = <<"none">>},
++                        #xdata_option{label = ?T(Lang, <<"send">>),
++                                      value = <<"send">>}]},
++          #xdata_field{
++             type = 'text-multi',
++             label = ?T(Lang, <<"Jids/Domains to ignore">>),
++             var = <<"ignore_list">>,
++             values = IgnoreJids},
++          #xdata_field{
++             type = 'text-single',
++             label = ?T(Lang, <<"Purge messages older than (days)">>),
++             var = <<"purge_older_days">>,
++             values = [iolist_to_binary(PurgeDays)]},
++          #xdata_field{
++             type = 'text-single',
++             label = ?T(Lang, <<"Poll users settings (seconds)">>),
++             var = <<"poll_users_settings">>,
++             values = [integer_to_binary(PollTime)]}
++         ],
++    {result, #xdata{
++                title = ?T(Lang, <<"Messages logging engine settings (run-time)">>),
++                instructions = [?T(Lang, <<"Set run-time settings">>)],
++                type = form,
++                fields = [?HFIELD()|
++                          Fs]}}.
 +
-+%get_form(_Host, [<<"mod_logdb">>], #jid{luser = LUser, lserver = LServer} = _Jid, Lang) ->
-+%    get_user_form(LUser, LServer, Lang);
-+get_form(_Host, [<<"mod_logdb_users">>, User], _JidFrom, Lang) ->
-+    #jid{luser=LUser, lserver=LServer} = jlib:string_to_jid(User),
++get_form(_Host, [<<"mod_logdb_users">>, User], Lang) ->
++    #jid{luser=LUser, lserver=LServer} = jid:decode(User),
 +    get_user_form(LUser, LServer, Lang);
-+get_form(Host, [<<"mod_logdb_settings">>], _JidFrom, Lang) ->
++get_form(Host, [<<"mod_logdb_settings">>], Lang) ->
 +    get_settings_form(Host, Lang);
-+get_form(_Host, Command, _, _Lang) ->
++get_form(_Host, Command, _Lang) ->
 +    ?MYDEBUG("asked for form ~p", [Command]),
-+    {error, ?ERR_SERVICE_UNAVAILABLE}.
++    {error, xmpp:err_service_unavailable()}.
 +
 +check_log_list([]) ->
 +    ok;
@@ -1876,11 +1716,9 @@ index 00000000..79e2d3d3
 +         {_, _} -> ok
 +    end,
 +    % this check for Head to be valid jid
-+    case jlib:string_to_jid(Head) of
-+         error ->
-+            throw(error);
-+         _ ->
-+            check_log_list(Tail)
++    case catch jid:decode(Head) of
++         {'EXIT', _Reason} -> throw(error);
++         _ -> check_log_list(Tail)
 +    end.
 +
 +check_ignore_list([]) ->
@@ -1894,112 +1732,81 @@ index 00000000..79e2d3d3
 +         {_, _} -> ok;
 +         nomatch -> throw(error)
 +    end,
++    Jid2Test = case Head of
++                    << $@, _Rest/binary >> ->  << "a", Head/binary >>;
++                    Jid -> Jid
++               end,
 +    % this check for Head to be valid jid
-+    case jlib:string_to_jid(Head) of
-+         error ->
-+            % this check for Head to be valid domain "@domain.org"
-+            case Head of
-+                 << $@, Rest/binary >> ->
-+                    % TODO: this allows spaces and special characters in Head. May be change to nodeprep?
-+                    case jlib:nameprep(Rest) of
-+                         error -> throw(error);
-+                         _ -> check_ignore_list(Tail)
-+                    end;
-+                 _ -> throw(error)
-+            end;
-+         _ ->
-+            check_ignore_list(Tail)
++    case catch jid:decode(Jid2Test) of
++         {'EXIT', _Reason} -> throw(error);
++         _ -> check_ignore_list(Tail)
 +    end.
 +
++get_value(Field, XData) -> hd(get_values(Field, XData)).
++
++get_values(Field, XData) ->
++    xmpp_util:get_xdata_values(Field, XData).
++
 +parse_users_settings(XData) ->
-+    DLD = case lists:keysearch(<<"dolog_default">>, 1, XData) of
-+               {value, {_, [String]}} when String == <<"true">>; String == <<"false">> ->
-+                 list_to_bool(String);
-+               _ ->
-+                 throw(bad_request)
++    DLD = case get_value(<<"dolog_default">>, XData) of
++               ValueDLD when ValueDLD == <<"true">>;
++                             ValueDLD == <<"false">> ->
++                  list_to_bool(ValueDLD);
++              _ -> throw(bad_request)
 +          end,
-+    DLL = case lists:keysearch(<<"dolog_list">>, 1, XData) of
-+               false ->
-+                 throw(bad_request);
-+               {value, {_, [[]]}} ->
-+                 [];
-+               {value, {_, List1}} ->
-+                 case catch check_log_list(List1) of
-+                      error ->
-+                         throw(bad_request);
-+                      ok ->
-+                         List1
-+                 end
-+          end,
-+    DNLL = case lists:keysearch(<<"donotlog_list">>, 1, XData) of
-+               false ->
-+                 throw(bad_request);
-+               {value, {_, [[]]}} ->
-+                 [];
-+               {value, {_, List2}} ->
-+                 case catch check_log_list(List2) of
-+                      error ->
-+                         throw(bad_request);
-+                      ok ->
-+                         List2
-+                 end
-+          end,
++
++    ListDLL = get_values(<<"dolog_list">>, XData),
++    DLL = case catch check_log_list(ListDLL) of
++                  ok -> ListDLL;
++                  error -> throw(bad_request)
++             end,
++
++    ListDNLL = get_values(<<"donotlog_list">>, XData),
++    DNLL = case catch check_log_list(ListDNLL) of
++                  ok -> ListDNLL;
++                  error -> throw(bad_request)
++             end,
++
 +    #user_settings{dolog_default=DLD,
 +                   dolog_list=DLL,
 +                   donotlog_list=DNLL}.
 +
 +parse_module_settings(XData) ->
-+    DLD = case lists:keysearch(<<"dolog_default">>, 1, XData) of
-+               {value, {_, [Str1]}} when Str1 == <<"true">>; Str1 == <<"false">> ->
-+                 list_to_bool(Str1);
-+               _ ->
-+                 throw(bad_request)
++    DLD = case get_value(<<"dolog_default">>, XData) of
++               ValueDLD when ValueDLD == <<"true">>;
++                             ValueDLD == <<"false">> ->
++                   list_to_bool(ValueDLD);
++               _ -> throw(bad_request)
 +          end,
-+    MRemoval = case lists:keysearch(<<"drop_messages_on_user_removal">>, 1, XData) of
-+               {value, {_, [Str5]}} when Str5 == <<"true">>; Str5 == <<"false">> ->
-+                 list_to_bool(Str5);
-+               _ ->
-+                 throw(bad_request)
-+          end,
-+    GroupChat = case lists:keysearch(<<"groupchat">>, 1, XData) of
-+                     {value, {_, [Str2]}} when Str2 == <<"none">>;
-+                                               Str2 == <<"all">>;
-+                                               Str2 == <<"send">>;
-+                                               Str2 == <<"half">> ->
-+                       jlib:binary_to_atom(Str2);
-+                     _ ->
-+                       throw(bad_request)
++    MRemoval = case get_value(<<"drop_messages_on_user_removal">>, XData) of
++                    ValueMRemoval when ValueMRemoval == <<"true">>;
++                                       ValueMRemoval == <<"false">> ->
++                        list_to_bool(ValueMRemoval);
++                    _ -> throw(bad_request)
++               end,
++    GroupChat = case get_value(<<"groupchat">>, XData) of
++                     ValueGroupChat when ValueGroupChat == <<"none">>;
++                                         ValueGroupChat == <<"all">>;
++                                         ValueGroupChat == <<"send">> ->
++                         misc:binary_to_atom(ValueGroupChat);
++                     _ -> throw(bad_request)
 +                end,
-+    Ignore = case lists:keysearch(<<"ignore_list">>, 1, XData) of
-+                  {value, {_, List}} ->
-+                    case catch check_ignore_list(List) of
-+                         ok ->
-+                            List;
-+                         error ->
-+                            throw(bad_request)
-+                    end;
-+                  _ ->
-+                    throw(bad_request)
++    ListIgnore = get_values(<<"ignore_list">>, XData),
++    Ignore = case catch check_ignore_list(ListIgnore) of
++                  ok -> ListIgnore;
++                  error -> throw(bad_request)
 +             end,
-+    Purge = case lists:keysearch(<<"purge_older_days">>, 1, XData) of
-+                 {value, {_, [<<"never">>]}} ->
-+                   never;
-+                 {value, {_, [Str3]}} ->
-+                   case catch binary_to_integer(Str3) of
-+                        {'EXIT', {badarg, _}} -> throw(bad_request);
-+                        Int1 -> Int1
-+                   end;
-+                 _ ->
-+                   throw(bad_request)
++    Purge = case get_value(<<"purge_older_days">>, XData) of
++                 <<"never">> -> never;
++                 ValuePurge ->
++                    case catch binary_to_integer(ValuePurge) of
++                         IntValuePurge when is_integer(IntValuePurge) -> IntValuePurge;
++                         _ -> throw(bad_request)
++                    end
 +            end,
-+    Poll = case lists:keysearch(<<"poll_users_settings">>, 1, XData) of
-+                {value, {_, [Str4]}} ->
-+                  case catch binary_to_integer(Str4) of
-+                       {'EXIT', {badarg, _}} -> throw(bad_request);
-+                       Int2 -> Int2
-+                  end;
-+                _ ->
-+                  throw(bad_request)
++    Poll = case catch binary_to_integer(get_value(<<"poll_users_settings">>, XData)) of
++                IntValuePoll when is_integer(IntValuePoll) -> IntValuePoll;
++                _ -> throw(bad_request)
 +           end,
 +    #state{dolog_default=DLD,
 +           groupchat=GroupChat,
@@ -2008,65 +1815,47 @@ index 00000000..79e2d3d3
 +           drop_messages_on_user_removal=MRemoval,
 +           poll_users_settings=Poll}.
 +
-+set_form(From, _Host, [<<"mod_logdb">>], _Lang, XData) ->
-+    #jid{luser=LUser, lserver=LServer} = From,
++set_form(_From, _Host, [<<"mod_logdb_users">>, User], Lang, XData) ->
++    #jid{luser=LUser, lserver=LServer} = jid:decode(User),
++    Txt = "Parse user settings failed",
 +    case catch parse_users_settings(XData) of
 +         bad_request ->
-+            {error, ?ERR_BAD_REQUEST};
++            ?ERROR_MSG("Failed to set user form: bad_request", []),
++            {error, xmpp:err_bad_request(Txt, Lang)};
 +         {'EXIT', Reason} ->
-+            ?ERROR_MSG("Failed to set form ~p", [Reason]),
-+            {error, ?ERR_BAD_REQUEST};
++            ?ERROR_MSG("Failed to set user form ~p", [Reason]),
++            {error, xmpp:err_bad_request(Txt, Lang)};
 +         UserSettings ->
 +            case mod_logdb:set_user_settings(LUser, LServer, UserSettings) of
 +                 ok ->
-+                    {result, []};
++                    {result, undefined};
 +                 error ->
-+                    {error, ?ERR_INTERNAL_SERVER_ERROR}
++                    {error, xmpp:err_internal_server_error()}
 +            end
 +    end;
-+set_form(_From, _Host, [<<"mod_logdb_users">>, User], _Lang, XData) ->
-+    #jid{luser=LUser, lserver=LServer} = jlib:string_to_jid(User),
-+    case catch parse_users_settings(XData) of
-+         bad_request -> {error, ?ERR_BAD_REQUEST};
-+         {'EXIT', Reason} ->
-+            ?ERROR_MSG("Failed to set form ~p", [Reason]),
-+            {error, ?ERR_BAD_REQUEST};
-+         UserSettings ->
-+            case mod_logdb:set_user_settings(LUser, LServer, UserSettings) of
-+                 ok ->
-+                    {result, []};
-+                 error ->
-+                    {error, ?ERR_INTERNAL_SERVER_ERROR}
-+            end
-+    end;
-+set_form(_From, Host, [<<"mod_logdb_settings">>], _Lang, XData) ->
++set_form(_From, Host, [<<"mod_logdb_settings">>], Lang, XData) ->
++    Txt = "Parse module settings failed",
 +    case catch parse_module_settings(XData) of
-+         bad_request -> {error, ?ERR_BAD_REQUEST};
++         bad_request ->
++            ?ERROR_MSG("Failed to set settings form: bad_request", []),
++            {error, xmpp:err_bad_request(Txt, Lang)};
 +         {'EXIT', Reason} ->
-+            ?ERROR_MSG("Failed to set form ~p", [Reason]),
-+            {error, ?ERR_BAD_REQUEST};
++            ?ERROR_MSG("Failed to set settings form ~p", [Reason]),
++            {error, xmpp:err_bad_request(Txt, Lang)};
 +         Settings ->
 +            case mod_logdb:set_module_settings(Host, Settings) of
 +                 ok ->
-+                    {result, []};
++                    {result, undefined};
 +                 error ->
-+                    {error, ?ERR_INTERNAL_SERVER_ERROR}
++                    {error, xmpp:err_internal_server_error()}
 +            end
 +    end;
 +set_form(From, _Host, Node, _Lang, XData) ->
-+    User = jlib:jid_to_string(jlib:jid_remove_resource(From)),
++    User = jid:encode(jid:remove_resource(From)),
 +    ?MYDEBUG("set form for ~p at ~p XData=~p", [User, Node, XData]),
-+    {error, ?ERR_SERVICE_UNAVAILABLE}.
++    {error, xmpp:err_service_unavailable()}.
 +
-+%adhoc_sm_items(Acc, From, To, Request) ->
-+%    ?MYDEBUG("adhoc_sm_items Acc=~p From=~p To=~p Request=~p", [Acc, From, To, Request]),
-+%    Acc.
-+%
-+%adhoc_sm_commands(Acc, From, To, Request) ->
-+%    ?MYDEBUG("adhoc_sm_commands Acc=~p From=~p To=~p Request=~p", [Acc, From, To, Request]),
-+%    Acc.
-+
-+get_all_vh_users(Host, Server, Lang) ->
++get_all_vh_users(Host, Server) ->
 +    case catch ejabberd_auth:get_vh_registered_users(Host) of
 +        {'EXIT', _Reason} ->
 +            [];
@@ -2075,19 +1864,19 @@ index 00000000..79e2d3d3
 +            case length(SUsers) of
 +                N when N =< 100 ->
 +                    lists:map(fun({S, U}) ->
-+                                      ?NODE(<< U/binary, "@", S/binary >>,
-+                                            << (iolist_to_binary("mod_logdb_users/"))/binary, U/binary, "@", S/binary >>)
-+                              end,
-+                              SUsers);
++                                  #disco_item{jid = jid:make(Server),
++                                              node = <<"mod_logdb_users/", U/binary, $@, S/binary>>,
++                                              name = << U/binary, "@", S/binary >>}
++                              end, SUsers);
 +                N ->
-+                    NParts = trunc(math:sqrt(N * 0.618)) + 1,
++                    NParts = trunc(math:sqrt(N * 6.17999999999999993783e-1)) + 1,
 +                    M = trunc(N / NParts) + 1,
 +                    lists:map(fun(K) ->
 +                                      L = K + M - 1,
 +                                      Node = <<"@",
-+                                               (iolist_to_binary(integer_to_list(K)))/binary,
++                                               (integer_to_binary(K))/binary,
 +                                               "-",
-+                                               (iolist_to_binary(integer_to_list(L)))/binary
++                                               (integer_to_binary(L))/binary
 +                                             >>,
 +                                      {FS, FU} = lists:nth(K, SUsers),
 +                                      {LS, LU} =
@@ -2098,7 +1887,9 @@ index 00000000..79e2d3d3
 +                                          <<FU/binary, "@", FS/binary,
 +                                           " -- ",
 +                                           LU/binary, "@", LS/binary>>,
-+                                      ?NODE(Name, << (iolist_to_binary("mod_logdb_users/"))/binary, Node/binary >>)
++                                      #disco_item{jid = jid:make(Host),
++                                                  node = <<"mod_logdb_users/", Node/binary>>,
++                                                  name = Name}
 +                              end, lists:seq(1, N, M))
 +            end
 +    end.
@@ -2189,7 +1980,7 @@ index 00000000..79e2d3d3
 +         {ok, Dates} ->
 +              Fun = fun({Date, Count}) ->
 +                         DateBin = iolist_to_binary(Date),
-+                         ID = jlib:encode_base64( << Server/binary, DateBin/binary >> ),
++                         ID = misc:encode_base64( << Server/binary, DateBin/binary >> ),
 +                         ?XE(<<"tr">>,
 +                          [?XAE(<<"td">>, [{<<"class">>, <<"valign">>}],
 +                            [?INPUT(<<"checkbox">>, <<"selected">>, ID)]),
@@ -2242,7 +2033,7 @@ index 00000000..79e2d3d3
 +                   end,
 +             Fun = fun({User, Count}) ->
 +                         UserBin = iolist_to_binary(User),
-+                         ID = jlib:encode_base64( << UserBin/binary, Server/binary >> ),
++                         ID = misc:encode_base64( << UserBin/binary, Server/binary >> ),
 +                         ?XE(<<"tr">>,
 +                          [?XAE(<<"td">>, [{<<"class">>, <<"valign">>}],
 +                            [?INPUT(<<"checkbox">>, <<"selected">>, ID)]),
@@ -2273,7 +2064,7 @@ index 00000000..79e2d3d3
 +   end.
 +
 +user_messages_stats(User, Server, Query, Lang) ->
-+    Jid = jlib:jid_to_string({User, Server, ""}),
++    Jid = jid:encode({User, Server, ""}),
 +
 +    Res = case catch user_messages_parse_query(User, Server, Query) of
 +               {'EXIT', Reason} ->
@@ -2297,7 +2088,7 @@ index 00000000..79e2d3d3
 +        {ok, Dates} ->
 +            Fun = fun({Date, Count}) ->
 +                      DateBin = iolist_to_binary(Date),
-+                      ID = jlib:encode_base64( << User/binary, DateBin/binary >> ),
++                      ID = misc:encode_base64( << User/binary, DateBin/binary >> ),
 +                      ?XE(<<"tr">>,
 +                       [?XAE(<<"td">>, [{<<"class">>, <<"valign">>}],
 +                         [?INPUT(<<"checkbox">>, <<"selected">>, ID)]),
@@ -2338,7 +2129,7 @@ index 00000000..79e2d3d3
 +    end.
 +
 +user_messages_stats_at(User, Server, Query, Lang, Date) ->
-+   Jid = jlib:jid_to_string({User, Server, ""}),
++   Jid = jid:encode({User, Server, ""}),
 +
 +   {Time, Value} = timer:tc(mod_logdb, get_user_messages_at, [User, Server, Date]),
 +   ?INFO_MSG("get_user_messages_at(~p,~p,~p) elapsed ~p sec", [User, Server, Date, Time/1000000]),
@@ -2365,7 +2156,7 @@ index 00000000..79e2d3d3
 +           UR = ejabberd_hooks:run_fold(roster_get, Server, [], [{User, Server}]),
 +           UserRoster =
 +                 lists:map(fun(Item) ->
-+                              {jlib:jid_to_string(Item#roster.jid), Item#roster.name}
++                              {jid:encode(Item#roster.jid), Item#roster.name}
 +                          end, UR),
 +
 +           UniqUsers = lists:foldl(fun(#msg{peer_name=PName, peer_server=PServer}, List) ->
@@ -2380,7 +2171,7 @@ index 00000000..79e2d3d3
 +           CheckedUsers = case lists:keysearch(<<"filter">>, 1, Query) of
 +                           {value, _} ->
 +                              lists:filter(fun(UFUser) ->
-+                                                ID = jlib:encode_base64(term_to_binary(UFUser)),
++                                                ID = misc:encode_base64(term_to_binary(UFUser)),
 +                                                lists:member({<<"selected">>, ID}, Query)
 +                                           end, UniqUsers);
 +                           false -> []
@@ -2388,7 +2179,7 @@ index 00000000..79e2d3d3
 +
 +           % UniqUsers in html (noone selected -> everyone selected)
 +           Users = lists:map(fun(UHUser) ->
-+                                ID = jlib:encode_base64(term_to_binary(UHUser)),
++                                ID = misc:encode_base64(term_to_binary(UHUser)),
 +                                Input = case lists:member(UHUser, CheckedUsers) of
 +                                         true -> [?INPUTC(<<"checkbox">>, <<"selected">>, ID)];
 +                                         false when CheckedUsers == [] -> [?INPUTC(<<"checkbox">>, <<"selected">>, ID)];
@@ -2436,7 +2227,7 @@ index 00000000..79e2d3d3
 +                                   PName++"@"++PServer;
 +                              N -> N
 +                         end,
-+                      ID = jlib:encode_base64(term_to_binary(Timestamp)),
++                      ID = misc:encode_base64(term_to_binary(Timestamp)),
 +                      ?XE(<<"tr">>,
 +                       [?XE(<<"td">>, [?INPUT(<<"checkbox">>, <<"selected">>, ID)]),
 +                        ?XC(<<"td">>, iolist_to_binary(convert_timestamp(Timestamp))),
@@ -2482,17 +2273,15 @@ index 00000000..79e2d3d3
 +    end.
 diff --git a/src/mod_logdb.hrl b/src/mod_logdb.hrl
 new file mode 100644
-index 00000000..d44f0df5
+index 00000000..49791f4e
 --- /dev/null
 +++ b/src/mod_logdb.hrl
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,33 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb.hrl
-+%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
++%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
 +%%% Purpose :
-+%%% Version : trunk
-+%%% Id      : $Id: mod_logdb.hrl 1273 2009-02-05 18:12:57Z malik $
-+%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
++%%% Url     : https://paleg.github.io/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
 +-define(logdb_debug, true).
@@ -2523,17 +2312,15 @@ index 00000000..d44f0df5
 +                          {<<"checked">>, <<"true">>}])).
 diff --git a/src/mod_logdb_mnesia.erl b/src/mod_logdb_mnesia.erl
 new file mode 100644
-index 00000000..a8ae7664
+index 00000000..ea167d88
 --- /dev/null
 +++ b/src/mod_logdb_mnesia.erl
-@@ -0,0 +1,557 @@
+@@ -0,0 +1,555 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mnesia.erl
-+%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
++%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
 +%%% Purpose : mnesia backend for mod_logdb
-+%%% Version : trunk
-+%%% Id      : $Id: mod_logdb_mnesia.erl 1273 2009-02-05 18:12:57Z malik $
-+%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
++%%% Url     : https://paleg.github.io/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
 +-module(mod_logdb_mnesia).
@@ -2900,9 +2687,9 @@ index 00000000..a8ae7664
 +                    Table = term_to_binary(ATable),
 +                    case ejabberd_regexp:run( Table, << VHost/binary, <<"$">>/binary >> ) of
 +                         match ->
-+                            case re:run(Table, "_[0-9]+-[0-9]+-[0-9]+_") of
++                            case re:run(Table, "[0-9]+-[0-9]+-[0-9]+") of
 +                                 {match, [{S, E}]} ->
-+                                     lists:append(Dates, [lists:sublist(binary_to_list(Table), S+2, E-2)]);
++                                     lists:append(Dates, [lists:sublist(binary_to_list(Table), S+1, E)]);
 +                                 nomatch ->
 +                                     Dates
 +                            end;
@@ -3084,284 +2871,17 @@ index 00000000..a8ae7664
 +               {type, bag},
 +               {attributes, record_info(fields, msg)},
 +               {record_name, msg}]).
-diff --git a/src/mod_logdb_mnesia_old.erl b/src/mod_logdb_mnesia_old.erl
-new file mode 100644
-index 00000000..e962d9a8
---- /dev/null
-+++ b/src/mod_logdb_mnesia_old.erl
-@@ -0,0 +1,259 @@
-+%%%----------------------------------------------------------------------
-+%%% File    : mod_logdb_mnesia_old.erl
-+%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
-+%%% Purpose : mod_logmnesia backend for mod_logdb (should be used only for copy_tables functionality)
-+%%% Version : trunk
-+%%% Id      : $Id: mod_logdb_mnesia_old.erl 1273 2009-02-05 18:12:57Z malik $
-+%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
-+%%%----------------------------------------------------------------------
-+
-+-module(mod_logdb_mnesia_old).
-+-author('o.palij@gmail.com').
-+
-+-include("ejabberd.hrl").
-+-include("jlib.hrl").
-+-include("logger.hrl").
-+
-+-behaviour(gen_logdb).
-+
-+-export([start/2, stop/1,
-+         log_message/2,
-+         rebuild_stats/1,
-+         rebuild_stats_at/2,
-+         rebuild_stats_at1/2,
-+         delete_messages_by_user_at/3, delete_all_messages_by_user_at/3, delete_messages_at/2,
-+         get_vhost_stats/1, get_vhost_stats_at/2, get_user_stats/2, get_user_messages_at/3,
-+         get_dates/1,
-+         get_users_settings/1, get_user_settings/2, set_user_settings/3,
-+         drop_user/2]).
-+
-+-record(stats, {user, server, table, count}).
-+-record(msg,   {to_user, to_server, to_resource, from_user, from_server, from_resource, id, type, subject, body, timestamp}).
-+
-+tables_prefix() -> "messages_".
-+% stats_table should not start with tables_prefix(VHost) !
-+% i.e. lists:prefix(tables_prefix(VHost), atom_to_list(stats_table())) must be /= true
-+stats_table() -> list_to_atom("messages-stats").
-+% table name as atom from Date
-+-define(ATABLE(Date), list_to_atom(tables_prefix() ++ Date)).
-+-define(LTABLE(Date), tables_prefix() ++ Date).
-+
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+%
-+% gen_logdb callbacks
-+%
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+start(_Opts, _VHost) ->
-+   case mnesia:system_info(is_running) of
-+        yes ->
-+          ok = create_stats_table(),
-+          {ok, ok};
-+        no ->
-+          ?ERROR_MSG("Mnesia not running", []),
-+          error;
-+        Status ->
-+          ?ERROR_MSG("Mnesia status: ~p", [Status]),
-+          error
-+   end.
-+
-+stop(_VHost) ->
-+   ok.
-+
-+log_message(_VHost, _Msg) ->
-+   error.
-+
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+%
-+% gen_logdb callbacks (maintaince)
-+%
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+rebuild_stats(_VHost) ->
-+     ok.
-+
-+rebuild_stats_at(VHost, Date) ->
-+    Table = ?LTABLE(Date),
-+    {Time, Value}=timer:tc(?MODULE, rebuild_stats_at1, [VHost, Table]),
-+    ?INFO_MSG("rebuild_stats_at ~p elapsed ~p sec: ~p~n", [Date, Time/1000000, Value]),
-+    Value.
-+rebuild_stats_at1(VHost, Table) ->
-+    CFun = fun(Msg, Stats) ->
-+               To = Msg#msg.to_user ++ "@" ++ Msg#msg.to_server,
-+               Stats_to = if
-+                            Msg#msg.to_server == VHost ->
-+                               case lists:keysearch(To, 1, Stats) of
-+                                    {value, {Who_to, Count_to}} ->
-+                                       lists:keyreplace(To, 1, Stats, {Who_to, Count_to + 1});
-+                                    false ->
-+                                        lists:append(Stats, [{To, 1}])
-+                               end;
-+                            true ->
-+                               Stats
-+                          end,
-+               From = Msg#msg.from_user ++ "@" ++ Msg#msg.from_server,
-+               Stats_from = if
-+                              Msg#msg.from_server == VHost  ->
-+                                 case lists:keysearch(From, 1, Stats_to) of
-+                                      {value, {Who_from, Count_from}} ->
-+                                         lists:keyreplace(From, 1, Stats_to, {Who_from, Count_from + 1});
-+                                      false ->
-+                                         lists:append(Stats_to, [{From, 1}])
-+                                 end;
-+                              true ->
-+                                 Stats_to
-+                            end,
-+               Stats_from
-+           end,
-+    DFun = fun(#stats{table=STable, server=Server} = Stat, _Acc)
-+                when STable == Table, Server == VHost ->
-+                 mnesia:delete_object(stats_table(), Stat, write);
-+              (_Stat, _Acc) -> ok
-+           end,
-+    case mnesia:transaction(fun() ->
-+                               mnesia:write_lock_table(list_to_atom(Table)),
-+                               mnesia:write_lock_table(stats_table()),
-+                               % Calc stats for VHost at Date
-+                               AStats = mnesia:foldl(CFun, [], list_to_atom(Table)),
-+                               % Delete all stats for VHost at Date
-+                               mnesia:foldl(DFun, [], stats_table()),
-+                               % Write new calc'ed stats
-+                               lists:foreach(fun({Who, Count}) ->
-+                                                 Jid = jlib:string_to_jid(Who),
-+                                                 JUser = Jid#jid.user,
-+                                                 WStat = #stats{user=JUser, server=VHost, table=Table, count=Count},
-+                                                 mnesia:write(stats_table(), WStat, write)
-+                                             end, AStats)
-+                            end) of
-+         {aborted, Reason} ->
-+              ?ERROR_MSG("Failed to rebuild_stats_at for ~p at ~p: ~p", [VHost, Table, Reason]),
-+              error;
-+         {atomic, _} ->
-+              ok
-+    end.
-+
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+%
-+% gen_logdb callbacks (delete)
-+%
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+delete_messages_by_user_at(_VHost, _Msgs, _Date) ->
-+    error.
-+
-+delete_all_messages_by_user_at(_User, _VHost, _Date) ->
-+    error.
-+
-+delete_messages_at(VHost, Date) ->
-+   Table = list_to_atom(tables_prefix() ++ Date),
-+
-+   DFun = fun(#msg{to_server=To_server, from_server=From_server}=Msg, _Acc)
-+                when To_server == VHost; From_server == VHost ->
-+                   mnesia:delete_object(Table, Msg, write);
-+             (_Msg, _Acc) -> ok
-+          end,
-+
-+   case mnesia:transaction(fun() ->
-+                            mnesia:foldl(DFun, [], Table)
-+                           end) of
-+        {aborted, Reason} ->
-+            ?ERROR_MSG("Failed to delete_messages_at for ~p at ~p: ~p", [VHost, Date, Reason]),
-+            error;
-+        {atomic, _} ->
-+            ok
-+   end.
-+
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+%
-+% gen_logdb callbacks (get)
-+%
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+get_vhost_stats(_VHost) ->
-+    {error, "does not emplemented"}.
-+
-+get_vhost_stats_at(VHost, Date) ->
-+    Fun = fun() ->
-+             Pat = #stats{user='$1', server=VHost, table=tables_prefix()++Date, count = '$2'},
-+             mnesia:select(stats_table(), [{Pat, [], [['$1', '$2']]}])
-+          end,
-+    case mnesia:transaction(Fun) of
-+         {atomic, Result} ->
-+                   RFun = fun([User, Count]) ->
-+                             {User, Count}
-+                          end,
-+                   {ok, lists:reverse(lists:keysort(2, lists:map(RFun, Result)))};
-+         {aborted, Reason} -> {error, Reason}
-+    end.
-+
-+get_user_stats(_User, _VHost) ->
-+    {error, "does not emplemented"}.
-+
-+get_user_messages_at(User, VHost, Date) ->
-+    Table_name = tables_prefix() ++ Date,
-+    case mnesia:transaction(fun() ->
-+                               Pat_to = #msg{to_user=User, to_server=VHost, _='_'},
-+                               Pat_from = #msg{from_user=User, from_server=VHost,  _='_'},
-+                               mnesia:select(list_to_atom(Table_name),
-+                                             [{Pat_to, [], ['$_']},
-+                                              {Pat_from, [], ['$_']}])
-+                       end) of
-+          {atomic, Result} ->
-+                   Msgs = lists:map(fun(#msg{to_user=To_user, to_server=To_server, to_resource=To_res,
-+                                             from_user=From_user, from_server=From_server, from_resource=From_res,
-+                                             type=Type,
-+                                             subject=Subj,
-+                                             body=Body, timestamp=Timestamp} = _Msg) ->
-+                                        Subject = case Subj of
-+                                                       "None" -> "";
-+                                                       _ -> Subj
-+                                                  end,
-+                                        {msg, To_user, To_server, To_res, From_user, From_server, From_res, Type, Subject, Body, Timestamp}
-+                                    end, Result),
-+                   {ok, Msgs};
-+          {aborted, Reason} ->
-+                   {error, Reason}
-+    end.
-+
-+get_dates(_VHost) ->
-+    Tables = mnesia:system_info(tables),
-+    MessagesTables =
-+        lists:filter(fun(Table) ->
-+                         lists:prefix(tables_prefix(), atom_to_list(Table))
-+                     end,
-+                     Tables),
-+    lists:map(fun(Table) ->
-+                  lists:sublist(atom_to_list(Table),
-+                                length(tables_prefix())+1,
-+                                length(atom_to_list(Table)))
-+              end,
-+              MessagesTables).
-+
-+get_users_settings(_VHost) ->
-+    {ok, []}.
-+get_user_settings(_User, _VHost) ->
-+    {ok, []}.
-+set_user_settings(_User, _VHost, _Set) ->
-+    ok.
-+drop_user(_User, _VHost) ->
-+    ok.
-+
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+%
-+% internal
-+%
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-+% called from db_logon/2
-+create_stats_table() ->
-+    SName = stats_table(),
-+    case mnesia:create_table(SName,
-+                             [{disc_only_copies, [node()]},
-+                              {type, bag},
-+                              {attributes, record_info(fields, stats)},
-+                              {record_name, stats}
-+                             ]) of
-+         {atomic, ok} ->
-+             ?INFO_MSG("Created stats table", []),
-+             ok;
-+         {aborted, {already_exists, _}} ->
-+             ok;
-+         {aborted, Reason} ->
-+             ?ERROR_MSG("Failed to create stats table: ~p", [Reason]),
-+             error
-+    end.
 diff --git a/src/mod_logdb_mysql.erl b/src/mod_logdb_mysql.erl
 new file mode 100644
-index 00000000..c805c920
+index 00000000..09036211
 --- /dev/null
 +++ b/src/mod_logdb_mysql.erl
-@@ -0,0 +1,1055 @@
+@@ -0,0 +1,1052 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql.erl
-+%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
++%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
 +%%% Purpose : MySQL backend for mod_logdb
-+%%% Version : trunk
-+%%% Id      : $Id: mod_logdb_mysql.erl 1360 2009-07-30 06:00:14Z malik $
-+%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
++%%% Url     : https://paleg.github.io/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
 +-module(mod_logdb_mysql).
@@ -3905,14 +3425,13 @@ index 00000000..c805c920
 +get_dates_int(DBRef, VHost) ->
 +    case sql_query_internal(DBRef, ["SHOW TABLES"]) of
 +         {data, Tables} ->
++            Reg = "^" ++ lists:sublist(prefix(),2,length(prefix())) ++ ".*" ++ escape_vhost(VHost),
 +            lists:foldl(fun([Table], Dates) ->
-+                           Reg = lists:sublist(prefix(),2,length(prefix())) ++ ".*" ++ escape_vhost(VHost),
 +                           case re:run(Table, Reg) of
-+                                {match, [{1, _}]} ->
-+                                   ?MYDEBUG("matched ~p against ~p", [Table, Reg]),
-+                                   case re:run(Table,"[0-9]+-[0-9]+-[0-9]+") of
++                                {match, _} ->
++                                   case re:run(Table, "[0-9]+-[0-9]+-[0-9]+") of
 +                                        {match, [{S, E}]} ->
-+                                            lists:append(Dates, [lists:sublist(Table,S,E)]);
++                                            lists:append(Dates, [lists:sublist(Table, S+1, E)]);
 +                                        nomatch ->
 +                                            Dates
 +                                   end;
@@ -4412,17 +3931,15 @@ index 00000000..c805c920
 +    {error, Reason}.
 diff --git a/src/mod_logdb_mysql5.erl b/src/mod_logdb_mysql5.erl
 new file mode 100644
-index 00000000..04a546ea
+index 00000000..b6025a3d
 --- /dev/null
 +++ b/src/mod_logdb_mysql5.erl
-@@ -0,0 +1,983 @@
+@@ -0,0 +1,981 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql5.erl
-+%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
++%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
 +%%% Purpose : MySQL 5 backend for mod_logdb
-+%%% Version : trunk
-+%%% Id      : $Id: mod_logdb_mysql5.erl 1360 2009-07-30 06:00:14Z malik $
-+%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
++%%% Url     : https://paleg.github.io/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
 +-module(mod_logdb_mysql5).
@@ -4904,13 +4421,13 @@ index 00000000..04a546ea
 +get_dates_int(DBRef, VHost) ->
 +    case sql_query_internal(DBRef, ["SHOW TABLES"]) of
 +         {data, Tables} ->
++            Reg = "^" ++ lists:sublist(prefix(),2,length(prefix())) ++ ".*" ++ escape_vhost(VHost),
 +            lists:foldl(fun([Table], Dates) ->
-+                           Reg = lists:sublist(prefix(),2,length(prefix())) ++ ".*" ++ escape_vhost(VHost),
 +                           case re:run(Table, Reg) of
-+                                {match, [{1, _}]} ->
-+                                   case re:run(Table,"[0-9]+-[0-9]+-[0-9]+") of
++                                {match, _} ->
++                                   case re:run(Table, "[0-9]+-[0-9]+-[0-9]+") of
 +                                        {match, [{S, E}]} ->
-+                                            lists:append(Dates, [lists:sublist(Table,S,E)]);
++                                            lists:append(Dates, [lists:sublist(Table, S+1, E)]);
 +                                        nomatch ->
 +                                            Dates
 +                                   end;
@@ -5401,20 +4918,18 @@ index 00000000..04a546ea
 +END;", [logmessage_name(VHost),UName,UName,UName,UName,SName,SName,RName,RName,UName,UName,SName,RName,StName,StName]).
 diff --git a/src/mod_logdb_pgsql.erl b/src/mod_logdb_pgsql.erl
 new file mode 100644
-index 00000000..29bed039
+index 00000000..61a71fff
 --- /dev/null
 +++ b/src/mod_logdb_pgsql.erl
-@@ -0,0 +1,1108 @@
+@@ -0,0 +1,1106 @@
 +% {ok, DBRef} = pgsql:connect([{host, "127.0.0.1"}, {database, "logdb"}, {user, "logdb"}, {password, "logdb"}, {port, 5432}, {as_binary, true}]).
 +% Schema = "test".
 +% pgsql:squery(DBRef, "CREATE TABLE test.\"logdb_stats_test\" (owner_id INTEGER, peer_name_id INTEGER, peer_server_id INTEGER, at VARCHAR(20), count integer);" ).
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_pgsql.erl
-+%%% Author  : Oleg Palij (mailto,xmpp:o.palij@gmail.com)
++%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
 +%%% Purpose : Posgresql backend for mod_logdb
-+%%% Version : trunk
-+%%% Id      : $Id: mod_logdb_pgsql.erl 1360 2009-07-30 06:00:14Z malik $
-+%%% Url     : http://www.dp.uz.gov.ua/o.palij/mod_logdb/
++%%% Url     : https://paleg.github.io/mod_logdb/
 +%%%----------------------------------------------------------------------
 +
 +-module(mod_logdb_pgsql).
@@ -5906,7 +5421,7 @@ index 00000000..29bed039
 +            lists:foldl(fun({_Schema, Table, _Type, _Owner}, Dates) ->
 +                             case re:run(Table,"[0-9]+-[0-9]+-[0-9]+") of
 +                                  {match, [{S, E}]} ->
-+                                      lists:append(Dates, [lists:sublist(Table,S,E)]);
++                                      lists:append(Dates, [lists:sublist(Table, S+1, E)]);
 +                                  nomatch ->
 +                                      Dates
 +                             end
@@ -6513,37 +6028,20 @@ index 00000000..29bed039
 +get_result(Rez) ->
 +    {error, undefined, Rez}.
 +
-diff --git a/src/mod_muc_room.erl b/src/mod_muc_room.erl
-index c9c78575..4db4895a 100644
---- a/src/mod_muc_room.erl
-+++ b/src/mod_muc_room.erl
-@@ -538,6 +538,12 @@ handle_sync_event({process_item_change,
- 	NSD ->
- 	    {reply, {ok, NSD}, StateName, NSD}
-     end;
-+handle_sync_event({get_jid_nick, Jid}, _From, StateName, StateData) ->
-+    R = case (?DICT):find(jlib:jid_tolower(Jid), StateData#state.users) of
-+	    error -> [];
-+	    {ok, {user, _, Nick, _, _}} -> Nick
-+        end,
-+    {reply, R, StateName, StateData};
- handle_sync_event(get_subscribers, _From, StateName, StateData) ->
-     JIDs = lists:map(fun jid:make/1,
- 		     ?DICT:fetch_keys(StateData#state.subscribers)),
 diff --git a/src/mod_roster.erl b/src/mod_roster.erl
-index b3a627f7..761e234d 100644
+index cf281528..c3a5c92a 100644
 --- a/src/mod_roster.erl
 +++ b/src/mod_roster.erl
-@@ -62,6 +62,8 @@
+@@ -65,6 +65,8 @@
  
- -include("ejabberd_web_admin.hrl").
+ -define(SETS, gb_sets).
  
 +-include("mod_logdb.hrl").
 +
  -export_type([subscription/0]).
  
  -callback init(binary(), gen_mod:opts()) -> any().
-@@ -941,6 +943,14 @@ user_roster(User, Server, Query, Lang) ->
+@@ -943,6 +945,14 @@ user_roster(User, Server, Query, Lang) ->
  				  Query),
      Items = get_roster(LUser, LServer),
      SItems = lists:sort(Items),
@@ -6558,7 +6056,7 @@ index b3a627f7..761e234d 100644
      FItems = case SItems of
  	       [] -> [?CT(<<"None">>)];
  	       _ ->
-@@ -998,7 +1008,33 @@ user_roster(User, Server, Query, Lang) ->
+@@ -1000,7 +1010,33 @@ user_roster(User, Server, Query, Lang) ->
  							  [?INPUTT(<<"submit">>,
  								   <<"remove",
  								     (ejabberd_web_admin:term_to_id(R#roster.jid))/binary>>,
@@ -6566,7 +6064,7 @@ index b3a627f7..761e234d 100644
 +								     <<"Remove">>)]),
 +                             case gen_mod:is_loaded(Server, mod_logdb) of
 +                                  true ->
-+                                     Peer = jlib:jid_to_string(R#roster.jid),
++                                     Peer = jid:encode(R#roster.jid),
 +                                     A = lists:member(Peer, Settings#user_settings.dolog_list),
 +                                     B = lists:member(Peer, Settings#user_settings.donotlog_list),
 +                                     {Name, Value} =
@@ -6593,9 +6091,9 @@ index b3a627f7..761e234d 100644
  					end,
  					SItems)))])]
  	     end,
-@@ -1123,9 +1159,42 @@ user_roster_item_parse_query(User, Server, Items,
- 										=
- 										[]}]}}),
+@@ -1107,9 +1143,42 @@ user_roster_item_parse_query(User, Server, Items,
+ 					    sub_els = [#roster_query{
+ 							  items = [RosterItem]}]}),
  				      throw(submitted);
 -				  false -> ok
 -				end
@@ -6604,13 +6102,13 @@ index b3a627f7..761e234d 100644
 +                    case lists:keysearch(
 +                           <<"donotlog", (ejabberd_web_admin:term_to_id(JID))/binary>>, 1, Query) of
 +                        {value, _} ->
-+                             Peer = jlib:jid_to_string(JID),
++                             Peer = jid:encode(JID),
 +                             Settings = mod_logdb:get_user_settings(User, Server),
 +                             DNLL = case lists:member(Peer, Settings#user_settings.donotlog_list) of
 +                                         false -> lists:append(Settings#user_settings.donotlog_list, [Peer]);
 +                                         true -> Settings#user_settings.donotlog_list
 +                                    end,
-+                             DLL = lists:delete(jlib:jid_to_string(JID), Settings#user_settings.dolog_list),
++                             DLL = lists:delete(jid:encode(JID), Settings#user_settings.dolog_list),
 +                             Sett = Settings#user_settings{donotlog_list=DNLL, dolog_list=DLL},
 +                             % TODO: check returned value
 +                             ok = mod_logdb:set_user_settings(User, Server, Sett),
@@ -6619,13 +6117,13 @@ index b3a627f7..761e234d 100644
 +                           case lists:keysearch(
 +                                  <<"dolog", (ejabberd_web_admin:term_to_id(JID))/binary>>, 1, Query) of
 +                               {value, _} ->
-+                                  Peer = jlib:jid_to_string(JID),
++                                  Peer = jid:encode(JID),
 +                                  Settings = mod_logdb:get_user_settings(User, Server),
 +                                  DLL = case lists:member(Peer, Settings#user_settings.dolog_list) of
 +                                             false -> lists:append(Settings#user_settings.dolog_list, [Peer]);
 +                                             true -> Settings#user_settings.dolog_list
 +                                        end,
-+                                  DNLL = lists:delete(jlib:jid_to_string(JID), Settings#user_settings.donotlog_list),
++                                  DNLL = lists:delete(jid:encode(JID), Settings#user_settings.donotlog_list),
 +                                  Sett = Settings#user_settings{donotlog_list=DNLL, dolog_list=DLL},
 +                                  % TODO: check returned value
 +                                  ok = mod_logdb:set_user_settings(User, Server, Sett),
