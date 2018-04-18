@@ -134,16 +134,16 @@ diff --git a/rebar.config b/rebar.config
 index aef3a017..b35db36f 100644
 --- a/rebar.config
 +++ b/rebar.config
-@@ -31,8 +31,8 @@
-         {jiffy, ".*", {git, "https://github.com/davisp/jiffy", {tag, "0.14.8"}}},
-         {p1_oauth2, ".*", {git, "https://github.com/processone/p1_oauth2", {tag, "0.6.1"}}},
-         {luerl, ".*", {git, "https://github.com/rvirding/luerl", {tag, "v0.2"}}},
+@@ -33,8 +33,8 @@
+         {eimp, ".*", {git, "https://github.com/processone/eimp", {tag, "1.0.3"}}},
+         {if_var_true, stun, {stun, ".*", {git, "https://github.com/processone/stun", {tag, "1.0.21"}}}},
+         {if_var_true, sip, {esip, ".*", {git, "https://github.com/processone/esip", {tag, "1.0.22"}}}},
 -        {if_var_true, mysql, {p1_mysql, ".*", {git, "https://github.com/processone/p1_mysql",
--                                               {tag, "1.0.2"}}}},
+-                                               {tag, "1.0.5"}}}},
 +        {if_var_true, mysql, {p1_mysql, ".*", {git, "https://github.com/paleg/p1_mysql",
 +                                               {branch, "multi"}}}},
          {if_var_true, pgsql, {p1_pgsql, ".*", {git, "https://github.com/processone/p1_pgsql",
-                                                {tag, "1.1.2"}}}},
+                                                {tag, "1.1.5"}}}},
          {if_var_true, sqlite, {sqlite3, ".*", {git, "https://github.com/processone/erlang-sqlite3",
 diff --git a/src/gen_logdb.erl b/src/gen_logdb.erl
 new file mode 100644

@@ -9,33 +9,24 @@ diff -urN ejabberd-14.07.org/ejabberdctl.template ejabberd-14.07/ejabberdctl.tem
  
  # define default environment variables
  SCRIPT_DIR=`cd ${0%/*} && pwd`
-@@ -28,7 +28,7 @@ if [ "$INSTALLUSER" != "" ] ; then
-                 mkdir -p "$INSTALLUSER_HOME"
-                 chown "$INSTALLUSER" "$INSTALLUSER_HOME"
-             fi
--            EXEC_CMD="su $INSTALLUSER -c"
-+            EXEC_CMD="su -s /bin/sh $INSTALLUSER -c"
-         fi
-     done
-     if [ `id -g` -eq `id -g $INSTALLUSER` ] ; then
-@@ -55,7 +56,7 @@
+@@ -58,7 +58,7 @@ for arg; do
+ done
  
- # Define ejabberd variable if they have not been defined from the command line
- if [ "$ETC_DIR" = "" ] ; then
--    ETC_DIR={{sysconfdir}}/ejabberd
-+    ETC_DIR={{sysconfdir}}/jabber
+ # define ejabberd variables if not already defined from the command line
+-: "${ETC_DIR:="{{sysconfdir}}/ejabberd"}"
++: "${ETC_DIR:="{{sysconfdir}}/jabber"}"
+ : "${LOGS_DIR:="{{localstatedir}}/log/ejabberd"}"
+ : "${SPOOL_DIR:="{{localstatedir}}/lib/ejabberd"}"
+ : "${EJABBERD_CONFIG_PATH:="$ETC_DIR/ejabberd.yml"}"
+@@ -82,7 +82,7 @@ if [ -n "$INET_DIST_INTERFACE" ] ; then
  fi
- if [ "$EJABBERDCTL_CONFIG_PATH" = "" ] ; then
-     EJABBERDCTL_CONFIG_PATH=$ETC_DIR/ejabberdctl.cfg
-@@ -103,7 +104,7 @@
- SASL_LOG_PATH=$LOGS_DIR/erlang.log
- DATETIME=`date "+%Y%m%d-%H%M%S"`
- ERL_CRASH_DUMP=$LOGS_DIR/erl_crash_$DATETIME.dump
--ERL_INETRC=$ETC_DIR/inetrc
-+ERL_INETRC=$ETC_DIR/ejabberd-inetrc
+ ERL_LIBS={{libdir}}
+ ERL_CRASH_DUMP="$LOGS_DIR"/erl_crash_$(date "+%Y%m%d-%H%M%S").dump
+-ERL_INETRC="$ETC_DIR"/inetrc
++ERL_INETRC="$ETC_DIR"/ejabberd-inetrc
  
- # define erl parameters
- ERLANG_OPTS="+K $POLL -smp $SMP +P $ERL_PROCESSES $ERL_OPTIONS"
+ # define ejabberd parameters
+ EJABBERD_OPTS="$EJABBERD_OPTS\
 diff -urN ejabberd-14.07.org/Makefile.in ejabberd-14.07/Makefile.in
 --- ejabberd-14.07.org/Makefile.in	2014-07-22 17:42:49.000000000 +0200
 +++ ejabberd-14.07/Makefile.in	2014-10-15 09:32:42.603846549 +0200

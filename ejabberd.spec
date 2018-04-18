@@ -4,70 +4,68 @@
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
 %bcond_without	logdb		# enable mod_logdb (server-side message logging)
-%bcond_with	weaker_crypto	# enable SSLv3
 
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	17.04
+Version:	18.03
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	70b761fb8327bc8653b12e2bf20fb0d1
+# Source0-md5:	9599b1c45c6178847eedd3f61b0fc1d2
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
 Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
-Source10:       ejabberd-cache_tab-20170322.tar.gz
-# Source10-md5:	5a5dcf4b1d557d15cc0c4b666116acf7
-Source11:       ejabberd-elixir-20160606.tar.gz
-# Source11-md5:	23a6672b27b2051f00be16b3ea1b24dd
-Source12:       ejabberd-esip-20170322.tar.gz
-# Source12-md5:	cb4809d69accbee7cc93978ab5860642
-Source13:       ejabberd-ezlib-20170110.tar.gz
-# Source13-md5:	01dcf2e0d42859b24013819cde57eee0
-Source14:       ejabberd-fast_tls-20170320.tar.gz
-# Source14-md5:	9b87963d6a219bc1a88994affadfa3f6
-Source15:       ejabberd-fast_xml-20170214.tar.gz
-# Source15-md5:	da8a6c6b9fbe566bc2445368f098511e
-Source16:       ejabberd-fast_yaml-20170322.tar.gz
-# Source16-md5:	afacf731efffdae424791365752d55a3
-Source17:       ejabberd-goldrush-20151116.tar.gz
-# Source17-md5:	5a94b1dc7a102e30259c5caaa40722c8
-Source18:       ejabberd-iconv-20170322.tar.gz
-# Source18-md5:	093db5827c56fe67f7036902b6a01e4c
-Source19:       ejabberd-jiffy-20160331.tar.gz
-# Source19-md5:	598b3f0bc0db83d9e7e50fedfecb3977
-Source20:       ejabberd-lager-20160610.tar.gz
-# Source20-md5:	90f9a92699ba0a18cadaebf7dde4f81e
-Source21:       ejabberd-luerl-20151210.tar.gz
-# Source21-md5:	ede0306e7b28a0dd99f1948f0f8dde45
-Source22:       ejabberd-p1_mysql-20161125.tar.gz
-# Source22-md5:	803bc540b14afc7579cfb7f2b2a9ca91
-Source23:       ejabberd-p1_oauth2-20160123.tar.gz
-# Source23-md5:	d5671f08c043734138c54c3a33d2033f
-Source24:       ejabberd-p1_pgsql-20170110.tar.gz
-# Source24-md5:	b9f19498dabeaf796a9a0cd3cb782dd0
-Source25:       ejabberd-p1_utils-20170411.tar.gz
-# Source25-md5:	f645c6b1789ba435daa26cb16843855a
-Source26:       ejabberd-rebar_elixir_plugin-20160105.tar.gz
-# Source26-md5:	36b4996aa60cf9a70e3484f4804ebda1
-Source27:       ejabberd-stringprep-20170322.tar.gz
-# Source27-md5:	d7e905548974743c03b5d66f7d9aba33
-Source28:       ejabberd-stun-20170322.tar.gz
-# Source28-md5:	9909596a875824b3ef517ca53d7c5358
-Source29:       ejabberd-xmpp-20170322.tar.gz
-# Source29-md5:	467ec3065ffd7b8d2387505b91b85e2b
-#
+Source10:	%{name}-base64url-20150806.tar.gz
+# Source10-md5: b60e7dcef292ccf6d61b764b059ab5a7
+Source11:	%{name}-cache_tab-20180322.tar.gz
+# Source11-md5: 3e025e319b4a24ebe3bf62c4e74322f1
+Source12:	%{name}-eimp-20180322.tar.gz
+# Source12-md5: 7add2709caac05f14a1d0cd564146cf4
+Source13:	%{name}-elixir-20170515.tar.gz
+# Source13-md5: 260d25eaef1b17d95e80e055c4ee6613
+Source14:	%{name}-ezlib-20180322.tar.gz
+# Source14-md5: b77559e69242e802dc894cc0914383b2
+Source15:	%{name}-fast_tls-20180322.tar.gz
+# Source15-md5: 92ed0e794e094df174bf32b78b4a118c
+Source16:	%{name}-fast_xml-20180322.tar.gz
+# Source16-md5: c49c469681d7dbe7fa5a5afe01accda1
+Source17:	%{name}-fast_yaml-20180322.tar.gz
+# Source17-md5: 552161326707ad9dc0f0034b6a534ce5
+Source18:	%{name}-goldrush-20160531.tar.gz
+# Source18-md5: 188c12320c349fbfb19aa0e89bf9be42
+Source19:	%{name}-iconv-20180322.tar.gz
+# Source19-md5: b0f7bb9d8742fa9e4cf7741598a17bb4
+Source20:	%{name}-jiffy-20160331.tar.gz
+# Source20-md5: 6333e767d4c4b45fd9c10789e7407d26
+Source21:	%{name}-jose-20170518.tar.gz
+# Source21-md5: a30287ed58d5e3976178e64699079a24
+Source22:	%{name}-lager-20170426.tar.gz
+# Source22-md5: 4779a0a987193523c2dcf80805743294
+Source23:	%{name}-p1_mysql-20170928.tar.gz
+# Source23-md5: b0506507b9fc4680763fba8ea1a985aa
+Source24:	%{name}-p1_oauth2-20170725.tar.gz
+# Source24-md5: d2fef3b645f07c999552ee126e461f0e
+Source25:	%{name}-p1_pgsql-20180322.tar.gz
+# Source25-md5: 9e00281ed80a2b9f960dfbf989828db8
+Source26:	%{name}-p1_utils-20180322.tar.gz
+# Source26-md5: 4a618aed7ae5a813118c80f66d7f881c
+Source27:	%{name}-rebar_elixir_plugin-20160105.tar.gz
+# Source27-md5: e0472a3fadb642ccc3db72ff839d19c8
+Source28:	%{name}-stringprep-20180322.tar.gz
+# Source28-md5: 9830029d2a3bab99eec5759d241ee8b6
+Source29:	%{name}-xmpp-20180322.tar.gz
+# Source29-md5: 7162231414255a248eb34eb173b6ede3
+
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
 # https://paleg.github.io/mod_logdb/
 # https://github.com/paleg/ejabberd/tree/17.04-mod_logdb
 Patch3:		%{name}-mod_logdb.patch
-Patch4:		%{name}-no_sslv3_or_3des.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -120,9 +118,6 @@ Server-side logging module.
 %if %{with logdb}
 %patch3 -p1
 %endif
-%if %{without weaker_crypto}
-%patch4 -p1
-%endif
 
 # Various parts of the build system use 'git describe'
 # which returns nonsense on manual builds using the builder script
@@ -171,9 +166,6 @@ cd deps/fast_yaml
 %configure
 cd ../..
 cd deps/ezlib
-%configure
-cd ../..
-cd deps/esip
 %configure
 cd ../..
 
@@ -336,9 +328,10 @@ fi
 %exclude %{_libdir}/ejabberd-%{version}/ebin/mod_logdb*
 %endif
 %{_libdir}/ejabberd-%{version}
+%{_libdir}/base64url-*
 %{_libdir}/cache_tab-*
+%{_libdir}/eimp-*
 %{_libdir}/elixir-*
-%{_libdir}/esip-*
 %{_libdir}/ezlib-*
 %{_libdir}/fast_tls-*
 %{_libdir}/fast_xml-*
@@ -346,15 +339,14 @@ fi
 %{_libdir}/goldrush-*
 %{_libdir}/iconv-*
 %{_libdir}/jiffy-*
+%{_libdir}/jose-*
 %{_libdir}/lager-*
-%{_libdir}/luerl-*
 %{_libdir}/p1_mysql-*
 %{_libdir}/p1_oauth2-*
 %{_libdir}/p1_pgsql-*
 %{_libdir}/p1_utils-*
 %{_libdir}/rebar_elixir_plugin-*
 %{_libdir}/stringprep-*
-%{_libdir}/stun-*
 %{_libdir}/xmpp-*
 %dir %attr(770,root,jabber) /var/lib/ejabberd
 %ghost %attr(400,jabber,jabber) %ghost %config(noreplace) %verify(not md5 mtime size) /var/lib/ejabberd/.erlang.cookie
