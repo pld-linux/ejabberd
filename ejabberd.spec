@@ -9,7 +9,7 @@ Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	18.04
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
@@ -330,7 +330,12 @@ fi
 %{_libdir}/ejabberd-%{version}
 %{_libdir}/base64url-*
 %{_libdir}/cache_tab-*
-%{_libdir}/eimp-*
+%dir %{_libdir}/eimp-*
+%dir %{_libdir}/eimp-*/priv
+%dir %{_libdir}/eimp-*/priv/bin
+%attr(755,root,root) %{_libdir}/eimp-*/priv/bin/eimp
+%{_libdir}/eimp-*/ebin
+%{_libdir}/eimp-*/LICENSE.txt
 %{_libdir}/elixir-*
 %{_libdir}/ezlib-*
 %{_libdir}/fast_tls-*
