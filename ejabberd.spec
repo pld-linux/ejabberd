@@ -4,6 +4,7 @@
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
 %bcond_without	logdb		# enable mod_logdb (server-side message logging)
+%bcond_with	new_sql_schema	# build with the new SQL schema
 
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
@@ -139,6 +140,7 @@ unset GIT_DIR GIT_WORK_TREE
 %configure \
 	%{?with_pam --enable-pam} \
 	--enable-user=jabber \
+ 	%{__enable_disable new_sql_schema new-sql-schema} \
 	--enable-elixir \
 	--enable-full-xml \
 	--enable-odbc \
