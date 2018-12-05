@@ -1,8 +1,8 @@
 diff --git a/priv/msgs/nl.msg b/priv/msgs/nl.msg
-index 8bb1c0eb..22c83f20 100644
+index 9dfd896b..f35ff07a 100644
 --- a/priv/msgs/nl.msg
 +++ b/priv/msgs/nl.msg
-@@ -426,3 +426,17 @@
+@@ -386,3 +386,17 @@
  {"Your Jabber account was successfully created.","Uw Jabber-account is succesvol gecreeerd."}.
  {"Your Jabber account was successfully deleted.","Uw Jabber-account is succesvol verwijderd."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Uw berichten aan ~s worden geblokkeerd. Om ze te deblokkeren, ga naar ~s"}.
@@ -21,10 +21,10 @@ index 8bb1c0eb..22c83f20 100644
 +{"Body", "Berichtveld"}.
 +{"Messages", "Berichten"}.
 diff --git a/priv/msgs/pl.msg b/priv/msgs/pl.msg
-index 03fbd3d0..89d09f34 100644
+index 6b303cc9..664f1c95 100644
 --- a/priv/msgs/pl.msg
 +++ b/priv/msgs/pl.msg
-@@ -438,3 +438,29 @@
+@@ -390,3 +390,29 @@
  {"Your Jabber account was successfully created.","Twoje konto zostało stworzone."}.
  {"Your Jabber account was successfully deleted.","Twoje konto zostało usunięte."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Twoje wiadomości do ~s są blokowane. Aby je odblokować, odwiedź ~s"}.
@@ -55,10 +55,10 @@ index 03fbd3d0..89d09f34 100644
 +{"Purge messages older than (days)", "Usuń wiadomości starsze niż (w dniach)"}.
 +{"Poll users settings (seconds)", "Czas aktualizacji preferencji użytkowników (sekundy)"}.
 diff --git a/priv/msgs/ru.msg b/priv/msgs/ru.msg
-index 7acab78f..18af522a 100644
+index 05849f51..b87bf9bb 100644
 --- a/priv/msgs/ru.msg
 +++ b/priv/msgs/ru.msg
-@@ -426,3 +426,33 @@
+@@ -386,3 +386,33 @@
  {"Your Jabber account was successfully created.","Ваш Jabber-аккаунт был успешно создан."}.
  {"Your Jabber account was successfully deleted.","Ваш Jabber-аккаунт был успешно удален."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Ваши сообщения к ~s блокируются. Для снятия блокировки перейдите по ссылке ~s"}.
@@ -93,10 +93,10 @@ index 7acab78f..18af522a 100644
 +{"Do not drop", "Не удалять"}.
 +{"Drop messages on user removal", "Удалять сообщения при удалении пользователя"}.
 diff --git a/priv/msgs/uk.msg b/priv/msgs/uk.msg
-index 568ac092..3a324ed1 100644
+index a1159b53..4bdab4c5 100644
 --- a/priv/msgs/uk.msg
 +++ b/priv/msgs/uk.msg
-@@ -438,3 +438,33 @@
+@@ -390,3 +390,33 @@
  {"Your Jabber account was successfully created.","Ваш Jabber-акаунт було успішно створено."}.
  {"Your Jabber account was successfully deleted.","Ваш Jabber-акаунт було успішно видалено."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Ваші повідомлення до ~s блокуються. Для розблокування відвідайте ~s"}.
@@ -131,19 +131,19 @@ index 568ac092..3a324ed1 100644
 +{"Do not drop", "Не видаляти"}.
 +{"Drop messages on user removal", "Видаляти повідомлення під час видалення користувача"}.
 diff --git a/rebar.config b/rebar.config
-index aef3a017..b35db36f 100644
+index 477343c5..db58ab69 100644
 --- a/rebar.config
 +++ b/rebar.config
 @@ -33,8 +33,8 @@
-         {eimp, ".*", {git, "https://github.com/processone/eimp", {tag, "1.0.5"}}},
-         {if_var_true, stun, {stun, ".*", {git, "https://github.com/processone/stun", {tag, "1.0.21"}}}},
-         {if_var_true, sip, {esip, ".*", {git, "https://github.com/processone/esip", {tag, "1.0.23"}}}},
+         {eimp, ".*", {git, "https://github.com/processone/eimp", {tag, "1.0.8"}}},
+         {if_var_true, stun, {stun, ".*", {git, "https://github.com/processone/stun", {tag, "1.0.25"}}}},
+         {if_var_true, sip, {esip, ".*", {git, "https://github.com/processone/esip", {tag, "1.0.26"}}}},
 -        {if_var_true, mysql, {p1_mysql, ".*", {git, "https://github.com/processone/p1_mysql",
--                                               {tag, "1.0.5"}}}},
+-                                               {tag, "1.0.7"}}}},
 +        {if_var_true, mysql, {p1_mysql, ".*", {git, "https://github.com/paleg/p1_mysql",
 +                                               {branch, "multi"}}}},
          {if_var_true, pgsql, {p1_pgsql, ".*", {git, "https://github.com/processone/p1_pgsql",
-                                                {tag, "1.1.5"}}}},
+                                                {tag, "1.1.6"}}}},
          {if_var_true, sqlite, {sqlite3, ".*", {git, "https://github.com/processone/erlang-sqlite3",
 diff --git a/src/gen_logdb.erl b/src/gen_logdb.erl
 new file mode 100644
@@ -315,10 +315,10 @@ index 00000000..8bad1129
 +   undefined.
 diff --git a/src/mod_logdb.erl b/src/mod_logdb.erl
 new file mode 100644
-index 00000000..d5983820
+index 00000000..bf0240d1
 --- /dev/null
 +++ b/src/mod_logdb.erl
-@@ -0,0 +1,1952 @@
+@@ -0,0 +1,1951 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb.erl
 +%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
@@ -378,7 +378,6 @@ index 00000000..d5983820
 +         user_messages_stats_at/5]).
 +
 +-include("mod_logdb.hrl").
-+-include("ejabberd.hrl").
 +-include("xmpp.hrl").
 +-include("mod_roster.hrl").
 +-include("ejabberd_commands.hrl").
@@ -2312,10 +2311,10 @@ index 00000000..49791f4e
 +                          {<<"checked">>, <<"true">>}])).
 diff --git a/src/mod_logdb_mnesia.erl b/src/mod_logdb_mnesia.erl
 new file mode 100644
-index 00000000..ea167d88
+index 00000000..a08d5262
 --- /dev/null
 +++ b/src/mod_logdb_mnesia.erl
-@@ -0,0 +1,555 @@
+@@ -0,0 +1,553 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mnesia.erl
 +%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
@@ -2327,8 +2326,6 @@ index 00000000..ea167d88
 +-author('o.palij@gmail.com').
 +
 +-include("mod_logdb.hrl").
-+-include("ejabberd.hrl").
-+-include("jlib.hrl").
 +-include("logger.hrl").
 +
 +-behaviour(gen_logdb).
@@ -2873,10 +2870,10 @@ index 00000000..ea167d88
 +               {record_name, msg}]).
 diff --git a/src/mod_logdb_mysql.erl b/src/mod_logdb_mysql.erl
 new file mode 100644
-index 00000000..09036211
+index 00000000..21d65e65
 --- /dev/null
 +++ b/src/mod_logdb_mysql.erl
-@@ -0,0 +1,1052 @@
+@@ -0,0 +1,1050 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql.erl
 +%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
@@ -2888,8 +2885,6 @@ index 00000000..09036211
 +-author('o.palij@gmail.com').
 +
 +-include("mod_logdb.hrl").
-+-include("ejabberd.hrl").
-+-include("jlib.hrl").
 +-include("logger.hrl").
 +
 +-behaviour(gen_logdb).
@@ -3931,10 +3926,10 @@ index 00000000..09036211
 +    {error, Reason}.
 diff --git a/src/mod_logdb_mysql5.erl b/src/mod_logdb_mysql5.erl
 new file mode 100644
-index 00000000..b6025a3d
+index 00000000..c05ab958
 --- /dev/null
 +++ b/src/mod_logdb_mysql5.erl
-@@ -0,0 +1,981 @@
+@@ -0,0 +1,979 @@
 +%%%----------------------------------------------------------------------
 +%%% File    : mod_logdb_mysql5.erl
 +%%% Author  : Oleg Palij (mailto:o.palij@gmail.com)
@@ -3946,8 +3941,6 @@ index 00000000..b6025a3d
 +-author('o.palij@gmail.com').
 +
 +-include("mod_logdb.hrl").
-+-include("ejabberd.hrl").
-+-include("jlib.hrl").
 +-include("logger.hrl").
 +
 +-behaviour(gen_logdb).
@@ -4918,10 +4911,10 @@ index 00000000..b6025a3d
 +END;", [logmessage_name(VHost),UName,UName,UName,UName,SName,SName,RName,RName,UName,UName,SName,RName,StName,StName]).
 diff --git a/src/mod_logdb_pgsql.erl b/src/mod_logdb_pgsql.erl
 new file mode 100644
-index 00000000..61a71fff
+index 00000000..202c6ed4
 --- /dev/null
 +++ b/src/mod_logdb_pgsql.erl
-@@ -0,0 +1,1106 @@
+@@ -0,0 +1,1104 @@
 +% {ok, DBRef} = pgsql:connect([{host, "127.0.0.1"}, {database, "logdb"}, {user, "logdb"}, {password, "logdb"}, {port, 5432}, {as_binary, true}]).
 +% Schema = "test".
 +% pgsql:squery(DBRef, "CREATE TABLE test.\"logdb_stats_test\" (owner_id INTEGER, peer_name_id INTEGER, peer_server_id INTEGER, at VARCHAR(20), count integer);" ).
@@ -4936,8 +4929,6 @@ index 00000000..61a71fff
 +-author('o.palij@gmail.com').
 +
 +-include("mod_logdb.hrl").
-+-include("ejabberd.hrl").
-+-include("jlib.hrl").
 +-include("logger.hrl").
 +
 +-behaviour(gen_logdb).
@@ -6029,19 +6020,19 @@ index 00000000..61a71fff
 +    {error, undefined, Rez}.
 +
 diff --git a/src/mod_roster.erl b/src/mod_roster.erl
-index cf281528..c3a5c92a 100644
+index 38c3a78b..f02f2cd3 100644
 --- a/src/mod_roster.erl
 +++ b/src/mod_roster.erl
-@@ -65,6 +65,8 @@
- 
- -define(SETS, gb_sets).
+@@ -66,6 +66,8 @@
+ -define(ROSTER_ITEM_CACHE, roster_item_cache).
+ -define(ROSTER_VERSION_CACHE, roster_version_cache).
  
 +-include("mod_logdb.hrl").
 +
  -export_type([subscription/0]).
  
  -callback init(binary(), gen_mod:opts()) -> any().
-@@ -943,6 +945,14 @@ user_roster(User, Server, Query, Lang) ->
+@@ -911,6 +913,14 @@ user_roster(User, Server, Query, Lang) ->
  				  Query),
      Items = get_roster(LUser, LServer),
      SItems = lists:sort(Items),
@@ -6056,7 +6047,7 @@ index cf281528..c3a5c92a 100644
      FItems = case SItems of
  	       [] -> [?CT(<<"None">>)];
  	       _ ->
-@@ -1000,7 +1010,33 @@ user_roster(User, Server, Query, Lang) ->
+@@ -968,7 +978,33 @@ user_roster(User, Server, Query, Lang) ->
  							  [?INPUTT(<<"submit">>,
  								   <<"remove",
  								     (ejabberd_web_admin:term_to_id(R#roster.jid))/binary>>,
@@ -6091,7 +6082,7 @@ index cf281528..c3a5c92a 100644
  					end,
  					SItems)))])]
  	     end,
-@@ -1107,9 +1143,42 @@ user_roster_item_parse_query(User, Server, Items,
+@@ -1075,9 +1111,42 @@ user_roster_item_parse_query(User, Server, Items,
  					    sub_els = [#roster_query{
  							  items = [RosterItem]}]}),
  				      throw(submitted);
@@ -6137,3 +6128,4 @@ index cf281528..c3a5c92a 100644
  		  end,
  		  Items),
      nothing.
+
