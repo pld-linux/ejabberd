@@ -9,12 +9,12 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	18.09
+Version:	18.12
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	f9a49230810c94328a0dc01c63a24b22
+# Source0-md5:	8b3a8a8338b1171129a0b2ede009e5ae
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
@@ -22,45 +22,47 @@ Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10:	ejabberd-base64url-20150806.tar.gz
-# Source10-md5:	6173689227956f8a60951a8791facf31
-Source11:	ejabberd-cache_tab-20180924.tar.gz
-# Source11-md5:	69965f1816be4f708e259f24a973e502
-Source12:	ejabberd-eimp-20180924.tar.gz
-# Source12-md5:	c920c320c8512bdbb31a2e834b02ca7d
+# Source10-md5:	0d0a6421ccb91adb004d9c930da2c43c
+Source11:	ejabberd-cache_tab-20181204.tar.gz
+# Source11-md5:	3debe5111c93aeff9779354691c56881
+Source12:	ejabberd-eimp-20180925.tar.gz
+# Source12-md5:	74ca7119a2bbe4c1c3c05b8acf30649b
 Source13:	ejabberd-elixir-20170515.tar.gz
-# Source13-md5:	4a637973eab83b07e8cc4b24564c0f5c
+# Source13-md5:	64443fc99538c09e32a052bae8f30d50
 Source14:	ejabberd-ezlib-20180322.tar.gz
-# Source14-md5:	e36b09a55a7d972694fcd24882da05c7
-Source15:	ejabberd-fast_tls-20180924.tar.gz
-# Source15-md5:	d369c70c9ae7e89680d1c909a46e2087
+# Source14-md5:	dfbb568ae96c5b33ced5a31f3bf1d53a
+Source15:	ejabberd-fast_tls-20181129.tar.gz
+# Source15-md5:	785607922ce506a858be01f17c7d37de
 Source16:	ejabberd-fast_xml-20180924.tar.gz
-# Source16-md5:	65c980e9a77f00b8a1a0357f51a3ed38
+# Source16-md5:	d5779e69cd2fc5e498f2e316a6e0f2e2
 Source17:	ejabberd-fast_yaml-20180924.tar.gz
-# Source17-md5:	0d419e5b6694ed6410e6258a2f4c9b47
+# Source17-md5:	d9d300d96d95eda586f0fd9ce2834432
 Source18:	ejabberd-goldrush-20160531.tar.gz
-# Source18-md5:	06ec6d9ff4686590716b8b017504a16f
+# Source18-md5:	dfe99336f279d58f3603142450c5f6a6
 Source19:	ejabberd-iconv-20180924.tar.gz
-# Source19-md5:	8b19bcd50a7158b21d8527fe7a757590
+# Source19-md5:	edad4b97b8b4a94465885adc8106822f
 Source20:	ejabberd-jiffy-20160331.tar.gz
-# Source20-md5:	5870143655d179e584c66048939d1e90
+# Source20-md5:	b12c5bc8d79e3ef741ed46f375010764
 Source21:	ejabberd-jose-20170518.tar.gz
-# Source21-md5:	5fcabb971cb0aed4cfdd8ffb29da8b2b
-Source22:	ejabberd-lager-20180903.tar.gz
-# Source22-md5:	2002e520d7b3de16658d0f350e7ebb89
+# Source21-md5:	db5cca1f0cd25e1972c3f5745de92b52
+Source22:	ejabberd-lager-20181014.tar.gz
+# Source22-md5:	819a7871ec9c837aa05609eaded0d508
 Source23:	ejabberd-p1_mysql-20180723.tar.gz
-# Source23-md5:	2cb927e43c1ce1c2009a69da0aebeff4
+# Source23-md5:	e3bdb82e3aaf99c0e6f4ab70a71848d4
 Source24:	ejabberd-p1_oauth2-20180425.tar.gz
-# Source24-md5:	16883be155a73786d504a1ed9dcb4d40
+# Source24-md5:	cdc232ea44c381c6cb06615f83ca4005
 Source25:	ejabberd-p1_pgsql-20180628.tar.gz
-# Source25-md5:	9b41c1653f583812a5d22890ac364baa
+# Source25-md5:	d12826dec9231d41c92474b126e824c6
 Source26:	ejabberd-p1_utils-20180924.tar.gz
-# Source26-md5:	5f94c266a3fe2ededfaedfbd612d80bf
-Source27:	ejabberd-rebar_elixir_plugin-20160105.tar.gz
-# Source27-md5:	080553b9e073ca3f3622432ea03ad1c3
-Source28:	ejabberd-stringprep-20180924.tar.gz
-# Source28-md5:	c12bd4c434e423ef93b87f6b26bd635c
-Source29:	ejabberd-xmpp-20180925.tar.gz
-# Source29-md5:	dd9a94fab67c516bffbcd0845819b8d4
+# Source26-md5:	93b3c4140d0c84971728c080d4a8722f
+Source27:	ejabberd-pkix-20181205.tar.gz
+# Source27-md5:	4a3b369cedd1feecd87101fe795f10dc
+Source28:	ejabberd-rebar_elixir_plugin-20160105.tar.gz
+# Source28-md5:	20a974e75677eb0e17f303370ccca6f6
+Source29:	ejabberd-stringprep-20180924.tar.gz
+# Source29-md5:	1b0da80d5a66341192cbb0eeb52ad1c5
+Source30:	ejabberd-xmpp-20181204.tar.gz
+# Source30-md5:	ba424280ce158bf58a8542d75744a9b0
 
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
@@ -112,7 +114,7 @@ Requires:	%{name} = %{version}-%{release}
 Server-side logging module.
 
 %prep
-%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27 -a 28 -a 29
+%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27 -a 28 -a 29 -a 30
 %patch0 -p1
 %patch1 -p1
 #%%patch2 -p1
@@ -352,6 +354,8 @@ fi
 %{_libdir}/p1_oauth2-*
 %{_libdir}/p1_pgsql-*
 %{_libdir}/p1_utils-*
+%{_libdir}/pkix-*/ebin
+%{_libdir}/pkix-*/LICENSE
 %{_libdir}/rebar_elixir_plugin-*
 %{_libdir}/stringprep-*
 %{_libdir}/xmpp-*
