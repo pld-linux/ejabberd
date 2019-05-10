@@ -7,27 +7,27 @@ index 9dfd896b..f35ff07a 100644
  {"Your Jabber account was successfully deleted.","Uw Jabber-account is succesvol verwijderd."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Uw berichten aan ~s worden geblokkeerd. Om ze te deblokkeren, ga naar ~s"}.
 +% mod_logdb
-+{"Users Messages", "Gebruikersberichten"}.
-+{"Date", "Datum"}.
-+{"Count", "Aantal"}.
-+{"Logged messages for ~s", "Gelogde berichten van ~s"}.
-+{"Logged messages for ~s at ~s", "Gelogde berichten van ~s op ~s"}.
++{"users messages", "gebruikersberichten"}.
++{"date", "datum"}.
++{"count", "aantal"}.
++{"logged messages for ~s", "gelogde berichten van ~s"}.
++{"logged messages for ~s at ~s", "gelogde berichten van ~s op ~s"}.
 +{" at ", " op "}.
-+{"No logged messages for ~s", "Geen gelogde berichten van ~s"}.
-+{"No logged messages for ~s at ~s", "Geen gelogde berichten van ~s op ~s"}.
-+{"Date, Time", "Datum en tijd"}.
-+{"Direction: Jid", "Richting: Jabber ID"}.
-+{"Subject", "Onderwerp"}.
-+{"Body", "Berichtveld"}.
-+{"Messages", "Berichten"}.
++{"no logged messages for ~s", "geen gelogde berichten van ~s"}.
++{"no logged messages for ~s at ~s", "geen gelogde berichten van ~s op ~s"}.
++{"date, time", "datum en tijd"}.
++{"direction: jid", "richting: jabber id"}.
++{"subject", "onderwerp"}.
++{"body", "berichtveld"}.
++{"messages", "berichten"}.
 diff --git a/priv/msgs/pl.msg b/priv/msgs/pl.msg
 index 6b303cc9..664f1c95 100644
 --- a/priv/msgs/pl.msg
 +++ b/priv/msgs/pl.msg
 @@ -390,3 +390,29 @@
- {"Your Jabber account was successfully created.","Twoje konto zostało stworzone."}.
  {"Your Jabber account was successfully deleted.","Twoje konto zostało usunięte."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Twoje wiadomości do ~s są blokowane. Aby je odblokować, odwiedź ~s"}.
+ {"You're not allowed to create nodes","Nie masz uprawnień do tworzenia węzłów"}.
 +% mod_logdb
 +{"Users Messages", "Wiadomości użytkownika"}.
 +{"Date", "Data"}.
@@ -59,9 +59,9 @@ index 05849f51..b87bf9bb 100644
 --- a/priv/msgs/ru.msg
 +++ b/priv/msgs/ru.msg
 @@ -386,3 +386,33 @@
- {"Your Jabber account was successfully created.","Ваш Jabber-аккаунт был успешно создан."}.
  {"Your Jabber account was successfully deleted.","Ваш Jabber-аккаунт был успешно удален."}.
  {"Your messages to ~s are being blocked. To unblock them, visit ~s","Ваши сообщения к ~s блокируются. Для снятия блокировки перейдите по ссылке ~s"}.
+ {"You're not allowed to create nodes","Вам не разрешается создавать узлы"}.
 +% mod_logdb.erl
 +{"Users Messages", "Сообщения пользователей"}.
 +{"Date", "Дата"}.
@@ -135,15 +135,15 @@ index 477343c5..db58ab69 100644
 --- a/rebar.config
 +++ b/rebar.config
 @@ -33,8 +33,8 @@
-         {eimp, ".*", {git, "https://github.com/processone/eimp", {tag, "1.0.9"}}},
-         {if_var_true, stun, {stun, ".*", {git, "https://github.com/processone/stun", {tag, "1.0.26"}}}},
-         {if_var_true, sip, {esip, ".*", {git, "https://github.com/processone/esip", {tag, "1.0.27"}}}},
+         {mqtree, ".*", {git, "https://github.com/processone/mqtree", {tag, "1.0.2"}}}
+         {if_var_true, stun, {stun, ".*", {git, "https://github.com/processone/stun", {tag, "1.0.27"}}}},
+         {if_var_true, sip, {esip, ".*", {git, "https://github.com/processone/esip", {tag, "1.0.28"}}}},
 -        {if_var_true, mysql, {p1_mysql, ".*", {git, "https://github.com/processone/p1_mysql",
--                                               {tag, "1.0.8"}}}},
+-                                               {tag, "1.0.9"}}}},
 +        {if_var_true, mysql, {p1_mysql, ".*", {git, "https://github.com/paleg/p1_mysql",
 +                                               {branch, "multi"}}}},
          {if_var_true, pgsql, {p1_pgsql, ".*", {git, "https://github.com/processone/p1_pgsql",
-                                                {tag, "1.1.6"}}}},
+                                                {tag, "1.1.7"}}}},
          {if_var_true, sqlite, {sqlite3, ".*", {git, "https://github.com/processone/erlang-sqlite3",
 diff --git a/src/gen_logdb.erl b/src/gen_logdb.erl
 new file mode 100644
