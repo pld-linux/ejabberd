@@ -10,7 +10,7 @@ Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	19.02
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
@@ -59,10 +59,12 @@ Source27:       ejabberd-pkix-20190226.tar.gz
 # Source27-md5:	23dbf61b04f415a5ae880b1e209cc498
 Source28:       ejabberd-rebar_elixir_plugin-20160105.tar.gz
 # Source28-md5:	6a069a566d71c3daa45fc4736364adf0
-Source29:       ejabberd-stringprep-20190226.tar.gz
-# Source29-md5:	cec9cabb413973fc2ea1e904f5be7ee7
-Source30:       ejabberd-xmpp-20190226.tar.gz
-# Source30-md5:	7bdf3e5c5d3e6acb2837357137cdf27f
+Source29:       ejabberd-sqlite3-20180130.tar.gz
+# Source29-md5:	cc8950eb769eb6ceb13723a7b61fe507
+Source30:       ejabberd-stringprep-20190226.tar.gz
+# Source30-md5:	cec9cabb413973fc2ea1e904f5be7ee7
+Source31:       ejabberd-xmpp-20190226.tar.gz
+# Source31-md5:	7bdf3e5c5d3e6acb2837357137cdf27f
 
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
@@ -80,6 +82,7 @@ BuildRequires:	pam-devel
 %endif
 BuildRequires:	git-core
 BuildRequires:	rpmbuild(macros) >= 1.671
+BuildRequires:	sqlite3-devel
 BuildRequires:	yaml-devel
 BuildRequires:	zlib-devel
 Requires(post):	/usr/bin/perl
@@ -114,7 +117,7 @@ Requires:	%{name} = %{version}-%{release}
 Server-side logging module.
 
 %prep
-%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27 -a 28 -a 29 -a 30
+%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27 -a 28 -a 29 -a 30 -a 31
 %patch0 -p1
 %patch1 -p1
 #%%patch2 -p1
@@ -148,6 +151,7 @@ unset GIT_DIR GIT_WORK_TREE
 	--enable-odbc \
 	--enable-mysql \
 	--enable-pgsql \
+	--enable-sqlite --with-sqlite3 \
 	%{?with_pam:--enable-pam} \
 	--enable-zlib
 
@@ -358,6 +362,10 @@ fi
 %{_libdir}/pkix-*/ebin
 %{_libdir}/pkix-*/LICENSE
 %{_libdir}/rebar_elixir_plugin-*
+%{_libdir}/sqlite3-*/ebin
+%dir %{_libdir}/sqlite3-*
+%dir %{_libdir}/sqlite3-*/priv
+%attr(755,root,root) %{_libdir}/sqlite3-*/priv/sqlite3_drv.so
 %{_libdir}/stringprep-*
 %{_libdir}/xmpp-*
 %dir %attr(770,root,jabber) /var/lib/ejabberd

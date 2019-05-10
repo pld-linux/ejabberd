@@ -1,4 +1,4 @@
-#!/bin/sh -ex
+#!/bin/sh -e
 
 current_dir=$(readlink -f .)
 if [ "$(basename $current_dir)" != "deps" ] \
