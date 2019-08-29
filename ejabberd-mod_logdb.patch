@@ -975,8 +975,8 @@ index 00000000..bf0240d1
 +% return float seconds elapsed from "zero hour" as list
 +get_timestamp() ->
 +    {MegaSec, Sec, MicroSec} = now(),
-+    [List] = io_lib:format("~.5f", [MegaSec*1000000 + Sec + MicroSec/1000000]),
-+    List.
++    float_to_list(MegaSec*1000000 + Sec + MicroSec/1000000, [{decimals, 5}, compact]).
++
 +
 +% convert float seconds elapsed from "zero hour" to local time "%Y-%m-%d %H:%M:%S" string
 +convert_timestamp(Seconds) when is_list(Seconds) ->
