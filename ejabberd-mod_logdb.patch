@@ -385,7 +385,7 @@ index 00000000..bf0240d1
 +-include("ejabberd_web_admin.hrl").
 +-include("ejabberd_http.hrl").
 +-include("logger.hrl").
-+
++-include("translate.hrl").
 +-define(PROCNAME, ejabberd_mod_logdb).
 +% gen_server call timeout
 +-define(CALL_TIMEOUT, 10000).
@@ -975,8 +975,8 @@ index 00000000..bf0240d1
 +% return float seconds elapsed from "zero hour" as list
 +get_timestamp() ->
 +    {MegaSec, Sec, MicroSec} = now(),
-+    [List] = io_lib:format("~.5f", [MegaSec*1000000 + Sec + MicroSec/1000000]),
-+    List.
++    float_to_list(MegaSec*1000000 + Sec + MicroSec/1000000, [{decimals, 5}, compact]).
++
 +
 +% convert float seconds elapsed from "zero hour" to local time "%Y-%m-%d %H:%M:%S" string
 +convert_timestamp(Seconds) when is_list(Seconds) ->
@@ -1372,12 +1372,12 @@ index 00000000..bf0240d1
 +            end
 +    end.
 +
-+-define(T(Lang, Text), translate:translate(Lang, Text)).
++-define(TLT(Lang, Text), translate:translate(Lang, Text)).
 +
 +-define(NODE(Name, Node),
 +    #disco_item{jid = jid:make(Server),
 +            node = Node,
-+            name = ?T(Lang, Name)}).
++            name = ?TLT(Lang, Name)}).
 +
 +-define(NS_ADMINX(Sub),
 +    <<(?NS_ADMIN)/binary, "#", Sub/binary>>).
@@ -1454,7 +1454,7 @@ index 00000000..bf0240d1
 +    end.
 +
 +-define(INFO_IDENTITY(Category, Type, Name, Lang),
-+    [#identity{category = Category, type = Type, name = ?T(Lang, Name)}]).
++    [#identity{category = Category, type = Type, name = ?TLT(Lang, Name)}]).
 +
 +-define(INFO_COMMAND(Name, Lang),
 +    ?INFO_IDENTITY(<<"automation">>, <<"command-node">>,
@@ -1599,28 +1599,28 @@ index 00000000..bf0240d1
 +    Fs = [
 +          #xdata_field{
 +             type = 'list-single',
-+             label = ?T(Lang, <<"Default">>),
++             label = ?TLT(Lang, <<"Default">>),
 +             var = <<"dolog_default">>,
 +             values = [misc:atom_to_binary(DLD)],
-+             options = [#xdata_option{label = ?T(Lang, <<"Log Messages">>),
++             options = [#xdata_option{label = ?TLT(Lang, <<"Log Messages">>),
 +                                      value = <<"true">>},
-+                        #xdata_option{label = ?T(Lang, <<"Do Not Log Messages">>),
++                        #xdata_option{label = ?TLT(Lang, <<"Do Not Log Messages">>),
 +                                      value = <<"false">>}]},
 +          #xdata_field{
 +             type = 'text-multi',
-+             label = ?T(Lang, <<"Log Messages">>),
++             label = ?TLT(Lang, <<"Log Messages">>),
 +             var = <<"dolog_list">>,
 +             values = DLL},
 +          #xdata_field{
 +             type = 'text-multi',
-+             label = ?T(Lang, <<"Do Not Log Messages">>),
++             label = ?TLT(Lang, <<"Do Not Log Messages">>),
 +             var = <<"donotlog_list">>,
 +             values = DNLL}
 +         ],
 +    {result, #xdata{
-+                title = ?T(Lang, <<"Messages logging engine settings">>),
++                title = ?TLT(Lang, <<"Messages logging engine settings">>),
 +                type = form,
-+                instructions = [<< (?T(Lang, <<"Set logging preferences">>))/binary,
++                instructions = [<< (?TLT(Lang, <<"Set logging preferences">>))/binary,
 +                                               (iolist_to_binary(": "))/binary,
 +                                               LUser/binary, "@", LServer/binary >>],
 +                fields = [?HFIELD()|
@@ -1646,52 +1646,52 @@ index 00000000..bf0240d1
 +    Fs = [
 +          #xdata_field{
 +             type = 'list-single',
-+             label = ?T(Lang, <<"Default">>),
++             label = ?TLT(Lang, <<"Default">>),
 +             var = <<"dolog_default">>,
 +             values = [misc:atom_to_binary(DLD)],
-+             options = [#xdata_option{label = ?T(Lang, <<"Log Messages">>),
++             options = [#xdata_option{label = ?TLT(Lang, <<"Log Messages">>),
 +                                      value = <<"true">>},
-+                        #xdata_option{label = ?T(Lang, <<"Do Not Log Messages">>),
++                        #xdata_option{label = ?TLT(Lang, <<"Do Not Log Messages">>),
 +                                      value = <<"false">>}]},
 +          #xdata_field{
 +             type = 'list-single',
-+             label = ?T(Lang, <<"Drop messages on user removal">>),
++             label = ?TLT(Lang, <<"Drop messages on user removal">>),
 +             var = <<"drop_messages_on_user_removal">>,
 +             values = [misc:atom_to_binary(MRemoval)],
-+             options = [#xdata_option{label = ?T(Lang, <<"Drop">>),
++             options = [#xdata_option{label = ?TLT(Lang, <<"Drop">>),
 +                                      value = <<"true">>},
-+                        #xdata_option{label = ?T(Lang, <<"Do not drop">>),
++                        #xdata_option{label = ?TLT(Lang, <<"Do not drop">>),
 +                                      value = <<"false">>}]},
 +          #xdata_field{
 +             type = 'list-single',
-+             label = ?T(Lang, <<"Groupchat messages logging">>),
++             label = ?TLT(Lang, <<"Groupchat messages logging">>),
 +             var = <<"groupchat">>,
 +             values = [misc:atom_to_binary(GroupChat)],
-+             options = [#xdata_option{label = ?T(Lang, <<"all">>),
++             options = [#xdata_option{label = ?TLT(Lang, <<"all">>),
 +                                      value = <<"all">>},
-+                        #xdata_option{label = ?T(Lang, <<"none">>),
++                        #xdata_option{label = ?TLT(Lang, <<"none">>),
 +                                      value = <<"none">>},
-+                        #xdata_option{label = ?T(Lang, <<"send">>),
++                        #xdata_option{label = ?TLT(Lang, <<"send">>),
 +                                      value = <<"send">>}]},
 +          #xdata_field{
 +             type = 'text-multi',
-+             label = ?T(Lang, <<"Jids/Domains to ignore">>),
++             label = ?TLT(Lang, <<"Jids/Domains to ignore">>),
 +             var = <<"ignore_list">>,
 +             values = IgnoreJids},
 +          #xdata_field{
 +             type = 'text-single',
-+             label = ?T(Lang, <<"Purge messages older than (days)">>),
++             label = ?TLT(Lang, <<"Purge messages older than (days)">>),
 +             var = <<"purge_older_days">>,
 +             values = [iolist_to_binary(PurgeDays)]},
 +          #xdata_field{
 +             type = 'text-single',
-+             label = ?T(Lang, <<"Poll users settings (seconds)">>),
++             label = ?TLT(Lang, <<"Poll users settings (seconds)">>),
 +             var = <<"poll_users_settings">>,
 +             values = [integer_to_binary(PollTime)]}
 +         ],
 +    {result, #xdata{
-+                title = ?T(Lang, <<"Messages logging engine settings (run-time)">>),
-+                instructions = [?T(Lang, <<"Set run-time settings">>)],
++                title = ?TLT(Lang, <<"Messages logging engine settings (run-time)">>),
++                instructions = [?TLT(Lang, <<"Set run-time settings">>)],
 +                type = form,
 +                fields = [?HFIELD()|
 +                          Fs]}}.
@@ -1899,7 +1899,7 @@ index 00000000..bf0240d1
 +%
 +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 +webadmin_menu(Acc, _Host, Lang) ->
-+    [{<<"messages">>, ?T(<<"Users Messages">>)} | Acc].
++    [{<<"messages">>, ?TLT(Lang, <<"Users Messages">>)} | Acc].
 +
 +webadmin_user(Acc, User, Server, Lang) ->
 +    Sett = get_user_settings(User, Server),
@@ -1970,12 +1970,12 @@ index 00000000..bf0240d1
 +    case Value of
 +         {'EXIT', CReason} ->
 +              ?ERROR_MSG("Failed to get_vhost_stats: ~p", [CReason]),
-+              [?XC(<<"h1">>, ?T(<<"Error occupied while fetching list">>))];
++              [?XC(<<"h1">>, ?T("Error occupied while fetching list"))];
 +         {error, GReason} ->
 +              ?ERROR_MSG("Failed to get_vhost_stats: ~p", [GReason]),
-+              [?XC(<<"h1">>, ?T(<<"Error occupied while fetching list">>))];
++              [?XC(<<"h1">>, ?T("Error occupied while fetching list"))];
 +         {ok, []} ->
-+              [?XC(<<"h1">>, list_to_binary(io_lib:format(?T(<<"No logged messages for ~s">>), [Server])))];
++              [?XC(<<"h1">>, list_to_binary(io_lib:format(?T("No logged messages for ~s"), [Server])))];
 +         {ok, Dates} ->
 +              Fun = fun({Date, Count}) ->
 +                         DateBin = iolist_to_binary(Date),
@@ -1988,7 +1988,7 @@ index 00000000..bf0240d1
 +                          ])
 +                    end,
 +
-+              [?XC(<<"h1">>, list_to_binary(io_lib:format(?T(<<"Logged messages for ~s">>), [Server])))] ++
++              [?XC(<<"h1">>, list_to_binary(io_lib:format(?T("Logged messages for ~s"), [Server])))] ++
 +               case Res of
 +                    ok -> [?CT(<<"Submitted">>), ?P];
 +                    error -> [?CT(<<"Bad format">>), ?P];
@@ -2017,12 +2017,12 @@ index 00000000..bf0240d1
 +   case Value of
 +        {'EXIT', CReason} ->
 +             ?ERROR_MSG("Failed to get_vhost_stats_at: ~p", [CReason]),
-+             [?XC(<<"h1">>, ?T(<<"Error occupied while fetching list">>))];
++             [?XC(<<"h1">>, ?T("Error occupied while fetching list"))];
 +        {error, GReason} ->
 +             ?ERROR_MSG("Failed to get_vhost_stats_at: ~p", [GReason]),
-+             [?XC(<<"h1">>, ?T(<<"Error occupied while fetching list">>))];
++             [?XC(<<"h1">>, ?T("Error occupied while fetching list"))];
 +        {ok, []} ->
-+             [?XC(<<"h1">>, list_to_binary(io_lib:format(?T(<<"No logged messages for ~s at ~s">>), [Server, Date])))];
++             [?XC(<<"h1">>, list_to_binary(io_lib:format(?T("No logged messages for ~s at ~s"), [Server, Date])))];
 +        {ok, Stats} ->
 +             Res = case catch vhost_messages_at_parse_query(Server, Date, Stats, Query) of
 +                        {'EXIT', Reason} ->
@@ -2040,7 +2040,7 @@ index 00000000..bf0240d1
 +                           ?XC(<<"td">>, integer_to_binary(Count))
 +                          ])
 +                   end,
-+             [?XC(<<"h1">>, list_to_binary(io_lib:format(?T(<<"Logged messages for ~s at ~s">>), [Server, Date])))] ++
++             [?XC(<<"h1">>, list_to_binary(io_lib:format(?T("Logged messages for ~s at ~s"), [Server, Date])))] ++
 +              case Res of
 +                    ok -> [?CT(<<"Submitted">>), ?P];
 +                    error -> [?CT(<<"Bad format">>), ?P];
@@ -2078,12 +2078,12 @@ index 00000000..bf0240d1
 +   case Value of
 +        {'EXIT', CReason} ->
 +            ?ERROR_MSG("Failed to get_user_stats: ~p", [CReason]),
-+            [?XC(<<"h1">>, ?T(<<"Error occupied while fetching days">>))];
++            [?XC(<<"h1">>, ?T("Error occupied while fetching days"))];
 +        {error, GReason} ->
 +            ?ERROR_MSG("Failed to get_user_stats: ~p", [GReason]),
-+            [?XC(<<"h1">>, ?T(<<"Error occupied while fetching days">>))];
++            [?XC(<<"h1">>, ?T("Error occupied while fetching days"))];
 +        {ok, []} ->
-+            [?XC(<<"h1">>, list_to_binary(io_lib:format(?T(<<"No logged messages for ~s">>), [Jid])))];
++            [?XC(<<"h1">>, list_to_binary(io_lib:format(?T("No logged messages for ~s"), [Jid])))];
 +        {ok, Dates} ->
 +            Fun = fun({Date, Count}) ->
 +                      DateBin = iolist_to_binary(Date),
@@ -2135,12 +2135,12 @@ index 00000000..bf0240d1
 +   case Value of
 +        {'EXIT', CReason} ->
 +           ?ERROR_MSG("Failed to get_user_messages_at: ~p", [CReason]),
-+           [?XC(<<"h1">>, ?T(<<"Error occupied while fetching messages">>))];
++           [?XC(<<"h1">>, ?T("Error occupied while fetching messages"))];
 +        {error, GReason} ->
 +           ?ERROR_MSG("Failed to get_user_messages_at: ~p", [GReason]),
-+           [?XC(<<"h1">>, ?T(<<"Error occupied while fetching messages">>))];
++           [?XC(<<"h1">>, ?T("Error occupied while fetching messages"))];
 +        {ok, []} ->
-+           [?XC(<<"h1">>, list_to_binary(io_lib:format(?T(<<"No logged messages for ~s at ~s">>), [Jid, Date])))];
++           [?XC(<<"h1">>, list_to_binary(io_lib:format(?T("No logged messages for ~s at ~s"), [Jid, Date])))];
 +        {ok, User_messages} ->
 +           Res =  case catch user_messages_at_parse_query(Server,
 +                                                          Date,
@@ -2209,7 +2209,7 @@ index 00000000..bf0240d1
 +                               body=Body}) ->
 +                      Text = case Subject of
 +                                  "" -> iolist_to_binary(Body);
-+                                  _ -> iolist_to_binary([binary_to_list(?T(<<"Subject">>)) ++ ": " ++ Subject ++ "\n" ++ Body])
++                                  _ -> iolist_to_binary([binary_to_list(?T("Subject")) ++ ": " ++ Subject ++ "\n" ++ Body])
 +                             end,
 +                      Resource = case PRes of
 +                                      [] -> [];
@@ -2236,7 +2236,7 @@ index 00000000..bf0240d1
 +           % Filtered user messages in html
 +           Msgs = lists:map(Msgs_Fun, lists:sort(User_messages_filtered)),
 +
-+           [?XC(<<"h1">>, list_to_binary(io_lib:format(?T(<<"Logged messages for ~s at ~s">>), [Jid, Date])))] ++
++           [?XC(<<"h1">>, list_to_binary(io_lib:format(?T("Logged messages for ~s at ~s"), [Jid, Date])))] ++
 +            case Res of
 +                 ok -> [?CT(<<"Submitted">>), ?P];
 +                 error -> [?CT(<<"Bad format">>), ?P];
