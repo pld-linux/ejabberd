@@ -10,7 +10,7 @@ Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	19.08
-Release:	0.1
+Release:	1
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
@@ -22,56 +22,56 @@ Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10:	%{name}-base64url-20190617.tar.gz
-# Source10-md5:	5a12fd2fb1f992c850aba5115aab3dd4
+# Source10-md5: 5a12fd2fb1f992c850aba5115aab3dd4
 Source11:	%{name}-cache_tab-20190802.tar.gz
-# Source11-md5:	cf0e72d17802d2e10d850f0e339a1c11
+# Source11-md5: cf0e72d17802d2e10d850f0e339a1c11
 Source12:	%{name}-eimp-20190802.tar.gz
-# Source12-md5:	ec256209f4c1798f1fc4c863881f9e43
+# Source12-md5: ec256209f4c1798f1fc4c863881f9e43
 Source13:	%{name}-elixir-20170515.tar.gz
-# Source13-md5:	73be42f7d0cda7aeee5c0e6dadc0c451
+# Source13-md5: 73be42f7d0cda7aeee5c0e6dadc0c451
 Source14:	%{name}-ezlib-20190523.tar.gz
-# Source14-md5:	e521f10bba8fd2208aa5c15272050399
+# Source14-md5: e521f10bba8fd2208aa5c15272050399
 Source15:	%{name}-fast_tls-20190802.tar.gz
-# Source15-md5:	80359622cc6d929923d5c316f9b9061f
+# Source15-md5: 80359622cc6d929923d5c316f9b9061f
 Source16:	%{name}-fast_xml-20190802.tar.gz
-# Source16-md5:	628bc356a896e6921818700738d977e5
+# Source16-md5: 628bc356a896e6921818700738d977e5
 Source17:	%{name}-fast_yaml-20190802.tar.gz
-# Source17-md5:	9a277749887e10ef34a50ff08c6b2d82
+# Source17-md5: 9a277749887e10ef34a50ff08c6b2d82
 Source18:	%{name}-goldrush-20160531.tar.gz
-# Source18-md5:	acac73f0fc85d23671f0c49c68f8df8a
+# Source18-md5: acac73f0fc85d23671f0c49c68f8df8a
 Source19:	%{name}-jiffy-20160331.tar.gz
-# Source19-md5:	78f31a7dea7538ef3e63f77351f4d0b7
+# Source19-md5: 78f31a7dea7538ef3e63f77351f4d0b7
 Source20:	%{name}-jose-20170518.tar.gz
-# Source20-md5:	b1675bfc57c1b3b7e154270e2bcd4559
+# Source20-md5: b1675bfc57c1b3b7e154270e2bcd4559
 Source21:	%{name}-lager-20190430.tar.gz
-# Source21-md5:	66205d931dd27b496529c19addf6d7d9
+# Source21-md5: 66205d931dd27b496529c19addf6d7d9
 Source22:	%{name}-mqtree-20190802.tar.gz
-# Source22-md5:	16cd0ea398c505e12bd886c5fd311012
-Source23:	%{name}-p1_mysql-20180723.tar.gz
-# Source23-md5:	801894f56f9118a077bb6c4d4f10701d
+# Source22-md5: 16cd0ea398c505e12bd886c5fd311012
+Source23:	%{name}-p1_mysql-20190831.tar.gz
+# Source23-md5: 8cc96c4fcc8341b2c0565f818de2ba6d
 Source24:	%{name}-p1_oauth2-20190523.tar.gz
-# Source24-md5:	5a1284f4e055d414f5867fdf54baf164
+# Source24-md5: 5a1284f4e055d414f5867fdf54baf164
 Source25:	%{name}-p1_pgsql-20190523.tar.gz
-# Source25-md5:	348772eb0ccb9952cb202a7900eb905d
+# Source25-md5: 348772eb0ccb9952cb202a7900eb905d
 Source26:	%{name}-p1_utils-20190802.tar.gz
-# Source26-md5:	19c97dcdc6a37a4b574f67bdce6b9566
+# Source26-md5: 19c97dcdc6a37a4b574f67bdce6b9566
 Source27:	%{name}-pkix-20190802.tar.gz
-# Source27-md5:	96c39ddde79ccce22e3ed3785be4861d
+# Source27-md5: 96c39ddde79ccce22e3ed3785be4861d
 Source28:	%{name}-rebar_elixir_plugin-20160105.tar.gz
-# Source28-md5:	6a069a566d71c3daa45fc4736364adf0
+# Source28-md5: 6a069a566d71c3daa45fc4736364adf0
 Source29:	%{name}-sqlite3-20180130.tar.gz
-# Source29-md5:	cc8950eb769eb6ceb13723a7b61fe507
+# Source29-md5: cc8950eb769eb6ceb13723a7b61fe507
 Source30:	%{name}-stringprep-20190802.tar.gz
-# Source30-md5:	cd354de1ee12712a2434c39241cf5488
+# Source30-md5: cd354de1ee12712a2434c39241cf5488
 Source31:	%{name}-xmpp-20190802.tar.gz
-# Source31-md5:	73587aa235b062e592d5f043b32fe3b8
+# Source31-md5: 73587aa235b062e592d5f043b32fe3b8
 Source32:	%{name}-yconf-20190802.tar.gz
-# Source32-md5:	8ad82ed92e339c67a63f3ef5e3f95a2c
+# Source32-md5: 8ad82ed92e339c67a63f3ef5e3f95a2c
 
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
 # https://paleg.github.io/mod_logdb/
-# https://github.com/paleg/ejabberd/tree/18.06-mod_logdb
+# https://github.com/paleg/ejabberd/compare/paleg:19.08...paleg:19.08-mod_logdb.patch
 Patch3:		%{name}-mod_logdb.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
