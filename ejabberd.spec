@@ -10,7 +10,7 @@ Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
 Version:	19.08
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/Communications
 Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
@@ -73,6 +73,7 @@ Patch1:		%{name}-config.patch
 # https://paleg.github.io/mod_logdb/
 # https://github.com/paleg/ejabberd/compare/paleg:19.08...paleg:19.08-mod_logdb.patch
 Patch3:		%{name}-mod_logdb.patch
+Patch4:		ping-bug-3010.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -126,6 +127,7 @@ Server-side logging module.
 %if %{with logdb}
 %patch3 -p1
 %endif
+%patch4 -p1
 
 # Various parts of the build system use 'git describe'
 # which returns nonsense on manual builds using the builder script
