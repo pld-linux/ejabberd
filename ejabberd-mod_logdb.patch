@@ -53,9 +53,9 @@ index 2ca75b259c..fffae5742e 100644
 --- a/priv/msgs/pl.msg
 +++ b/priv/msgs/pl.msg
 @@ -444,3 +444,29 @@
- {"You're not allowed to create nodes","Nie masz uprawnień do tworzenia węzłów"}.
  {"Your Jabber account was successfully created.","Twoje konto zostało stworzone."}.
  {"Your Jabber account was successfully deleted.","Twoje konto zostało usunięte."}.
+ {"You're not allowed to create nodes","Nie masz uprawnień do tworzenia węzłów"}.
 +% mod_logdb
 +{"Users Messages", "Wiadomości użytkownika"}.
 +{"Date", "Data"}.
@@ -89,7 +89,7 @@ index f7dff97ea1..42be5d4f15 100644
 @@ -507,3 +507,33 @@
  {"Your Jabber account was successfully created.","Ваш Jabber-аккаунт был успешно создан."}.
  {"Your Jabber account was successfully deleted.","Ваш Jabber-аккаунт был успешно удален."}.
- {"Your subscription request and/or messages to ~s have been blocked. To unblock your subscription request, visit ~s","Ваши запросы на добавление в контакт-лист, а также сообщения к ~s блокируются. Для снятия блокировки перейдите по ссылке ~s"}.
+ {"You're not allowed to create nodes","Вам не разрешается создавать узлы"}.
 +% mod_logdb.erl
 +{"Users Messages", "Сообщения пользователей"}.
 +{"Date", "Дата"}.
@@ -162,16 +162,16 @@ diff --git a/rebar.config b/rebar.config
 index e05fe84e6e..c3b87afd28 100644
 --- a/rebar.config
 +++ b/rebar.config
-@@ -35,8 +35,8 @@
-         {mqtree, ".*", {git, "https://github.com/processone/mqtree", {tag, "1.0.4"}}},
-         {if_var_true, stun, {stun, ".*", {git, "https://github.com/processone/stun", {tag, "1.0.29"}}}},
-         {if_var_true, sip, {esip, ".*", {git, "https://github.com/processone/esip", {tag, "1.0.30"}}}},
+@@ -38,8 +38,8 @@
+         {base64url, ".*", {git, "https://github.com/dvv/base64url.git", {tag, "v1.0"}}},
+         {if_var_true, stun, {stun, ".*", {git, "https://github.com/processone/stun", {tag, "1.0.31"}}}},
+         {if_var_true, sip, {esip, ".*", {git, "https://github.com/processone/esip", {tag, "1.0.32"}}}},
 -        {if_var_true, mysql, {p1_mysql, ".*", {git, "https://github.com/processone/p1_mysql",
--                                               {tag, "1.0.11"}}}},
+-                                               {tag, "1.0.13"}}}},
 +        {if_var_true, mysql, {p1_mysql, ".*", {git, "https://github.com/paleg/p1_mysql",
 +                                               {tag, "1.0.11_multi"}}}},
          {if_var_true, pgsql, {p1_pgsql, ".*", {git, "https://github.com/processone/p1_pgsql",
-                                                {tag, "1.1.8"}}}},
+                                                {tag, "1.1.9"}}}},
          {if_var_true, sqlite, {sqlite3, ".*", {git, "https://github.com/processone/erlang-sqlite3",
 diff --git a/src/gen_logdb.erl b/src/gen_logdb.erl
 new file mode 100644
