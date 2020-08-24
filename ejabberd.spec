@@ -3,76 +3,79 @@
 #   (like in fedora)
 # Conditional build:
 %bcond_with	pam		# PAM authentication support
-%bcond_without	logdb		# enable mod_logdb (server-side message logging)
+%bcond_with	logdb		# enable mod_logdb (server-side message logging)
 %bcond_with	new_sql_schema	# build with the new SQL schema
 
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	20.02
+Version:	20.07
 Release:	1
 License:	GPL
 Group:		Applications/Communications
-Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	cd7631e667e52bafe4ee25f3941728f1
+# Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
+Source0:	https://www.process-one.net/downloads/downloads-action.php?file=/%{version}/%{name}-%{version}.tgz
+# Source0-md5:	f44a5fa45a0a27d196dc98335b1474e0
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
 Source4:	%{name}.logrotate
 #
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
-Source10:       ejabberd-base64url-20150806.tar.gz
-# Source10-md5: 380365a24cbd8cff33115fd7ae696db4
-Source11:       ejabberd-cache_tab-20200225.tar.gz
-# Source11-md5: e816fcfa91f40468a4260254c81d31fe
-Source12:       ejabberd-eimp-20200225.tar.gz
-# Source12-md5: 64041807f684b9f00d4b51f513523f1a
-Source13:       ejabberd-elixir-20170515.tar.gz
-# Source13-md5: 73be42f7d0cda7aeee5c0e6dadc0c451
-Source14:       ejabberd-ezlib-20200225.tar.gz
-# Source14-md5: 131e610fc15629296cefa9e3b555384b
-Source15:       ejabberd-fast_tls-20200225.tar.gz
-# Source15-md5: ac2aa0ce09de733810ee20eafdddcdef
-Source16:       ejabberd-fast_xml-20200225.tar.gz
-# Source16-md5: cb78adcac125efbecf2dc6ee32dfa2ba
-Source17:       ejabberd-fast_yaml-20200225.tar.gz
-# Source17-md5: f556997a13088bb95b955f0e5af7c938
-Source18:       ejabberd-goldrush-20160531.tar.gz
-# Source18-md5: acac73f0fc85d23671f0c49c68f8df8a
-Source19:       ejabberd-idna-20180830.tar.gz
-# Source19-md5: e34174d5c5e2e91611d3249c690f6d2d
-Source20:       ejabberd-jiffy-20190513.tar.gz
-# Source20-md5: b2aea9ea53151bf56abc35b82b902caa
-Source21:       ejabberd-jose-20181231.tar.gz
-# Source21-md5: 406b7ceab1b2d3843440dfbdd85f2e79
-Source22:       ejabberd-lager-20190430.tar.gz
-# Source22-md5: 66205d931dd27b496529c19addf6d7d9
-Source23:       ejabberd-mqtree-20200225.tar.gz
-# Source23-md5: 5d9584072e8e8300f47295294ba493ed
-Source24:       ejabberd-p1_acme-20200225.tar.gz
-# Source24-md5: 3e66326384cdfc49d99d1248e429a1c7
-Source25:       ejabberd-p1_mysql-20200225.tar.gz
-# Source25-md5: 9a6112265bb009c339ab098e6bc862a3
-Source26:       ejabberd-p1_oauth2-20200225.tar.gz
-# Source26-md5: 444a803341324e2b5f1bc3dcc6b9dabc
-Source27:       ejabberd-p1_pgsql-20200225.tar.gz
-# Source27-md5: b2400aebf34af5c31e902a4563314f2a
-Source28:       ejabberd-p1_utils-20200225.tar.gz
-# Source28-md5: 708d6f4ee02f7fbfe74de0709d4472dc
-Source29:       ejabberd-pkix-20200225.tar.gz
-# Source29-md5: 408b0e99eda542ea5cb6e2cfef35606a
-Source30:       ejabberd-rebar_elixir_plugin-20160105.tar.gz
-# Source30-md5: 6a069a566d71c3daa45fc4736364adf0
-Source31:       ejabberd-sqlite3-20180130.tar.gz
-# Source31-md5: cc8950eb769eb6ceb13723a7b61fe507
-Source32:       ejabberd-stringprep-20200225.tar.gz
-# Source32-md5: d359c25dca01849935a0a3170ac5849a
-Source33:       ejabberd-unicode_util_compat-20170729.tar.gz
-# Source33-md5: 1b348fdf38dba88ebed2f65125ad8590
-Source34:       ejabberd-xmpp-20200225.tar.gz
-# Source34-md5: ceb3e12eba2dd512e815ab2c3eb0f4fd
-Source35:       ejabberd-yconf-20200225.tar.gz
-# Source35-md5: 0708f04080b101962a1510877c74dd44
+Source10:	ejabberd-base64url-20150806.tar.gz
+# Source10-md5:	380365a24cbd8cff33115fd7ae696db4
+Source11:	ejabberd-cache_tab-20200728.tar.gz
+# Source11-md5:	79cf7ff08fe61b36b912a4df2e944227
+Source12:	ejabberd-eimp-20200728.tar.gz
+# Source12-md5:	c34a0151f9acf1c248aa4980e823961b
+Source13:	ejabberd-elixir-20170515.tar.gz
+# Source13-md5:	73be42f7d0cda7aeee5c0e6dadc0c451
+Source14:	ejabberd-ezlib-20200721.tar.gz
+# Source14-md5:	6e3f98f9a5100f999a2157cb57e3c8fc
+Source15:	ejabberd-fast_tls-20200728.tar.gz
+# Source15-md5:	3e15d467f7be6b188d99d2c1db478085
+Source16:	ejabberd-fast_xml-20200728.tar.gz
+# Source16-md5:	6c6d9c6a5442f2415b9da925d4d14695
+Source17:	ejabberd-fast_yaml-20200728.tar.gz
+# Source17-md5:	89f01b4158df4c56a9cc5797f9d319c8
+Source18:	ejabberd-goldrush-20160531.tar.gz
+# Source18-md5:	acac73f0fc85d23671f0c49c68f8df8a
+Source19:	ejabberd-idna-20180830.tar.gz
+# Source19-md5:	e34174d5c5e2e91611d3249c690f6d2d
+Source20:	ejabberd-jiffy-20200630.tar.gz
+# Source20-md5:	e99a512a9c4395bda77f07990aa9aa97
+Source21:	ejabberd-jose-20181231.tar.gz
+# Source21-md5:	406b7ceab1b2d3843440dfbdd85f2e79
+Source22:	ejabberd-lager-20190430.tar.gz
+# Source22-md5:	66205d931dd27b496529c19addf6d7d9
+Source23:	ejabberd-mqtree-20200728.tar.gz
+# Source23-md5:	6dede60127da20866ab46644cab1cc21
+Source24:	ejabberd-p1_acme-20200728.tar.gz
+# Source24-md5:	b39f5de636651f3ec868104ac86db0d1
+Source25:	ejabberd-p1_mysql-20200728.tar.gz
+# Source25-md5:	b482c810f3bb4739ac103fbfcfdcd160
+Source26:	ejabberd-p1_oauth2-20200728.tar.gz
+# Source26-md5:	0eb3ac030537202ef16b74d97788a761
+Source27:	ejabberd-p1_pgsql-20200728.tar.gz
+# Source27-md5:	dbe3ef9681bb622325137d57e8b8bc11
+Source28:	ejabberd-p1_utils-20200728.tar.gz
+# Source28-md5:	9ac6040eec0dbea30b277b36ebe33a2c
+Source29:	ejabberd-pkix-20200728.tar.gz
+# Source29-md5:	68c8f90ef9083bd75439c6bccfaacb0e
+Source30:	ejabberd-rebar_elixir_plugin-20160105.tar.gz
+# Source30-md5:	6a069a566d71c3daa45fc4736364adf0
+Source31:	ejabberd-sqlite3-20200720.tar.gz
+# Source31-md5:	d786b847d79815478a11ccd012db932f
+Source32:	ejabberd-stringprep-20200728.tar.gz
+# Source32-md5:	ad94928ad7ddc4479c92cf94cce7740c
+Source33:	ejabberd-stun-20200728.tar.gz
+# Source33-md5:	9eda4f4e84dc715969e3e9072d14fbf0
+Source34:	ejabberd-unicode_util_compat-20170729.tar.gz
+# Source34-md5:	1b348fdf38dba88ebed2f65125ad8590
+Source35:	ejabberd-xmpp-20200728.tar.gz
+# Source35-md5:	4418bb3ba3909c9091d6864fcb1ea922
+Source36:	ejabberd-yconf-20200728.tar.gz
+# Source36-md5:	5677b640acce6f0302894398c093c466
 
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
@@ -125,7 +128,7 @@ Requires:	%{name} = %{version}-%{release}
 Server-side logging module.
 
 %prep
-%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27 -a 28 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35
+%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27 -a 28 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34 -a 35 -a 36
 %patch0 -p1
 %patch1 -p1
 #%%patch2 -p1
@@ -379,6 +382,7 @@ fi
 %dir %{_libdir}/sqlite3-*/priv
 %attr(755,root,root) %{_libdir}/sqlite3-*/priv/sqlite3_drv.so
 %{_libdir}/stringprep-*
+%{_libdir}/stun-*
 %{_libdir}/unicode_util_compat-*
 %{_libdir}/xmpp-*
 %{_libdir}/yconf-*
