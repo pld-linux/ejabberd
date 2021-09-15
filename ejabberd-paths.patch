@@ -29,7 +29,7 @@ diff -urNp -x '*.orig' ejabberd-21.01.org/ejabberdctl.template ejabberd-21.01/ej
 +HOME=/home/services/jabber; export HOME
  
  # define default environment variables
- SCRIPT_DIR=$(cd "${0%/*}" && pwd)
+ [ -z "$SCRIPT" ] && SCRIPT=$0
 @@ -55,7 +56,7 @@ while [ $# -gt 0 ]; do
  done
  
