@@ -9,71 +9,72 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	21.07
-Release:	2
+Version:	21.12
+Release:	1
 License:	GPL
 Group:		Applications/Communications
 # Source0:	http://www.process-one.net/downloads/ejabberd/%{version}/%{name}-%{version}.tgz
 Source0:	https://www.process-one.net/downloads/downloads-action.php?file=/%{version}/%{name}-%{version}.tgz
-# Source0-md5:	e37000934aea83e3465a7bbbef903193
+# Source0-md5:	0382a30b10aa2bf15ee656814c90af49
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
 Source4:	%{name}.logrotate
 
-Source10:	ejabberd-base64url-20190617.tar.gz
+
+Source10:	%{name}-base64url-20190617.tar.gz
 # Source10-md5:	5a12fd2fb1f992c850aba5115aab3dd4
-Source11:	ejabberd-cache_tab-20210721.tar.gz
+Source11:	%{name}-cache_tab-20210721.tar.gz
 # Source11-md5:	7cc70bf8d4b6df65a34fe43fd1983abb
-Source12:	ejabberd-eimp-20210721.tar.gz
+Source12:	%{name}-eimp-20210721.tar.gz
 # Source12-md5:	8f7b7788e612ca6c03db09866b891940
-Source13:	ejabberd-elixir-20170515.tar.gz
+Source13:	%{name}-elixir-20170515.tar.gz
 # Source13-md5:	73be42f7d0cda7aeee5c0e6dadc0c451
-Source14:	ejabberd-ezlib-20210721.tar.gz
+Source14:	%{name}-ezlib-20210721.tar.gz
 # Source14-md5:	8d0382c3ff95f82072b6aa4a3b147b51
-Source15:	ejabberd-fast_tls-20210721.tar.gz
+Source15:	%{name}-fast_tls-20210721.tar.gz
 # Source15-md5:	af03ff816797aa276a4ceff975faaaf8
-Source16:	ejabberd-fast_xml-20210721.tar.gz
-# Source16-md5:	5a9585ae9dc202a24371baefe815b298
-Source17:	ejabberd-fast_yaml-20210721.tar.gz
+Source16:	%{name}-fast_xml-20211129.tar.gz
+# Source16-md5:	65ecc85b1d0f8d80dcb034ec3d4bf33f
+Source17:	%{name}-fast_yaml-20210721.tar.gz
 # Source17-md5:	074d2700df42b61bbe7ec7f8c9d47012
-Source18:	ejabberd-goldrush-20160531.tar.gz
+Source18:	%{name}-goldrush-20160531.tar.gz
 # Source18-md5:	acac73f0fc85d23671f0c49c68f8df8a
-Source19:	ejabberd-idna-20180830.tar.gz
+Source19:	%{name}-idna-20180830.tar.gz
 # Source19-md5:	e34174d5c5e2e91611d3249c690f6d2d
-Source20:	ejabberd-jiffy-20200630.tar.gz
+Source20:	%{name}-jiffy-20200630.tar.gz
 # Source20-md5:	e99a512a9c4395bda77f07990aa9aa97
-Source21:	ejabberd-jose-20181231.tar.gz
-# Source21-md5:	406b7ceab1b2d3843440dfbdd85f2e79
-Source22:	ejabberd-lager-20210302.tar.gz
+Source21:	%{name}-jose-20201223.tar.gz
+# Source21-md5:	6e5c9910dc1e1894e31882d49f78967d
+Source22:	%{name}-lager-20210302.tar.gz
 # Source22-md5:	771b8fd52dac39ebf8df03d7b3f7ce3c
-Source23:	ejabberd-mqtree-20210721.tar.gz
+Source23:	%{name}-mqtree-20210721.tar.gz
 # Source23-md5:	d19e24ec9e57509cc49ef52adb004950
-Source24:	ejabberd-p1_acme-20210721.tar.gz
-# Source24-md5:	5bf94654bb2969c9adf8b912d5d7c8b4
-Source25:	ejabberd-p1_mysql-20210721.tar.gz
+Source24:	%{name}-p1_acme-20211129.tar.gz
+# Source24-md5:	4682d74e8cd6c13384d661dc2bdb79d2
+Source25:	%{name}-p1_mysql-20210721.tar.gz
 # Source25-md5:	346f98e9eb7e098d91aef99af47ad3e3
-Source26:	ejabberd-p1_oauth2-20210721.tar.gz
+Source26:	%{name}-p1_oauth2-20210721.tar.gz
 # Source26-md5:	02f200cda69fbba041d73239c6720e3a
-Source27:	ejabberd-p1_pgsql-20210721.tar.gz
-# Source27-md5:	5995b0e59cae21b94e0007b8c74343e5
-Source28:	ejabberd-p1_utils-20210721.tar.gz
+Source27:	%{name}-p1_pgsql-20211129.tar.gz
+# Source27-md5:	3d406d48d19310fc56f743cdfacad2d9
+Source28:	%{name}-p1_utils-20210721.tar.gz
 # Source28-md5:	75349258408c43c4a5c87e05129d277c
-Source29:	ejabberd-pkix-20210721.tar.gz
+Source29:	%{name}-pkix-20210721.tar.gz
 # Source29-md5:	253920e7a3307b3941f2ff21cec8768c
-Source30:	ejabberd-rebar_elixir_plugin-20160105.tar.gz
+Source30:	%{name}-rebar_elixir_plugin-20160105.tar.gz
 # Source30-md5:	6a069a566d71c3daa45fc4736364adf0
-Source31:	ejabberd-sqlite3-20210721.tar.gz
+Source31:	%{name}-sqlite3-20210721.tar.gz
 # Source31-md5:	a81afbe7543f58fbb2cef732d73b3d3c
-Source32:	ejabberd-stringprep-20210721.tar.gz
+Source32:	%{name}-stringprep-20210721.tar.gz
 # Source32-md5:	88e1f8eff6f0e7a8b7707ef263cfa623
-Source33:	ejabberd-stun-20210721.tar.gz
-# Source33-md5:	1e588bcdfc7f73cfd357af0d24273cb1
-Source34:	ejabberd-unicode_util_compat-20170729.tar.gz
+Source33:	%{name}-stun-20211204.tar.gz
+# Source33-md5:	43efde2a2bcebac99687afb17f2238b1
+Source34:	%{name}-unicode_util_compat-20170729.tar.gz
 # Source34-md5:	1b348fdf38dba88ebed2f65125ad8590
-Source35:	ejabberd-xmpp-20210721.tar.gz
-# Source35-md5:	f88de1455f5211783a8ae9315512c0e2
-Source36:	ejabberd-yconf-20210721.tar.gz
+Source35:	%{name}-xmpp-20211129.tar.gz
+# Source35-md5:	74ae1ea0ef542142479fdd5de0dad3dc
+Source36:	%{name}-yconf-20210721.tar.gz
 # Source36-md5:	befea2c20d4cc672c78b2b5caa8cf75d
 
 Patch0:		%{name}-paths.patch
@@ -259,13 +260,13 @@ fi
 %systemd_reload
 
 %triggerprein -- %{name} < 13.10
-if [ -e /etc/jabber/ejabberd.cfg ] ; then
-	if grep -Eq '^[^%]*access_get' /etc/jabber/ejabberd.cfg ; then
+if [ -e %{_sysconfdir}/jabber/ejabberd.cfg ] ; then
+if grep -Eq '^[^%]*access_get' %{_sysconfdir}/jabber/ejabberd.cfg ; then
 		echo "Your 'ejabberd.cfg' config file seems to use 'access_get' option of mod_vcard" >&2
 		echo "this is not supported by this ejabberd version in PLD" >&2
 		exit 1
 	fi
-	rm -f /etc/jabber/ejabberd.yml.rpmnew 2>/dev/null || :
+rm -f %{_sysconfdir}/jabber/ejabberd.yml.rpmnew 2>/dev/null || :
 fi
 if [ -e /var/lock/subsys/ejabberd ] ; then
 	# old init script won't stop ejabberd correctly
