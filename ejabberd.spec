@@ -9,13 +9,13 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	23.04
+Version:	23.10
 Release:	1
 License:	GPL
 Group:		Applications/Communications
 # Source0:	https://www.process-one.net/downloads/downloads-action.php?file=/%{version}/%{name}-%{version}.tar.gz
 Source0:	https://github.com/processone/ejabberd/archive/refs/tags/%{version}.tar.gz
-# Source0-md5:	2dd1a586f7ed8e38d19966bd19585552
+# Source0-md5:	c91ae2f93c4c4cd7b00e9cb30ac6044d
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
@@ -48,12 +48,12 @@ Source21:       ejabberd-mqtree-20220502.tar.gz
 # Source21-md5: 1f1b175534eb917780e89e4c7d49c710
 Source22:       ejabberd-p1_acme-20230117.tar.gz
 # Source22-md5: 0a0170413d2cf6cf3c083835f18bd380
-Source23:       ejabberd-p1_mysql-20230117.tar.gz
-# Source23-md5: 702c30f11a24043ffcadb8c41720c5de
+Source23:       ejabberd-p1_mysql-20231016.tar.gz
+# Source23-md5: 304d139651cc2f14769fc2d7f81b3e66
 Source24:       ejabberd-p1_oauth2-20220502.tar.gz
 # Source24-md5: bade7f8e1d18c9f6149b70268c73087b
-Source25:       ejabberd-p1_pgsql-20230418.tar.gz
-# Source25-md5: 8c96bdbf1271c26192a5cd63b3307812
+Source25:       ejabberd-p1_pgsql-20231016.tar.gz
+# Source25-md5: 6afd5c5763af4a744115d31c3d31eab8
 Source26:       ejabberd-p1_utils-20220502.tar.gz
 # Source26-md5: 0eab972a4a247519e5a898d8da6054c1
 Source27:       ejabberd-pkix-20220502.tar.gz
@@ -64,12 +64,12 @@ Source29:       ejabberd-sqlite3-20230117.tar.gz
 # Source29-md5: f9457e450712ef06a6157b23e1ebccee
 Source30:       ejabberd-stringprep-20221012.tar.gz
 # Source30-md5: b2931baf14b779c718dcd5c42c87f8d5
-Source31:       ejabberd-stun-20230117.tar.gz
-# Source31-md5: f4525c841f31a27def964d35ed8c1851
+Source31:       ejabberd-stun-20231016.tar.gz
+# Source31-md5: d9520616dd0331efaabb05c901cee249
 Source32:       ejabberd-unicode_util_compat-20170729.tar.gz
 # Source32-md5: 1b348fdf38dba88ebed2f65125ad8590
-Source33:       ejabberd-xmpp-20230418.tar.gz
-# Source33-md5: 839d8907b66b0760a59531d27d5d6f76
+Source33:       ejabberd-xmpp-20231016.tar.gz
+# Source33-md5: d2dc96824f02642a02c94fb5712d7f69
 Source34:       ejabberd-yconf-20230117.tar.gz
 # Source34-md5: 6f064bf9d6ad4cbabb44879edd2d1c9e
 
