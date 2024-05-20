@@ -1,9 +1,9 @@
 /var/log/ejabberd/*.log {
-	weekly
 	olddir /var/log/archive/ejabberd
 	su jabber jabber
 	nocreate
 	sharedscripts
+	delaycompress
 	postrotate
 		/bin/su -s /bin/bash - jabber /usr/sbin/ejabberdctl reopen_log > /dev/null
 		# ejabberd tries to rename old logs on 'reopen_log'
