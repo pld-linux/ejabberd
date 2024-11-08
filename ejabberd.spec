@@ -82,6 +82,7 @@ URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	erlang >= 2:22.2
+BuildRequires:	erlang-rebar
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
 %if %{with pam}
@@ -161,7 +162,8 @@ unset GIT_DIR GIT_WORK_TREE
 	--enable-pgsql \
 	--enable-sqlite --with-sqlite3 \
 	%{?with_pam:--enable-pam} \
-	--enable-zlib
+	--enable-zlib \
+	--with-rebar=/usr/bin/rebar
 
 touch deps/.got
 
