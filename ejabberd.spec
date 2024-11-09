@@ -77,6 +77,7 @@ Patch1:		%{name}-config.patch
 # https://github.com/paleg/ejabberd/compare/paleg:19.08...paleg:19.08-mod_logdb.patch
 Patch3:		%{name}-mod_logdb.patch
 Patch4:		system-elixir.patch
+Patch5:		erlang-27.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
@@ -132,6 +133,7 @@ Server-side logging module.
 %patch3 -p1
 %endif
 %patch4 -p1
+%patch5 -p1
 
 %{__sed} -i -e 's,@ELIXIRDIR@,%{_libdir}/elixir,' ejabberdctl.template rebar.config
 
