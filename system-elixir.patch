@@ -1,0 +1,43 @@
+--- ejabberd-23.10/rebar.config.orig	2023-10-17 15:57:50.000000000 +0200
++++ ejabberd-23.10/rebar.config	2024-11-09 01:35:09.804284686 +0100
+@@ -27,8 +27,6 @@
+         {eimp, ".*", {git, "https://github.com/processone/eimp", {tag, "1.0.22"}}},
+         {if_var_true, tools,
+          {ejabberd_po, ".*", {git, "https://github.com/processone/ejabberd-po", {branch, "main"}}}},
+-        {if_var_true, elixir,
+-         {elixir, ".*", {git, "https://github.com/elixir-lang/elixir", {tag, "v1.4.4"}}}},
+         {if_var_true, pam,
+          {epam, ".*", {git, "https://github.com/processone/epam", {tag, "1.0.14"}}}},
+         {if_var_true, redis,
+@@ -81,8 +79,6 @@
+         {yconf, ".*", {git, "https://github.com/processone/yconf", {tag, "1.0.15"}}}
+        ]}.
+ 
+-{gitonly_deps, [elixir]}.
+-
+ {if_var_true, latest_deps,
+  {floating_deps, [cache_tab,
+                   eimp,
+@@ -158,9 +154,9 @@
+                           ]}}.
+ 
+ {if_rebar3, {if_var_true, elixir,
+-              {project_app_dirs, [".", "elixir/lib"]}}}.
++              {project_app_dirs, ["@ELIXIRDIR@/lib"]}}}.
+ {if_not_rebar3, {if_var_true, elixir,
+-              {lib_dirs, ["deps/elixir/lib"]}}}.
++              {lib_dirs, ["@ELIXIRDIR@/lib"]}}}.
+ {if_var_true, elixir,
+               {src_dirs, ["include"]}}.
+ 
+--- ejabberd-23.10/ejabberdctl.template.orig	2024-11-11 00:07:00.959534985 +0100
++++ ejabberd-23.10/ejabberdctl.template	2024-11-11 00:27:41.237266444 +0100
+@@ -85,7 +85,7 @@
+ [ -n "$ERL_DIST_PORT" ] && ERLANG_OPTS="$ERLANG_OPTS -erl_epmd_port $ERL_DIST_PORT -start_epmd false"
+ # if vm.args file exists in config directory, pass it to Erlang VM
+ [ -f "$VMARGS" ] && ERLANG_OPTS="$ERLANG_OPTS -args_file $VMARGS"
+-ERL_LIBS='{{libdir}}'
++ERL_LIBS='{{libdir}}:@ELIXIRDIR@/lib'
+ ERL_CRASH_DUMP="$LOGS_DIR"/erl_crash_$(date "+%Y%m%d-%H%M%S").dump
+ ERL_INETRC="$CONFIG_DIR"/ejabberd-inetrc
+ 

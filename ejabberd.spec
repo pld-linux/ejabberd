@@ -28,8 +28,6 @@ Source11:       ejabberd-cache_tab-20220502.tar.gz
 # Source11-md5: 822bec23631e956ce927ecc5ae31e24d
 Source12:       ejabberd-eimp-20220502.tar.gz
 # Source12-md5: 39b7de8ad391da8fb12ff9b76301ced5
-Source13:       ejabberd-elixir-20170515.tar.gz
-# Source13-md5: 73be42f7d0cda7aeee5c0e6dadc0c451
 Source14:       ejabberd-ezlib-20220502.tar.gz
 # Source14-md5: 32dadbeff189a0fa18c21aa42258fa1a
 Source15:       ejabberd-fast_tls-20221012.tar.gz
@@ -78,9 +76,11 @@ Patch1:		%{name}-config.patch
 # https://paleg.github.io/mod_logdb/
 # https://github.com/paleg/ejabberd/compare/paleg:19.08...paleg:19.08-mod_logdb.patch
 Patch3:		%{name}-mod_logdb.patch
+Patch4:		system-elixir.patch
 URL:		http://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	elixir
 BuildRequires:	erlang >= 2:22.2
 BuildRequires:	erlang-rebar
 BuildRequires:	expat-devel >= 1.95
@@ -125,12 +125,15 @@ Requires:	%{name} = %{version}-%{release}
 Server-side logging module.
 
 %prep
-%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27 -a 28 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34
+%setup -q -a 10 -a 11 -a 12 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27 -a 28 -a 29 -a 30 -a 31 -a 32 -a 33 -a 34
 %patch0 -p1
 %patch1 -p1
 %if %{with logdb}
 %patch3 -p1
 %endif
+%patch4 -p1
+
+%{__sed} -i -e 's,@ELIXIRDIR@,%{_libdir}/elixir,' ejabberdctl.template rebar.config
 
 # Various parts of the build system use 'git describe'
 # which returns nonsense on manual builds using the builder script
@@ -144,8 +147,6 @@ git config user.name "Dummy"
 git add configure.ac
 git commit -a -m "dummy commit"
 git tag "%{version}"
-
-sed -i -e 's,#!.*/usr/bin/env.*elixir,#!/usr/bin/elixir,' deps/elixir/bin/mix deps/elixir/lib/mix/lib/mix/tasks/escript.build.ex
 
 %build
 unset GIT_DIR GIT_WORK_TREE
@@ -328,9 +329,6 @@ fi
 %defattr(644,root,root,755)
 %doc sql _doc/*
 %attr(755,root,root) %{_sbindir}/*
-%attr(755,root,root) %{_bindir}/elixir
-%attr(755,root,root) %{_bindir}/iex
-%attr(755,root,root) %{_bindir}/mix
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberd-inetrc
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberd.yml
 %attr(640,root,jabber) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jabber/ejabberdctl.cfg
@@ -350,7 +348,6 @@ fi
 %attr(755,root,root) %{_libdir}/eimp-*/priv/bin/eimp
 %{_libdir}/eimp-*/ebin
 %{_libdir}/eimp-*/LICENSE.txt
-%{_libdir}/elixir-*
 %{_libdir}/ezlib-*
 %{_libdir}/fast_tls-*
 %{_libdir}/fast_xml-*
