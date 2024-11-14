@@ -90,7 +90,7 @@ BuildRequires:	openssl-devel
 BuildRequires:	pam-devel
 %endif
 BuildRequires:	git-core
-BuildRequires:	rpmbuild(macros) >= 1.671
+BuildRequires:	rpmbuild(macros) >= 2.035
 BuildRequires:	sqlite3-devel
 BuildRequires:	yaml-devel
 BuildRequires:	zlib-devel
@@ -100,7 +100,7 @@ Requires(post):	sed >= 4.0
 Requires(post):	textutils
 Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun,postun):	systemd-units >= 38
-Requires:	erlang >= 2:22.2
+%{?erlang_requires}
 Requires:	expat >= 1.95
 Requires:	rc-scripts
 Requires:	systemd-units >= 38
@@ -166,7 +166,7 @@ unset GIT_DIR GIT_WORK_TREE
 	--enable-sqlite --with-sqlite3 \
 	%{?with_pam:--enable-pam} \
 	--enable-zlib \
-	--with-rebar=/usr/bin/rebar
+	--with-rebar="%__rebar"
 
 touch deps/.got
 
