@@ -30,7 +30,7 @@ diff -urNp -x '*.orig' ejabberd-21.01.org/ejabberdctl.template ejabberd-21.01/ej
  
  # define default environment variables
  [ -z "$SCRIPT" ] && SCRIPT=$0
-@@ -86,7 +86,7 @@ fi
+@@ -91,7 +91,7 @@ fi
  [ -f "$VMARGS" ] && ERLANG_OPTS="$ERLANG_OPTS -args_file $VMARGS"
  ERL_LIBS='{{libdir}}'
  ERL_CRASH_DUMP="$LOGS_DIR"/erl_crash_$(date "+%Y%m%d-%H%M%S").dump
@@ -38,4 +38,5 @@ diff -urNp -x '*.orig' ejabberd-21.01.org/ejabberdctl.template ejabberd-21.01/ej
 +ERL_INETRC="$CONFIG_DIR"/ejabberd-inetrc
  
  # define ejabberd parameters
- EJABBERD_OPTS="$EJABBERD_OPTS\
+ EJABBERD_OPTS="\
+
