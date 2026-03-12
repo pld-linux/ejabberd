@@ -1,0 +1,36 @@
+--- a/rebar.config
++++ b/rebar.config
+@@ -134,10 +134,1 @@
+-{if_rebar3, {plugins, [{rebar3_hex, "~> 7.0.8"},
+-                       {provider_asn1, "0.4.1"},
+-                       %% Protocol consolidation doesn't work correctly in upstream rebar_mix, see
+-                       %% https://github.com/Supersonido/rebar_mix/issues/27#issuecomment-894873335
+-                       %% Let's use this fixed rebar_mix fork, see its PR:
+-                       %% https://github.com/Supersonido/rebar_mix/pull/31
+-                       {if_var_true, elixir, {rebar_mix, ".*",
+-                                              {git, "https://github.com/bsanyi/rebar_mix.git",
+-                                               {branch, "consolidation_fix"}}}
+-                       }]}}.
++{if_rebar3, {plugins, [{rebar_mix, "0.5.1"}]}}.
+--- a/rebar.config.script
++++ b/rebar.config.script
+@@ -237,10 +237,5 @@
+-			  case {lists:member(DepName, GitOnlyDeps), HexVersion == ".*"} of
+-                              {true, _} ->
+-                                  {DepName, ".*", Source};
+-                              {false, true} ->
+-                                  {DepName, GitVersion};
+-                              {false, false} ->
+-                                  {DepName, HexVersion}
+-                          end;
++			  {DepName, HexVersion, Source};
+ 		     ({DepName, _HexVersion, Source}) ->
+-	              {DepName, ".*", Source}
++			  {DepName, _HexVersion, Source};
++		     (Dep) ->
++			  Dep
+--- a/deps/xmpp/rebar.config.script
++++ b/deps/xmpp/rebar.config.script
+@@ -182,1 +182,1 @@
+-	  AppendList([{pc, "~> 1.15.0"}, provider_asn1]), []},
++	  AppendList([{pc, "~> 1.15.0"}, {provider_asn1, "0.4.1"}]), []},

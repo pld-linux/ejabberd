@@ -20,7 +20,7 @@ for dir in * ; do
 done
 
 cd ..
-./rebar get-deps
+./rebar3 get-deps
 cd deps
 
 nr=10

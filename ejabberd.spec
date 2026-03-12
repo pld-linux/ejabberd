@@ -9,13 +9,13 @@
 Summary:	Fault-tolerant distributed Jabber/XMPP server
 Summary(pl.UTF-8):	Odporny na awarie rozproszony serwer Jabbera/XMPP
 Name:		ejabberd
-Version:	25.04
+Version:	26.02
 Release:	1
 License:	GPL
 Group:		Applications/Communications
-# Source0:	https://www.process-one.net/downloads/downloads-action.php?file=/%{version}/%{name}-%{version}.tar.gz
+# Source0:	https://www.process-one.net/downloads/downloads-action.php?file=/%%{version}/%%{name}-%%{version}.tar.gz
 Source0:	https://github.com/processone/ejabberd/archive/refs/tags/%{version}.tar.gz
-# Source0-md5:	91e3afbee36ab14944f8bf97341cbcf6
+# Source0-md5:	351090f1d8769866cc49a16dc3702e4a
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.service
@@ -24,63 +24,69 @@ Source4:	%{name}.logrotate
 # Archives created with the ejabberd-pack_deps.sh script (in this repo)
 Source10:       ejabberd-base64url-20190617.tar.gz
 # Source10-md5:	5a12fd2fb1f992c850aba5115aab3dd4
-Source11:       ejabberd-cache_tab-20240627.tar.gz
-# Source11-md5:	403af65aeedad3336152c9489ecdd23f
-Source12:       ejabberd-eimp-20250327.tar.gz
-# Source12-md5:	3eab3b2b815b3ea86176042435107e9d
-Source13:       ejabberd-ezlib-20240627.tar.gz
-# Source13-md5:	bdcfc1c8caa252b0b115a48946188180
-Source14:       ejabberd-fast_tls-20241028.tar.gz
-# Source14-md5:	8c45922fb90b34f6ec5119b3d4bc6e18
-Source15:       ejabberd-fast_xml-20241218.tar.gz
-# Source15-md5:	db253da3da2e1a96a1f3e29644253469
-Source16:       ejabberd-fast_yaml-20240627.tar.gz
-# Source16-md5:	24dbd82e1efdf6d42ab29b6114d75773
-Source17:       ejabberd-idna-20180830.tar.gz
-# Source17-md5:	e34174d5c5e2e91611d3249c690f6d2d
-Source18:       ejabberd-jiffy-20220223.tar.gz
-# Source18-md5:	b98489245dadf5a36ac3408be21d835a
-Source19:       ejabberd-jose-20240417.tar.gz
-# Source19-md5:	9641b5bb29b97c7d58345a886ffe165e
-Source20:       ejabberd-mqtree-20240627.tar.gz
-# Source20-md5:	7382496f9e4dda87ed13b763ab83102c
-Source21:       ejabberd-p1_acme-20241218.tar.gz
-# Source21-md5:	5714434c12713be07eeeaf80d23959e4
-Source22:       ejabberd-p1_mysql-20250327.tar.gz
-# Source22-md5:	7e09654896e898f95051e5c7d829ee4b
-Source23:       ejabberd-p1_oauth2-20240123.tar.gz
-# Source23-md5:	7c18266d7bd911e16948db91c28af651
-Source24:       ejabberd-p1_pgsql-20250327.tar.gz
-# Source24-md5:	f65b81548fa79f4612dd05bfea44ae3a
-Source25:       ejabberd-p1_utils-20250221.tar.gz
-# Source25-md5:	90498e69688e53dc4fa28accf80d1e72
-Source26:       ejabberd-pkix-20240627.tar.gz
-# Source26-md5:	d6b72b6881b79f91cd06c05f71384e14
-Source27:       ejabberd-sqlite3-20240627.tar.gz
-# Source27-md5:	16e8a8f35ba615a3be79bf7b143a9ab7
-Source28:       ejabberd-stringprep-20250221.tar.gz
-# Source28-md5:	94f5694e1d4bc9b841d1e4bc6c0775a3
-Source29:       ejabberd-stun-20250327.tar.gz
-# Source29-md5:	32dea0cf63d40125270c1e324691d1c9
-Source30:       ejabberd-unicode_util_compat-20170729.tar.gz
-# Source30-md5:	1b348fdf38dba88ebed2f65125ad8590
-Source31:       ejabberd-xmpp-20250327.tar.gz
-# Source31-md5:	edce7f7d589491a64f11c6c82d496570
-Source32:       ejabberd-yconf-20250327.tar.gz
-# Source32-md5:	892ea705082b78b1f3e993414736cd88
-
+Source11:       ejabberd-cache_tab-20250711.tar.gz
+# Source11-md5:	e30cc84a853d6428dcae901353d80c07
+Source12:       ejabberd-eimp-20250711.tar.gz
+# Source12-md5:	0c5b1e205bb27411d3bb79cdcf5a8730
+Source13:       ejabberd-erlydtl-20250813.tar.gz
+# Source13-md5:	e061df1be17c0e7d1827907f27318a8e
+Source14:       ejabberd-ezlib-20250711.tar.gz
+# Source14-md5:	79a14e7cb3ead683fe51ee4b8ff03779
+Source15:       ejabberd-fast_tls-20250820.tar.gz
+# Source15-md5:	70a92a254691800f8a5db37d9922558e
+Source16:       ejabberd-fast_xml-20250711.tar.gz
+# Source16-md5:	23f0acad1dbe175aeda1f9d0b1ed6a73
+Source17:       ejabberd-fast_yaml-20250711.tar.gz
+# Source17-md5:	eb19d5ccfcb0774f4d715dde2dc86f49
+Source18:       ejabberd-idna-20180830.tar.gz
+# Source18-md5:	e34174d5c5e2e91611d3249c690f6d2d
+Source19:       ejabberd-jiffy-20220223.tar.gz
+# Source19-md5:	b98489245dadf5a36ac3408be21d835a
+Source20:       ejabberd-jose-20251120.tar.gz
+# Source20-md5:	280dafb5cec4aafe7760467e0938106b
+Source21:       ejabberd-mqtree-20250711.tar.gz
+# Source21-md5:	d1c8cbee0f63ef9e40b7dce3670a6208
+Source22:       ejabberd-p1_acme-20260119.tar.gz
+# Source22-md5:	51281dfbfdb38f388b7c848db7b5d615
+Source23:       ejabberd-p1_mysql-20260119.tar.gz
+# Source23-md5:	dfe8a014cac8aeffb2209108bc8bc95e
+Source24:       ejabberd-p1_oauth2-20240123.tar.gz
+# Source24-md5:	7c18266d7bd911e16948db91c28af651
+Source25:       ejabberd-p1_pgsql-20260119.tar.gz
+# Source25-md5:	9f05668d729ba06a95493e8a568feb22
+Source26:       ejabberd-p1_utils-20250711.tar.gz
+# Source26-md5:	6845ebdc2aedcbb6c2ed917f15890df7
+Source27:       ejabberd-pkix-20240627.tar.gz
+# Source27-md5:	d6b72b6881b79f91cd06c05f71384e14
+Source28:       ejabberd-sqlite3-20240627.tar.gz
+# Source28-md5:	16e8a8f35ba615a3be79bf7b143a9ab7
+Source29:       ejabberd-stringprep-20250711.tar.gz
+# Source29-md5:	86847d5e38e6fce3f702ca5e1951efe3
+Source30:       ejabberd-stun-20250820.tar.gz
+# Source30-md5:	a8da79142e4ac13d9d9590d93cc6bd26
+Source31:       ejabberd-unicode_util_compat-20170729.tar.gz
+# Source31-md5:	1b348fdf38dba88ebed2f65125ad8590
+Source32:       ejabberd-xmpp-20260119.tar.gz
+# Source32-md5:	1e7fc8ad5e5cc0923ac719e382127e3a
+Source33:       ejabberd-yconf-20251023.tar.gz
+# Source33-md5:	76ac924f50ef7e20eb55f3c7ae8de119
 Patch0:		%{name}-paths.patch
 Patch1:		%{name}-config.patch
+# Build from vendored deps and local rebar3 plugins without network access.
+Patch2:		rebar3-offline-build.patch
 # https://paleg.github.io/mod_logdb/
 # https://github.com/paleg/ejabberd/compare/paleg:19.08...paleg:19.08-mod_logdb.patch
 Patch3:		%{name}-mod_logdb.patch
 Patch4:		system-elixir.patch
-URL:		http://www.ejabberd.im/
+URL:		https://www.ejabberd.im/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	elixir
-BuildRequires:	erlang >= 2:22.2
-BuildRequires:	erlang-rebar
+BuildRequires:	erlang >= 2:27
+BuildRequires:	erlang-rebar3
+BuildRequires:	erlang-rebar3-pc
+BuildRequires:	erlang-rebar3-provider-asn1
+BuildRequires:	erlang-rebar3-rebar-mix
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	openssl-devel
 %if %{with pam}
@@ -99,6 +105,7 @@ Requires(post,preun):	/sbin/chkconfig
 Requires(post,preun,postun):	systemd-units >= 38
 %{?erlang_requires}
 Requires:	expat >= 1.95
+Requires:	elixir
 Requires:	rc-scripts
 Requires:	systemd-units >= 38
 Conflicts:	logrotate < 3.8.0
@@ -123,15 +130,17 @@ Requires:	%{name} = %{version}-%{release}
 Server-side logging module.
 
 %prep
-%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27 -a 28 -a 29 -a 30 -a 31 -a 32
+%setup -q -a 10 -a 11 -a 12 -a 13 -a 14 -a 15 -a 16 -a 17 -a 18 -a 19 -a 20 -a 21 -a 22 -a 23 -a 24 -a 25 -a 26 -a 27 -a 28 -a 29 -a 30 -a 31 -a 32 -a 33
 %patch -P0 -p1
 %patch -P1 -p1
+%patch -P2 -p1
 %if %{with logdb}
 %patch -P3 -p1
 %endif
-#%%patch -P4 -p1
+%patch -P4 -p1
 
 %{__sed} -i -e 's,@ELIXIRDIR@,%{_libdir}/elixir,' ejabberdctl.template rebar.config
+rm -f mix.lock rebar.lock
 
 # Various parts of the build system use 'git describe'
 # which returns nonsense on manual builds using the builder script
@@ -162,9 +171,18 @@ unset GIT_DIR GIT_WORK_TREE
 	--enable-sqlite --with-sqlite3 \
 	%{?with_pam:--enable-pam} \
 	--enable-zlib \
-	--with-rebar="%__rebar"
+	--with-rebar="%{_bindir}/rebar3"
 
-touch deps/.got
+# rebar3 resolves project deps from _checkouts during offline builds.
+# The source tarball already contains _checkouts/configure_deps.
+# A single `ln -s deps _checkouts` would create _checkouts/deps (inside that dir),
+# so deps would not be visible as _checkouts/<dep> and rebar3 would try network fetches.
+# Our Source10..Source33 tarballs are unpacked into deps/*, so link them one-by-one.
+mkdir -p _checkouts
+for dep in deps/* ; do
+	depbase=$(basename "$dep")
+	ln -snf "$PWD/$dep" "_checkouts/$depbase"
+done
 
 cd deps/stringprep
 %configure
@@ -184,7 +202,16 @@ cd ../..
 
 # for elixir VM
 LC_ALL=en_US.UTF-8; export LC_ALL
-%{__make} -j1
+# Upstream Makefile defaults MAYBE to ERL_FLAGS for OTP 25; force empty on OTP 27+.
+REBAR_OFFLINE=1 \
+%{__make} MAYBE= _build/default/lib/.built -j1 \
+	DIAGNOSTIC=1 \
+	DEBUG=1
+%{__make} scripts
+# _build/default/lib/.built doesn't run the src target's mix compile.elixir step,
+# so compile Elixir modules explicitly to keep Elixir.*.beam files in the package.
+ERL_LIBS=$PWD/_build/default/lib \
+elixirc -o _build/default/lib/ejabberd/ebin $(find lib -name '*.ex' -print)
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -194,7 +221,17 @@ install -d $RPM_BUILD_ROOT{/var/lib/%{name},/etc/{sysconfig,rc.d/init.d}} \
 
 unset GIT_DIR GIT_WORK_TREE
 
-%{__make} install -j1 \
+# copy-files/install targets read dependency artifacts from _build/default/lib,
+# while rebar3 checkouts compile into _build/default/checkouts.
+mkdir -p _build/default/lib
+for dep in _build/default/checkouts/* ; do
+	depbase=$(basename "$dep")
+	ln -snf "$PWD/$dep" "_build/default/lib/$depbase"
+done
+
+# Keep MAYBE empty here as well for the same OTP 27+ reason as in %build.
+REBAR_OFFLINE=1 \
+%{__make} MAYBE= install -j1 \
 	CHOWN_COMMAND=true \
 	O_USER="" \
 	G_USER="" \
@@ -207,7 +244,7 @@ cp -p %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/%{name}
 
 chmod u+rw $RPM_BUILD_ROOT%{_sbindir}/%{name}*
 
-chmod 755 $RPM_BUILD_ROOT%{_libdir}/*/priv/lib/*.so
+chmod 755 "$RPM_BUILD_ROOT"%{_libdir}/*/priv/lib/*.so
 
 rm -rf _doc 2>/dev/null || :
 mv $RPM_BUILD_ROOT%{_docdir}/%{name} _doc
@@ -340,12 +377,12 @@ fi
 %{_libdir}/ejabberd-%{version}
 %{_libdir}/base64url-*
 %{_libdir}/cache_tab-*
+%{_libdir}/erlydtl-*
 %dir %{_libdir}/eimp-*
 %dir %{_libdir}/eimp-*/priv
 %dir %{_libdir}/eimp-*/priv/bin
 %attr(755,root,root) %{_libdir}/eimp-*/priv/bin/eimp
 %{_libdir}/eimp-*/ebin
-%{_libdir}/eimp-*/LICENSE.txt
 %{_libdir}/ezlib-*
 %{_libdir}/fast_tls-*
 %{_libdir}/fast_xml-*
@@ -365,9 +402,12 @@ fi
 %{_libdir}/p1_utils-*
 %dir %{_libdir}/pkix-*
 %{_libdir}/pkix-*/ebin
-%{_libdir}/pkix-*/LICENSE
+%dir %{_libdir}/pkix-*/priv
+%{_libdir}/pkix-*/priv/cacert.pem
 %{_libdir}/sqlite3-*/ebin
 %dir %{_libdir}/sqlite3-*
+%dir %{_libdir}/sqlite3-*/include
+%{_libdir}/sqlite3-*/include/sqlite3.hrl
 %dir %{_libdir}/sqlite3-*/priv
 %attr(755,root,root) %{_libdir}/sqlite3-*/priv/sqlite3_drv.so
 %{_libdir}/stringprep-*
